@@ -1,0 +1,61 @@
+{% extends "./record_wizard_base.html" %}
+{% load editor_form_tags %}
+
+{% block form_sections %}
+<div class="form-section">
+  <h2>STATUS</h2>
+  <fieldset id="status">
+    <div class="fieldset-header">
+      {% csrf_token %}
+      {{ wizard.management_form }}
+      <h4>??</h4>
+      <div>
+        <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+      </div>
+    </div>
+    <div class="fieldset-body expand">
+      <div class="two-column-table">
+        <div>
+          {% render_field wizard.form.maintenancestatus_value %}
+        </div>
+        <div>
+          {% render_field wizard.form.publicationstatus_value %}
+        </div>
+      </div>
+    </div>
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>MAINTENANCE HISTORY</h2>
+  <fieldset id="maintenance_history">
+    <div class="fieldset-header">
+      <h4>??</h4>
+      <div>
+        <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+      </div>
+    </div>
+    <div class="fieldset-body expand">
+      <div class="formset">
+        {% with maintenanceevents=wizard.form.formsets.maintenanceevents %}
+        <div class="management_form">
+          {{ maintenanceevents.management_form }}
+        </div>
+        <div class="fieldsets">
+          {% for maintenanceevent in maintenanceevents.forms %}
+          {% include "./includes/maintenanceevent_inline_form.html" with form=maintenanceevent %}
+          {% endfor %}
+        </div>
+        {% endwith %}
+      </div>
+    </div>
+  </fieldset>
+</div>
+{% endblock form_sections %}
+
+{% block empty_forms %}
+{% with maintenanceevent_form=wizard.form.formsets.maintenanceevents.empty_form %}
+{% include "./includes/maintenanceevent_inline_form.html" with form=maintenanceevent_form %}
+{% include "./includes/eventdescription_inline_form.html" with form=maintenanceevent_form.formsets.eventdescriptions.empty_form %}
+{% endwith %}
+{% endblock empty_forms %}

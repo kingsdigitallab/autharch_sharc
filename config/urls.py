@@ -17,6 +17,7 @@ urlpatterns = [
     path("users/", include("autharch_sharc.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
+    path("editor/", include("editor.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # API URLS

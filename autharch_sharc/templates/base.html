@@ -1,119 +1,117 @@
-{% load static i18n compress%}<!DOCTYPE html>
+{% load compress static %}
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>{% block title %}Autharch for ShaRC{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="TODO: Autharch for ShaRC description...">
-    <meta name="author" content="King's Digital Lab">
-
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <![endif]-->
-
-    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
-
-    {% block css %}
-    
-    <!-- Latest compiled and minified Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    
-
-    <!-- Your stuff: Third-party CSS libraries go here -->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>ShaRC Collaborative Workspace</title>
+    <link rel="icon" href="{% static 'images/favicon.png' %}">
+    {% block head_css %}
+    <link rel="stylesheet" href="{% static 'css/richtext.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery-ui.css' %}">
     {% compress css %}
-    <!-- This file stores project-specific CSS -->
-    
-    <link href="{% static 'css/project.css' %}" rel="stylesheet">
-    
+    <link rel="stylesheet" href="{% static 'sass/project.scss' %}" type="text/x-scss" />
     {% endcompress %}
-    {% endblock %}
-
+    {% endblock head_css %}
+    {% block head_js %}{% endblock head_js %}
+    {% block extra_head %}{% endblock extra_head %}
   </head>
-
   <body>
-
-    <div class="mb-1">
-      <nav class="navbar navbar-expand-md navbar-light bg-light">
-        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <a class="navbar-brand" href="{% url 'home' %}">Autharch for ShaRC</a>
-
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'about' %}">About</a>
-            </li>
-            {% if request.user.is_authenticated %}
-              <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a class="nav-link" href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a>
-              </li>
-              <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a class="nav-link" href="{% url 'account_logout' %}">{% trans "Sign Out" %}</a>
-              </li>
-            {% else %}
-              <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a>
-              </li>
-              <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% trans "Sign In" %}</a>
-              </li>
-            {% endif %}
-          </ul>
+    {% block header %}
+    <header>
+      <div id="logo">
+        {% comment %}<a href="{% url 'editor:home' %}"><img src="{% static 'images/GPPLogo.png' %}" alt="GPP logo" /></a>{% endcomment %}
+      </div>
+      <input type="checkbox" id="mobile_nav_checkbox" aria-label="checkbox to open the menu"/>
+      <label for="mobile_nav_checkbox" id="mobile_nav">
+        <span class="for-screen-readers">Menu</span>
+        <span class="line1" aria-hidden="true"></span>
+        <span class="line2" aria-hidden="true"></span>
+        <span class="line3" aria-hidden="true"></span>
+      </label>
+      <nav id="menu-links">
+        {% comment %}<div class="link{% if current_section == 'home' %} active{% endif %}">
+          <a href="{% url 'editor:home' %}">
+            <i class="fal fa-home"></i>
+            <h4>Dashboard</h4>
+          </a>
         </div>
+        <div class="link{% if current_section == 'entities' %} active{% endif %}">
+          <a href="{% url 'editor:entities-list' %}">
+            <i class="fal fa-users"></i>
+            <h4>People and<br> corporate bodies</h4>
+          </a>
+        </div>
+        <div class="link{% if current_section == 'records' %} active{% endif %}">
+          <a href="{% url 'editor:records-list' %}">
+            <i class="fal fa-archive"></i>
+            <h4>Archival records</h4>
+          </a>
+        </div>
+        <!-- TODO: display if deleted > 0 -->
+        {% if show_delete %}
+        <div class="link{% if current_section == 'deleted' %} active{% endif %}">
+          <a href="{% url 'editor:deleted-list' %}">
+            <i class="far fa-trash-alt"></i>
+            <h4>Deleted</h4>
+          </a>
+        </div>
+        {% endif %}
+        {% if show_delete %}
+        <div class="link{% if current_section == 'duplicates' %} active{% endif %}">
+          <a href="{% url 'editor:duplicates-list' %}">
+            <i class="fal fa-copy"></i>
+            <h4>Duplicates</h4>
+          </a>
+        </div>
+        {% endif %}{% endcomment %}
       </nav>
-
-    </div>
-
-    <div class="container">
-
-      {% if messages %}
-          {% for message in messages %}
-              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>
-          {% endfor %}
-      {% endif %}
-
-      {% block content %}
-        <p>Use this document as a way to quick start any new project.</p>
-      {% endblock content %}
-
-    </div> <!-- /container -->
-
-    <div class="footer">
-        <a href="https://www.kdl.kcl.ac.uk/cookie-use/">Cookies</a>
-        <a href="https://www.kdl.kcl.ac.uk/privacy-policy/">Privacy Policy</a>
-    </div>
-
-    {% block modal %}{% endblock modal %}
-
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    {% block javascript %}
-      
-      <!-- Bootstrap JS and its dependencies-->
-      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-
-      <!-- Your stuff: Third-party javascript libraries go here -->
-      
-
-      <!-- place project specific Javascript in this file -->
-      {% compress js %}
-      <script src="{% static 'js/project.js' %}"></script>
-      {% endcompress %}
-
-    {% endblock javascript %}
+      {% comment %}<div id="menu-account">
+        <div class="link{% if current_section == 'account' %} active{% endif %}">
+          <a href="{% url 'editor:account-control' %}">
+            <i class="fal fa-user"></i>
+            <h4>Account control</h4>
+          </a>
+        </div>
+        <div class="link">
+          <a href="{% url 'editor:logout' %}" id="logout">
+            <i class="far fa-sign-out-alt"></i>
+            <h4>Logout</h4>
+          </a>
+        </div>
+      </div>{% endcomment %}
+    </header>
+    {% endblock %}
+    {% block main %}
+    {% block page_header %}
+    {% endblock page_header %}
+    {% block content %}
+    {% endblock content %}
+    {% endblock main %}
+    {% block footer %}
+    <footer>
+      {% comment %}<p><a href="{% url 'editor:guidance' %}" class="highlight">How to use</a><span class="divider"></span><a href="{% url 'editor:accessibility-statement' %}">Accessibility statement</a></p>{% endcomment %}
+      <p>© {% now "Y" %} Designed, developed and maintained by <a href="https://www.kdl.kcl.ac.uk/">King's Digital Lab</a></p>
+    </footer>
+    {% endblock footer %}
+    {% block end_js %}
+    <script src="{% static 'vendor/jquery/dist/jquery.min.js' %}"></script>
+    <script src="{% static 'js/ckeditor/ckeditor.js' %}"></script>
+    <script src="{% static 'js/simplePagination/jquery.simplePagination.js' %}"></script>
+    <script src="{% static 'js/ckeditor/adapters/jquery.js' %}"></script>
+    <script src="{% static 'js/jquery-ui/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'js/select2/select2.min.js' %}"></script>
+    <script src="{% static 'js/sugar/sugar.min.js' %}"></script>
+    <script src="{% static 'js/tablesorter/jquery.tablesorter.js' %}"></script>
+    <script src="{% static 'js/tablesorter/jquery.tablesorter.widgets.js' %}"></script>
+    <script src="{% static 'js/tablesorter/parser-date.js' %}"></script>
+    <script src="{% static 'js/tablesorter/pager-custom-controls.js' %}"></script>
+    <script src="{% static 'js/tablesorter/addons/pager/jquery.tablesorter.pager.min.js' %}"></script>
+    <script src="{% static 'js/project.js' %}"></script>
+    {% endblock end_js %}
+    {% block extra_js %}
+    {% endblock extra_js %}
   </body>
 </html>
- 

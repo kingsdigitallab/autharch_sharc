@@ -80,6 +80,7 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     'controlled_vocabulary',
     "ead",
+    'editor',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -279,6 +280,16 @@ SOCIALACCOUNT_ADAPTER = "autharch_sharc.users.adapters.SocialAccountAdapter"
 # https://django-compressor.readthedocs.io/en/latest/quickstart/#installation
 INSTALLED_APPS += ["compressor"]
 STATICFILES_FINDERS += ["compressor.finders.CompressorFinder"]
+COMPRESS_ENABLED = True
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.cssmin.CSSMinFilter',
+]
+# django-libsass
+# ---------------------------------------------------------------------------
+# https://github.com/torchbox/django-libsass
+COMPRESS_PRECOMPILERS = (
+    ('text/x-scss', 'django_libsass.SassCompiler'),
+)
 # django-rest-framework
 # -------------------------------------------------------------------------------
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/

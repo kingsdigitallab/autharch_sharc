@@ -1,0 +1,90 @@
+{% extends "./record_wizard_base.html" %}
+{% load editor_form_tags %}
+
+{% block form_sections %}
+<div class="form-section">
+  <h2>SUMMARY</h2>
+  <fieldset id="summary">
+    <div class="fieldset-header">
+      {% csrf_token %}
+      {{ wizard.management_form }}
+      <h4>??</h4>
+      <div>
+        <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+      </div>
+    </div>
+    <div class="fieldset-body expand">
+      <div class="two-column-table">
+        <div>
+          {% render_field wizard.form.recordid %}
+        </div>
+        <div>
+          {% if wizard.form.is_bound and not wizard.form.is_valid %}{{ wizard.form }}{% endif %}
+        </div>
+      </div>
+    </div>
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>REFERENCES</h2>
+  <fieldset id="published_references">
+    <div class="fieldset-header">
+      <h4>Published</h4>
+      <div>
+        <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+      </div>
+    </div>
+    <div class="fieldset-body expand">
+      <div class="formset">
+        {% with bibliographies=wizard.form.formsets.bibliographies %}
+        <div class="management_form">
+          {{ bibliographies.management_form }}
+        </div>
+        <div class="fieldsets">
+          {% for bibliography in bibliographies.forms %}
+          {% include "./includes/bibliography_inline_form.html" with form=bibliography %}
+          {% endfor %}
+        </div>
+        {% endwith %}
+      </div>
+    </div>
+  </fieldset>
+  <fieldset id="unpublished_references">
+    <div class="fieldset-header">
+      <h4>Unpublished</h4>
+      <div>
+        <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+      </div>
+    </div>
+    <div class="fieldset-body expand">
+      <div class="formset">
+        {% with sources=wizard.form.formsets.sources %}
+        <div class="management_form">
+          {{ sources.management_form }}
+        </div>
+        <div class="fieldsets">
+          {% for source in sources.forms %}
+          {% include "./includes/source_inline_form.html" with form=source %}
+          {% endfor %}
+        </div>
+        {% endwith %}
+      </div>
+      <label class="create linked-button">
+        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('source', this)">Add unpublished reference
+      </label>
+    </div>
+  </fieldset>
+</div>
+{% endblock form_sections %}
+
+{% block empty_forms %}
+{% with bibliography_form=wizard.form.formsets.bibliographies.empty_form %}
+{% include "./includes/bibliography_inline_form.html" with form=bibliography_form %}
+{% include "./includes/bibref_inline_form.html" with form=bibliography_form.formsets.bibrefs.empty_form %}
+{% endwith %}
+{% with source_form=wizard.form.formsets.sources.empty_form %}
+{% include "./includes/source_inline_form.html" with form=source_form %}
+{% include "./includes/sourceentry_inline_form.html" with form=source_form.formsets.sourceentries.empty_form %}
+{% endwith %}
+{% endblock empty_forms %}

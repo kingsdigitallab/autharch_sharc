@@ -1,0 +1,16 @@
+{% load editor_form_tags %}
+<fieldset data-form-type="eventdescription">
+  <div class="fieldset-header">
+    <h4>Event Description</h4>
+    <div class="flex">
+      <div>
+        {% include "./delete_inline_button.html" %}
+      </div>
+      <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+    </div>
+  </div>
+  <div class="fieldset-body expand inline-deletable">
+    {% render_field form.id %}
+    {% render_field form.eventdescription %}
+  </div>
+</fieldset>
