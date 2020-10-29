@@ -1,19 +1,134 @@
 {% extends "base.html" %}
+{% load editor_form_tags %}
 {% block main %}
 <main>
-  <table>
-    <thead>
-      <tr>
-        <th scope="col">Title</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for record in records %}
-      <tr>
-        <td><a href="{% url 'editor:record-wizard' record.id %}">{{ record.unittitle_set.all.0.unittitle }}</a></td>
-      </tr>
+  {% block page_header %}
+  <div class="page-header">
+    <h1>Archival records ({{ records.count }})</h1>
+    <div class="search-filter">
+      <form action="." class="search" id="record-search-form" method="get">
+        <label>
+          <span class="for-screen-readers">Search</span>
+          {{ search_form.q }}
+        </label>
+        <input type="submit" class="search-button" aria-label="Search button" value="&#xf002;"/>
+      </form>
+      <div class="filter-block">
+        <input type="checkbox" class="none" id="filter" aria-label="Filter"/>
+        <label for="filter" class="filter-button"><span class="for-screen-readers">Filter</span></label>
+        <div class="filters-hidden">
+          <a href="." class="dotted-underline clear-filters aoctive">Clear all filters</a>
+          <div class="filters">
+            {% if min_year != None and max_year != None %}
+            <fieldset class="filter-list" id="year-range-filter">
+              <legend>Creation year</legend>
+              <div id="year-range"></div>
+              {{ form.start_year }} – {{ form.end_year }}
+              <a href="" class="checkbox-anchor" id="year-range-anchor">Filter</a>
+            </fieldset>
+            {% endif %}
+            {% if facets.fields.archival_level|length > 0 %}
+            <fieldset class="filter-list" id="document-level-filter">
+              <legend>Document level</legend>
+              {% if facets.fields.archival_level|length > 7 %}
+              <input type="text" name="search-archivalLevel" aria-label="search archival level" class="instant-search" placeholder="Search archival level" onfocus="this.placeholder=''" onblur="this.placeholder='Search archival level'"/>
+              {% endif %}
+              {% for archival_level in facets.fields.archival_level %}
+              {% render_facet archival_level %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% if facets.fields.transcription_text|length > 0 %}
+            <fieldset class="filter-list" id="has-transcriptions-filter">
+              <legend>Transcriptions</legend>
+              {% for transcription_text in facets.fields.transcription_text %}
+              {% render_facet transcription_text %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock page_header %}
+
+  {% block content %}
+  {% if facets.selected or start_year or end_year %}
+  <div class="selected-facets">
+    <h4>Selected filters</h4>
+    <p>
+      {% for selected_facet in facets.selected %}
+      {% render_facet selected_facet %}
       {% endfor %}
-    </tbody>
-  </table>
+      {% if start_year or end_year %}
+      <a href="{{ year_remove_link }}" class="checkbox-anchor">
+        <input type="checkbox" aria-label="" checked="checked" onclick='window.location.assign("{{ year_remove_link }}")'/>Year range: {{ start_year }}–{{ end_year }}
+      </a>
+      {% endif %}
+      <a href="." class="dotted-underline clear-filters">Clear all filters</a>
+    </p>
+  </div>
+  {% endif %}
+  <div class="table-container">
+    {% if query %}
+    <h2>Search results for "{{ query }}" <a href="." class="dotted-underline clear-filters active mgn-left">Clear search</a></h2>
+    {% endif %}
+    <table id="records-list-table" class="tablesorter">
+      <thead>
+        <tr>
+          <th class="description" data-label="Title" data-placeholder="Filter by title" scope="col">Title <button class="button-link dotted-underline mgn-left" onclick="toggleAllMoreInformation()">Expand all</button></th>
+          <th scope="col" data-label="Writer" data-placeholder="Filter by writer">Writer</th>
+          <th class="filter-select" scope="col" data-label="Level" data-placeholder="Select">Level</th>
+          <th class="filter-select" scope="col" data-label="Publication status" data-placeholder="Publication status">Publication status</th>
+          <th class="sorter-sugar" scope="col" data-label="Updated" data-placeholder="Filter by date">Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+        {% comment %}Bizarrely, three records are being returned when no query is supplied that are lacking all information! Until that problem is fixed, don't try to display them and run afoul of NoReverseMatch errors.{% endcomment %}
+        {% if record.pk %}
+        <tr>
+          <td class="description archival-record"><a href="{% url 'editor:record-wizard' record.pk %}">{{ record.unittitle|truncatewords:30 }}</a></td>
+          <td class="description">
+            {% for creator in record.creators %}
+            {{ creator.name }}{% if not forloop.last %}; {% endif %}
+            {% endfor %}
+          </td>
+          <td>{{ record.archdesc_level }}</td>
+          <td>{{ record.publicationstatus_value }}</td>
+          <td data-text="{{ result.modified.isoformat }}">{{ result.modified }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div id="records-list-table_pager_info" class="pager">
+    {% if records.count > 10 %}
+    <div class="page-size">
+      <p>
+        rows per page: <a href="#" data-label="10">10</a>
+        {% if records.count > 25 %}
+          | <a href="#" data-label="25">25</a>
+          {% if records.count > 50 %}
+          | <a href="#" data-label="50">50</a>
+            {% if records.count > 100 %}
+            |  <a href="#" data-label="100">100</a>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </p>
+    </div>
+    <div class="page-list">
+      <button class="first"><i class="fal fa-step-backward"></i></button>
+      <button class="prev"><i class="fal fa-caret-left"></i></button>
+      <span class="pagecount"></span>
+      <button class="next"><i class="fal fa-caret-right"></i></button>
+      <button class="last"><i class="fal fa-step-forward"></i></button>
+    </div>
+    {% endif %}
+  </div>
+  {% endblock content %}
 </main>
 {% endblock main %}

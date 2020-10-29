@@ -1,19 +1,43 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.views.generic import ListView
+
+from elasticsearch_dsl import FacetedSearch, NestedFacet, Q, TermsFacet
 
 from formtools.wizard.views import NamedUrlSessionWizardView
 
 from ead.models import EAD
 
 from . import forms
+from .documents import EADDocument
+from .generic_views import SearchView
 
 
-class RecordList(ListView):
+class RecordSearch(FacetedSearch):
+    doc_types = [EADDocument]
+    facets = {
+        'creators': NestedFacet('creators', TermsFacet(field='creators.id')),
+    }
 
-    queryset = EAD.objects.all()[:10]
+
+class RecordList(SearchView):
+
     context_object_name = 'records'
+    form_class = forms.EADSearchForm
+    search_class = RecordSearch
     template_name = 'editor/record_list.html'
+
+    def form_valid(self, form):
+        query = form.cleaned_data.get(self.search_field)
+        search = self.search_class().search()
+        if query:
+            q = Q('simple_query_string', query=query)
+            search = search.query(q)
+        context = self.get_context_data(**{
+            self.context_object_name: search[:10000],
+            self.form_name: form,
+            'query': query,
+        })
+        return self.render_to_response(context)
 
 
 class RecordWizard(NamedUrlSessionWizardView):

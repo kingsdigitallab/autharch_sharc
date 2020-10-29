@@ -7,6 +7,21 @@ from ead.models import (
     Bibliography, EAD, EventDescription, MaintenanceEvent, Source, SourceEntry)
 
 
+RECORD_SEARCH_INPUT_ATTRS = {
+    'aria-label': 'Search',
+    'placeholder': 'Search all archival records',
+    'type': 'search',
+}
+
+RECORD_SEARCH_START_YEAR_INPUT_ATTRS = {
+    'aria-label': 'Start year',
+}
+
+RECORD_SEARCH_END_YEAR_INPUT_ATTRS = {
+    'aria-label': 'End year',
+}
+
+
 class BibRefForm(forms.Form):
     bibref = forms.CharField(widget=forms.Textarea)
 
@@ -191,6 +206,19 @@ class EADMaintenanceForm(ContainerModelForm):
     class Meta:
         model = EAD
         fields = ['maintenancestatus_value', 'publicationstatus_value']
+
+
+class EADSearchForm(forms.Form):
+
+    q = forms.CharField(required=False, label='Search',
+                        widget=forms.TextInput(
+                            attrs=RECORD_SEARCH_INPUT_ATTRS))
+    start_year = forms.IntegerField(
+        required=False, label='Creation start year', widget=forms.NumberInput(
+            attrs=RECORD_SEARCH_START_YEAR_INPUT_ATTRS))
+    end_year = forms.IntegerField(
+        required=False, label='Creation end year', widget=forms.NumberInput(
+            attrs=RECORD_SEARCH_END_YEAR_INPUT_ATTRS))
 
 
 def assemble_form_errors(form):
