@@ -11,19 +11,21 @@
   </div>
   <div class="fieldset-body expand inline-deletable">
     {% render_field form.id %}
+    {% render_form_delete_widget form.DELETE %}
     {% with bibrefs=form.formsets.bibrefs %}
-    <h3>??</h3>
-    <div class="management_form">
-      {{ bibrefs.management_form }}
-    </div>
-    <div class="fieldsets">
-      {% for bibref in bibrefs.forms %}
-      {% include "./bibref_inline_form.html" with form=bibref %}
-      {% endfor %}
+    <div class="formset">
+      <div class="management_form">
+        {{ bibrefs.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for bibref in bibrefs.forms %}
+        {% include "./bibref_inline_form.html" with form=bibref %}
+        {% endfor %}
+      </div>
+      <label class="create linked-button">
+        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('bibref', this)">Add published reference
+      </label>
     </div>
     {% endwith %}
-    <label class="create linked-button">
-      <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('bibref', this)">Add published reference
-    </label>
   </div>
 </fieldset>

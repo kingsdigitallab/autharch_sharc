@@ -15,14 +15,161 @@
     </div>
     <div class="fieldset-body expand">
       <div class="two-column-table">
+        <div class="formset">
+          {% with unittitles=wizard.form.formsets.unittitles %}
+          <div class="management_form">
+            {{ unittitles.management_form }}
+          </div>
+          <div class="fieldsets">
+            {% for unittitle in unittitles.forms %}
+            {% render_field unittitle.id %}
+            {% render_field unittitle.unittitle %}
+            {% endfor %}
+          </div>
+          {% endwith %}
+        </div>
         <div>
           {% render_field wizard.form.recordid %}
         </div>
-        <div>
-          {% if wizard.form.is_bound and not wizard.form.is_valid %}{{ wizard.form }}{% endif %}
-        </div>
       </div>
     </div>
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>LOCATIONS</h2>
+  <fieldset>
+    <div class="formset">
+      {% with physlocs=wizard.form.formsets.physlocs %}
+      <div class="management_form">
+        {{ physlocs.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for physloc in physlocs.forms %}
+        {% include "./includes/physloc_inline_form.html" with form=physloc %}
+        {% endfor %}
+      </div>
+      <label class="create linked-button">
+        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('physloc', this)">Add location
+      </label>
+      {% endwith %}
+    </div>
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>CREATORS</h2>
+  <fieldset>
+    {% with originations=wizard.form.formsets.originations %}
+    <div class="formset">
+      <div class="management_form">
+        {{ originations.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for origination in originations.forms %}
+        {% include "./includes/origination_inline_form.html" with form=origination %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endwith %}
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>CREATION DATE</h2>
+  <fieldset>
+    {% with dates=wizard.form.formsets.unitdatestructureds %}
+    <div class="formset">
+      <div class="management_form">
+        {{ dates.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for date in dates.forms %}
+        {% include "./includes/unitdatestructured_inline_form.html" with form=date %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endwith %}
+    {% with date_notes=wizard.form.formsets.unitdates %}
+    <div class="formset">
+      <div class="management_form">
+        {{ date_notes.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for date_note in dates.forms %}
+        {% include "./includes/unitdate_inline_form.html" with form=date_note %}
+        {% endfor %}
+      </div>
+    {% endwith %}
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <fieldset>
+    {% with controlaccesses=wizard.form.formsets.controlaccesses %}
+    <div class="formset">
+      <div class="management_form">
+        {{ controlaccesses.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for controlaccess in controlaccesses.forms %}
+        {% include "./includes/controlaccess_inline_form.html with form=controlaccess %}
+        {% endfor %}
+      </div>
+    </div>
+      {% endwith %}
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>PROVENANCE</h2>
+  <fieldset id="provenance">
+    {% with custodhists=wizard.form.formsets.custodhists %}
+    <div class="formset">
+      <div class="management_form">
+        {{ custodhists.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for custodhist in custodhists.forms %}
+        {% include "./includes/custodhist_inline_form.html with form=custodhist %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endwith %}
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>PUBLICATION DETAILS</h2>
+  <fieldset id="notes">
+    {% with publication_details=wizard.form.formsets.publication_details %}
+    <div class="formset">
+      <div class="management_form">
+        {{ publication_details.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for publication_detail in publication_details.forms %}
+        {% include "./includes/scopecontent_inline_form.html with form=publication_detail %}
+        {% endfor %}
+      </div>
+    {% endwith %}
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>NOTES</h2>
+  <fieldset id="notes">
+    {% with notes=wizard.form.formsets.notes %}
+    <div class="formset">
+      <div class="management_form">
+        {{ notes.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for note in notes.forms %}
+        {% include "./includes/scopecontent_inline_form.html with form=note %}
+        {% endfor %}
+      </div>
+    {% endwith %}
   </fieldset>
 </div>
 
@@ -36,8 +183,8 @@
       </div>
     </div>
     <div class="fieldset-body expand">
+      {% with bibliographies=wizard.form.formsets.bibliographies %}
       <div class="formset">
-        {% with bibliographies=wizard.form.formsets.bibliographies %}
         <div class="management_form">
           {{ bibliographies.management_form }}
         </div>
@@ -46,8 +193,11 @@
           {% include "./includes/bibliography_inline_form.html" with form=bibliography %}
           {% endfor %}
         </div>
-        {% endwith %}
       </div>
+      <label class="create linked-button">
+        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('source', this)">Add unpublished reference
+      </label>
+      {% endwith %}
     </div>
   </fieldset>
   <fieldset id="unpublished_references">
@@ -58,8 +208,8 @@
       </div>
     </div>
     <div class="fieldset-body expand">
+      {% with sources=wizard.form.formsets.sources %}
       <div class="formset">
-        {% with sources=wizard.form.formsets.sources %}
         <div class="management_form">
           {{ sources.management_form }}
         </div>
@@ -68,11 +218,11 @@
           {% include "./includes/source_inline_form.html" with form=source %}
           {% endfor %}
         </div>
-        {% endwith %}
       </div>
       <label class="create linked-button">
         <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('source', this)">Add unpublished reference
       </label>
+      {% endwith %}
     </div>
   </fieldset>
 </div>
@@ -83,6 +233,14 @@
 {% include "./includes/bibliography_inline_form.html" with form=bibliography_form %}
 {% include "./includes/bibref_inline_form.html" with form=bibliography_form.formsets.bibrefs.empty_form %}
 {% endwith %}
+{% with controlaccess_form=wizard.form.formsets.controlaccesses.empty_form %}
+{% include "./includes/controlaccess_inline_form.html" with form=controlaccess_form %}
+{% include "./includes/genreform_inline_form.html" with form=controlaccess_form.formsets.genreforms.empty_form %}
+{% include "./includes/geogname_inline_form.html" with form=controlaccess_form.formsets.geognames.empty_form %}
+{% include "./includes/persname_non_model_inline_form.html" with form=controlaccess_form.formsets.persnames.empty_form %}
+{% endwith %}
+{% include "./includes/custodhist_inline_form.html" with form=wizard.form.formsets.custodhists.empty_form %}
+{% include "./includes/physloc_inline_form.html" with form=wizard.form.formsets.physlocs.empty_form %}
 {% with source_form=wizard.form.formsets.sources.empty_form %}
 {% include "./includes/source_inline_form.html" with form=source_form %}
 {% include "./includes/sourceentry_inline_form.html" with form=source_form.formsets.sourceentries.empty_form %}

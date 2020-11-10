@@ -1,0 +1,16 @@
+{% load editor_form_tags %}
+<fieldset data-form-type="unitdatestructured">
+  {% render_field form.id %}
+  {% with dateranges=form.formsets.dateranges %}
+  <div class="formset">
+    <div class="management_form">
+      {{ dateranges.management_form }}
+    </div>
+    <div class="fieldsets">
+      {% for daterange in dateranges.forms %}
+      {% include "./daterange_inline_form.html" with form=daterange %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endwith %}
+</fieldset>
