@@ -152,6 +152,61 @@
         {% include "./includes/scopecontent_inline_form.html with form=publication_detail %}
         {% endfor %}
       </div>
+    </div>
+    {% endwith %}
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>Medium</h2>
+  <fieldset id="label">
+    {% with media=wizard.form.formsets.media %}
+    <div class="formset">
+      <div class="management_form">
+        {{ media.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for medium in media.forms %}
+        {% include "./includes/medium_inline_form.html with form=medium %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endwith %}
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>SIZE</h2>
+  <fieldset id="label">
+    {% with sizes=wizard.form.formsets.sizes %}
+    <div class="formset">
+      <div class="management_form">
+        {{ sizes.management_form %}
+      </div>
+      <div class="fielsets">
+        {% for size in sizes.forms %}
+        {% include "./includes/size_inline_form.html with form=size %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endwith %}
+  </fieldset>
+</div>
+
+<div class="form-section">
+  <h2>LABEL / INSCRIPTION / CAPTION</h2>
+  <fieldset id="label">
+    {% with labels=wizard.form.formsets.labels %}
+    <div class="formset">
+      <div class="management_form">
+        {{ labels.management_form %}
+      </div>
+      <div class="fielsets">
+        {% for label in labels.forms %}
+        {% include "./includes/label_inline_form.html with form=label %}
+        {% endfor %}
+      </div>
+    </div>
     {% endwith %}
   </fieldset>
 </div>
@@ -229,20 +284,22 @@
 {% endblock form_sections %}
 
 {% block empty_forms %}
-{% with bibliography_form=wizard.form.formsets.bibliographies.empty_form %}
+{% with formsets=wizard.form.formsets %}
+{% with bibliography_form=formsets.bibliographies.empty_form %}
 {% include "./includes/bibliography_inline_form.html" with form=bibliography_form %}
 {% include "./includes/bibref_inline_form.html" with form=bibliography_form.formsets.bibrefs.empty_form %}
 {% endwith %}
-{% with controlaccess_form=wizard.form.formsets.controlaccesses.empty_form %}
+{% with controlaccess_form=formsets.controlaccesses.empty_form %}
 {% include "./includes/controlaccess_inline_form.html" with form=controlaccess_form %}
 {% include "./includes/genreform_inline_form.html" with form=controlaccess_form.formsets.genreforms.empty_form %}
 {% include "./includes/geogname_inline_form.html" with form=controlaccess_form.formsets.geognames.empty_form %}
 {% include "./includes/persname_non_model_inline_form.html" with form=controlaccess_form.formsets.persnames.empty_form %}
 {% endwith %}
-{% include "./includes/custodhist_inline_form.html" with form=wizard.form.formsets.custodhists.empty_form %}
-{% include "./includes/physloc_inline_form.html" with form=wizard.form.formsets.physlocs.empty_form %}
-{% with source_form=wizard.form.formsets.sources.empty_form %}
+{% include "./includes/custodhist_inline_form.html" with form=formsets.custodhists.empty_form %}
+{% include "./includes/physloc_inline_form.html" with form=formsets.physlocs.empty_form %}
+{% with source_form=formsets.sources.empty_form %}
 {% include "./includes/source_inline_form.html" with form=source_form %}
 {% include "./includes/sourceentry_inline_form.html" with form=source_form.formsets.sourceentries.empty_form %}
+{% endwith %}
 {% endwith %}
 {% endblock empty_forms %}

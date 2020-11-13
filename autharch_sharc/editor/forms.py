@@ -4,10 +4,11 @@ from lxml import etree
 
 from ead.constants import NS_MAP
 from ead.models import (
-    Bibliography, ControlAccess, CorpName, CorpNamePart, CustodHist, EAD,
-    EventDescription, MaintenanceEvent, Origination, PersName, PersNamePart,
-    PhysLoc, ScopeContent, Source, SourceEntry, UnitDateStructured,
-    UnitDateStructuredDateRange, UnitTitle)
+    Bibliography, ControlAccess, CorpName, CorpNamePart, CustodHist,
+    DIdPhysDescStructured, DIdPhysDescStructuredDimensions,
+    DIdPhysDescStructuredPhysFacet, EAD, EventDescription, MaintenanceEvent,
+    Origination, PersName, PersNamePart, PhysLoc, ScopeContent, Source,
+    SourceEntry, UnitDateStructured, UnitDateStructuredDateRange, UnitTitle)
 
 
 RECORD_SEARCH_INPUT_ATTRS = {
@@ -223,6 +224,40 @@ class GeognameInlineForm(forms.Form):
     geogname = forms.CharField()
 
 
+class LabelInlineForm(ContainerModelForm):
+
+    def _add_formsets(self, *args, **kwargs):
+        formsets = {}
+        data = kwargs.get('data')
+        PhysFacetFormset = forms.inlineformset_factory(
+            DIdPhysDescStructured, DIdPhysDescStructuredPhysFacet,
+            form=LabelPhysFacetInlineForm, extra=1, max_num=1, min_num=1,
+            validate_max=True, validate_min=True)
+        formsets['physfacets'] = PhysFacetFormset(
+            data, instance=self.instance, prefix='physfacet')
+        return formsets
+
+    def save(self, commit=True):
+        if not self.errors:
+            self.instance.physdescstructuredtype = DIdPhysDescStructured.STRUCTURED_TYPE_OTHER
+            self.instance.otherphysdescstructuredtype = 'label_inscription_caption'
+            self.instance.quantity = 1
+            self.instance.unittype = 'item'
+            self.instance.coverage = DIdPhysDescStructured.COVERAGE_PART
+        super().save(commit)
+
+    class Meta:
+        model = DIdPhysDescStructured
+        fields = ['id']
+
+
+class LabelPhysFacetInlineForm(forms.ModelForm):
+
+    class Meta:
+        model = DIdPhysDescStructuredPhysFacet
+        fields = ['id', 'physfacet']
+
+
 class MaintenanceEventInlineForm(ContainerModelForm):
 
     def _add_formsets(self, *args, **kwargs):
@@ -241,6 +276,39 @@ class MaintenanceEventInlineForm(ContainerModelForm):
         model = MaintenanceEvent
         fields = ['id', 'maintenancehistory', 'agent', 'agenttype_value',
                   'eventtype_value']
+
+
+class MediumInlineForm(ContainerModelForm):
+
+    def _add_formsets(self, *args, **kwargs):
+        formsets = {}
+        data = kwargs.get('data')
+        PhysFacetFormset = forms.inlineformset_factory(
+            DIdPhysDescStructured, DIdPhysDescStructuredPhysFacet,
+            form=MediumPhysFacetInlineForm, extra=1, max_num=1, min_num=1,
+            validate_max=True, validate_min=True)
+        formsets['physfacets'] = PhysFacetFormset(
+            data, instance=self.instance, prefix='physfacet')
+        return formsets
+
+    def save(self, commit=True):
+        if not self.errors:
+            self.instance.physdescstructuredtype = DIdPhysDescStructured.STRUCTURED_TYPE_MATERIAL
+            self.instance.quantity = 1
+            self.instance.unittype = 'item'
+            self.instance.coverage = DIdPhysDescStructured.COVERAGE_WHOLE
+        super().save(commit)
+
+    class Meta:
+        model = DIdPhysDescStructured
+        fields = ['id']
+
+
+class MediumPhysFacetInlineForm(forms.ModelForm):
+
+    class Meta:
+        model = DIdPhysDescStructuredPhysFacet
+        fields = ['id', 'physfacet']
 
 
 class OriginationInlineForm(forms.ModelForm):
@@ -291,6 +359,39 @@ class ScopeContentInlineForm(forms.ModelForm):
     class Meta:
         model = ScopeContent
         fields = ['id', 'scopecontent']
+
+
+class SizeDimensionsInlineForm(forms.ModelForm):
+
+    class Meta:
+        model = DIdPhysDescStructuredDimensions
+        fields = ['id', 'dimensions']
+
+
+class SizeInlineForm(ContainerModelForm):
+
+    def _add_formsets(self, *args, **kwargs):
+        formsets = {}
+        data = kwargs.get('data')
+        DimensionsFormset = forms.inlineformset_factory(
+            DIdPhysDescStructured, DIdPhysDescStructuredDimensions,
+            form=SizeDimensionsInlineForm, extra=1, max_num=1, min_num=1,
+            validate_max=True, validate_min=True)
+        formsets['sizes'] = DimensionsFormset(
+            data, instance=self.instance, prefix='physfacet')
+        return formsets
+
+    def save(self, commit=True):
+        if not self.errors:
+            self.instance.physdescstructuredtype = DIdPhysDescStructured.STRUCTURED_TYPE_SPACE
+            self.instance.quantity = 1
+            self.instance.unittype = 'item'
+            self.instance.coverage = DIdPhysDescStructured.COVERAGE_WHOLE
+        super().save(commit)
+
+    class Meta:
+        model = DIdPhysDescStructured
+        fields = ['id']
 
 
 class SourceEntryInlineForm(forms.ModelForm):
@@ -372,6 +473,25 @@ class EADContentForm(ContainerModelForm):
             EAD, CustodHist, form=CustodHistInlineForm, extra=0)
         formsets['custodhists'] = CustodHistFormset(
             data, instance=self.instance, prefix='custodhist')
+        LabelFormset = forms.inlineformset_factory(
+            EAD, DIdPhysDescStructured, form=LabelInlineForm, extra=0,
+            max_num=1, validate_max=True)
+        formsets['labels'] = LabelFormset(
+            data, instance=self.instance, prefix='label',
+            queryset=DIdPhysDescStructured.objects.filter(
+                otherphysdescstructuredtype='label_inscription_caption'))
+        MediumFormset = forms.inlineformset_factory(
+            EAD, DIdPhysDescStructured, form=MediumInlineForm, extra=0)
+        formsets['media'] = MediumFormset(
+            data, instance=self.instance, prefix='medium',
+            queryset=DIdPhysDescStructured.objects.filter(
+                physdescstructuredtype=DIdPhysDescStructured.STRUCTURED_TYPE_MATERIAL))
+        ScopeContentFormset = forms.inlineformset_factory(
+            EAD, ScopeContent, form=ScopeContentInlineForm, extra=1, max_num=1,
+            validate_max=True)
+        formsets['notes'] = ScopeContentFormset(
+            data, instance=self.instance, prefix='scopecontent_notes',
+            queryset=ScopeContent.objects.filter(localtype='notes'))
         OriginationFormset = forms.inlineformset_factory(
             EAD, Origination, form=OriginationInlineForm, extra=0)
         formsets['originations'] = OriginationFormset(
@@ -380,17 +500,17 @@ class EADContentForm(ContainerModelForm):
             EAD, PhysLoc, form=PhyslocInlineForm, extra=0)
         formsets['physlocs'] = PhysLocFormset(
             data, instance=self.instance, prefix='physloc')
-        ScopeContentFormset = forms.inlineformset_factory(
-            EAD, ScopeContent, form=ScopeContentInlineForm, extra=1, max_num=1,
-            validate_max=True)
-        formsets['notes'] = ScopeContentFormset(
-            data, instance=self.instance, prefix='scopecontent_notes',
-            queryset=ScopeContent.objects.filter(localtype='notes'))
-        formsets['publicatin_details'] = ScopeContentFormset(
+        formsets['publication_details'] = ScopeContentFormset(
             data, instance=self.instance,
             prefix='scopecontent_publication_details',
             queryset=ScopeContent.objects.filter(
                 localtype='publication_details'))
+        SizeFormset = forms.inlineformset_factory(
+            EAD, DIdPhysDescStructured, form=SizeInlineForm, extra=0)
+        formsets['sizes'] = SizeFormset(
+            data, instance=self.instance, prefix='size',
+            queryset=DIdPhysDescStructured.objects.filter(
+                physdescstructuredtype=DIdPhysDescStructured.STRUCTURED_TYPE_SPACE))
         SourceFormset = forms.inlineformset_factory(
             EAD, Source, form=SourceInlineForm, extra=0)
         formsets['sources'] = SourceFormset(
