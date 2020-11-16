@@ -8,8 +8,8 @@ register = template.Library()
 def render_facet(facet):
     """Renders the facet `facet`.
 
-    `facet` is a Haystack facet, consisting of four items: the string
-    display value, the integer count,.the string link to apply/unapply
+    `facet` is an elasticsearch-dsl facet, consisting of four items: the string
+    display value, the integer count, the string link to apply/unapply
     the facet, and a Boolean indicating whether the facet is selected.
 
     """

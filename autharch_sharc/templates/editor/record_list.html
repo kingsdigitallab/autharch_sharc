@@ -4,7 +4,7 @@
 <main>
   {% block page_header %}
   <div class="page-header">
-    <h1>Archival records ({{ records.count }})</h1>
+    <h1>Archival records ({{ results_count }})</h1>
     <div class="search-filter">
       <form action="." class="search" id="record-search-form" method="get">
         <label>
@@ -27,6 +27,16 @@
               <a href="" class="checkbox-anchor" id="year-range-anchor">Filter</a>
             </fieldset>
             {% endif %}
+            {% with facets=records.facets.date_of_creation %}
+            {% if facets %}
+            <fieldset>
+              <legend>Date of Creation</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
             {% if facets.fields.archival_level|length > 0 %}
             <fieldset class="filter-list" id="document-level-filter">
               <legend>Document level</legend>
@@ -38,6 +48,26 @@
               {% endfor %}
             </fieldset>
             {% endif %}
+            {% with facets=records.facets.creators %}
+            {% if facets %}
+            <fieldset class="filter-list" id="creators-filter">
+              <legend>Creators</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
+            {% with facets=records.facets.categories %}
+            {% if facets %}
+            <fieldset class="filter-list" id="categories-filter">
+              <legend>Categories</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
             {% if facets.fields.transcription_text|length > 0 %}
             <fieldset class="filter-list" id="has-transcriptions-filter">
               <legend>Transcriptions</legend>
@@ -54,11 +84,11 @@
   {% endblock page_header %}
 
   {% block content %}
-  {% if facets.selected or start_year or end_year %}
+  {% if selected_facets or start_year or end_year %}
   <div class="selected-facets">
     <h4>Selected filters</h4>
     <p>
-      {% for selected_facet in facets.selected %}
+      {% for selected_facet in selected_facets %}
       {% render_facet selected_facet %}
       {% endfor %}
       {% if start_year or end_year %}
@@ -105,15 +135,15 @@
     </table>
   </div>
   <div id="records-list-table_pager_info" class="pager">
-    {% if records.count > 10 %}
+    {% if results_count > 10 %}
     <div class="page-size">
       <p>
         rows per page: <a href="#" data-label="10">10</a>
-        {% if records.count > 25 %}
+        {% if results_count > 25 %}
           | <a href="#" data-label="25">25</a>
-          {% if records.count > 50 %}
+          {% if results_count > 50 %}
           | <a href="#" data-label="50">50</a>
-            {% if records.count > 100 %}
+            {% if results_count > 100 %}
             |  <a href="#" data-label="100">100</a>
             {% endif %}
           {% endif %}
