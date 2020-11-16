@@ -1,5 +1,9 @@
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
+
+from lxml import etree
+
+from ead.constants import NS_MAP
 from ead.models import EAD, UnitDateStructuredDateRange
 
 
@@ -12,10 +16,12 @@ class EADDocument(Document):
         }
     )
     pk = fields.IntegerField(attr="id")
-    unittitle = fields.TextField()
-    publicationstatus_value = fields.KeywordField()
+    archdesc_level = fields.KeywordField(attr='archdesc_level')
+    category = fields.KeywordField()
     date_of_acquisition = fields.IntegerField()
     date_of_creation = fields.IntegerField()
+    publicationstatus_value = fields.KeywordField()
+    unittitle = fields.TextField()
 
     class Index:
         name = "editor"
@@ -23,7 +29,6 @@ class EADDocument(Document):
     class Django:
         model = EAD
         fields = [
-            "archdesc_level",
             "maintenancestatus_value",
             "recordid",
         ]
@@ -54,6 +59,16 @@ class EADDocument(Document):
         else:
             years = list(range(start_year, end_year + 1))
         return years
+
+    def prepare_category(self, instance):
+        categories = []
+        for controlaccess in instance.controlaccess_set.all():
+            root = etree.fromstring('<wrapper>{}</wrapper>'.format(
+                controlaccess.controlaccess))
+            categories.extend(
+                [str(category) for category in root.xpath(
+                    'e:genreform/e:part/text()', namespaces=NS_MAP)])
+        return categories
 
     def prepare_creators(self, instance):
         """Return object field data for creators of `instance`.
