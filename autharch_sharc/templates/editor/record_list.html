@@ -68,6 +68,36 @@
             </fieldset>
             {% endif %}
             {% endwith %}
+            {% with facets=records.facets.connection_types %}
+            {% if facets %}
+            <fieldset class="filter-list" id="connection-types-filter">
+              <legend>Connection Types</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
+            {% with facets=records.facets.connections_primary %}
+            {% if facets %}
+            <fieldset class="filter-list" id="connections-primary-filter">
+              <legend>Primary Connections</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
+            {% with facets=records.facets.connections_secondary %}
+            {% if facets %}
+            <fieldset class="filter-list" id="connections-secondary-filter">
+              <legend>Secondary Connections</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
             {% if facets.fields.transcription_text|length > 0 %}
             <fieldset class="filter-list" id="has-transcriptions-filter">
               <legend>Transcriptions</legend>

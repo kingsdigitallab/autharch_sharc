@@ -93,6 +93,9 @@ class RecordSearch(FacetedSearch):
     doc_types = [EADDocument]
     facets = {
         'categories': TermsFacet(field='category'),
+        'connections_primary': TermsFacet(field='connection_primary'),
+        'connections_secondary': TermsFacet(field='connection_secondary'),
+        'connection_types': TermsFacet(field='connection_type'),
         'creators': TermsFacet(field='creators.key', size=10),
     }
     fields = ['creators.name', 'unittitle']

@@ -4,7 +4,7 @@ from django_elasticsearch_dsl.registries import registry
 from lxml import etree
 
 from ead.constants import NS_MAP
-from ead.models import EAD, UnitDateStructuredDateRange
+from ead.models import EAD, RelationEntry, UnitDateStructuredDateRange
 
 
 @registry.register_document
@@ -18,6 +18,9 @@ class EADDocument(Document):
     pk = fields.IntegerField(attr="id")
     archdesc_level = fields.KeywordField(attr='archdesc_level')
     category = fields.KeywordField()
+    connection_primary = fields.KeywordField()
+    connection_secondary = fields.KeywordField()
+    connection_type = fields.KeywordField()
     date_of_acquisition = fields.IntegerField()
     date_of_creation = fields.IntegerField()
     publicationstatus_value = fields.KeywordField()
@@ -69,6 +72,23 @@ class EADDocument(Document):
                 [str(category) for category in root.xpath(
                     'e:genreform/e:part/text()', namespaces=NS_MAP)])
         return categories
+
+    def _prepare_connection(self, instance, localtype):
+        connections = []
+        for relationentry in RelationEntry.objects.filter(
+                relation__relations=instance, localtype=localtype):
+            connection = relationentry.relationentry
+            connections.extend([tag.strip() for tag in connection.split(';')])
+        return connections
+
+    def prepare_connection_primary(self, instance):
+        return self._prepare_connection(instance, 'work_connection_primary')
+
+    def prepare_connection_secondary(self, instance):
+        return self._prepare_connection(instance, 'work_connection_secondary')
+
+    def prepare_connection_type(self, instance):
+        return self._prepare_connection(instance, 'sh_connection_type')
 
     def prepare_creators(self, instance):
         """Return object field data for creators of `instance`.
