@@ -74,6 +74,7 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "django_elasticsearch_dsl",
     'reversion',
+    'django_elasticsearch_dsl_drf'
 ]
 
 LOCAL_APPS = [
