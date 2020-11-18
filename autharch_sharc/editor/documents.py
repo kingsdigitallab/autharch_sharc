@@ -1,11 +1,15 @@
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
+from elasticsearch_dsl import normalizer
 
 from lxml import etree
 
 from ead.constants import NS_MAP
 from ead.models import EAD, RelationEntry, UnitDateStructuredDateRange
 
+lowercase_sort_normalizer = normalizer(
+    "lowercase_sort", filter=["lowercase", "asciifolding"]
+)
 
 @registry.register_document
 class EADDocument(Document):
@@ -24,7 +28,12 @@ class EADDocument(Document):
     date_of_acquisition = fields.IntegerField()
     date_of_creation = fields.IntegerField()
     publicationstatus_value = fields.KeywordField()
-    unittitle = fields.TextField()
+    unittitle = fields.TextField(
+        fields = {
+            "raw": fields.KeywordField(),
+            "sort": fields.KeywordField(normalizer=lowercase_sort_normalizer),
+        }
+    )
 
     class Index:
         name = "editor"
