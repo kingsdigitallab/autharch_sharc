@@ -21,7 +21,13 @@ class EADDocument(Document):
     )
     pk = fields.IntegerField(attr="id")
     archdesc_level = fields.KeywordField(attr='archdesc_level')
-    category = fields.KeywordField()
+    category = fields.KeywordField(
+        fields = {
+            "lowercase": fields.KeywordField(
+                normalizer=lowercase_sort_normalizer),
+            "suggest": fields.CompletionField(),
+        }
+    )
     connection_primary = fields.KeywordField()
     connection_secondary = fields.KeywordField()
     connection_type = fields.KeywordField()
@@ -32,6 +38,7 @@ class EADDocument(Document):
         fields = {
             "raw": fields.KeywordField(),
             "sort": fields.KeywordField(normalizer=lowercase_sort_normalizer),
+            "suggest": fields.CompletionField(),
         }
     )
 
