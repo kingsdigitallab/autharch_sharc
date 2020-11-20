@@ -181,9 +181,9 @@
     {% with sizes=wizard.form.formsets.sizes %}
     <div class="formset">
       <div class="management_form">
-        {{ sizes.management_form %}
+        {{ sizes.management_form }}
       </div>
-      <div class="fielsets">
+      <div class="fieldsets">
         {% for size in sizes.forms %}
         {% include "./includes/size_inline_form.html with form=size %}
         {% endfor %}
@@ -199,9 +199,9 @@
     {% with labels=wizard.form.formsets.labels %}
     <div class="formset">
       <div class="management_form">
-        {{ labels.management_form %}
+        {{ labels.management_form }}
       </div>
-      <div class="fielsets">
+      <div class="fieldsets">
         {% for label in labels.forms %}
         {% include "./includes/label_inline_form.html with form=label %}
         {% endfor %}

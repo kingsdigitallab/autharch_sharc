@@ -377,8 +377,8 @@ class SizeInlineForm(ContainerModelForm):
             DIdPhysDescStructured, DIdPhysDescStructuredDimensions,
             form=SizeDimensionsInlineForm, extra=1, max_num=1, min_num=1,
             validate_max=True, validate_min=True)
-        formsets['sizes'] = DimensionsFormset(
-            data, instance=self.instance, prefix='physfacet')
+        formsets['dimensions'] = DimensionsFormset(
+            data, instance=self.instance, prefix='dimensions')
         return formsets
 
     def save(self, commit=True):
@@ -582,6 +582,7 @@ def assemble_form_errors(form):
                 errors['field'] = True
         if hasattr(form, 'formsets'):
             for formset in form.formsets.values():
+                print(type(formset))
                 for form in formset.forms:
                     errors = add_form_errors(errors, form)
         return errors
