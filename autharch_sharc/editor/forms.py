@@ -234,7 +234,7 @@ class LabelInlineForm(ContainerModelForm):
             form=LabelPhysFacetInlineForm, extra=1, max_num=1, min_num=1,
             validate_max=True, validate_min=True)
         formsets['physfacets'] = PhysFacetFormset(
-            data, instance=self.instance, prefix='physfacet')
+            data, instance=self.instance, prefix=self.prefix + '-physfacet')
         return formsets
 
     def save(self, commit=True):
@@ -288,7 +288,7 @@ class MediumInlineForm(ContainerModelForm):
             form=MediumPhysFacetInlineForm, extra=1, max_num=1, min_num=1,
             validate_max=True, validate_min=True)
         formsets['physfacets'] = PhysFacetFormset(
-            data, instance=self.instance, prefix='physfacet')
+            data, instance=self.instance, prefix=self.prefix + '-physfacet')
         return formsets
 
     def save(self, commit=True):
@@ -378,7 +378,7 @@ class SizeInlineForm(ContainerModelForm):
             form=SizeDimensionsInlineForm, extra=1, max_num=1, min_num=1,
             validate_max=True, validate_min=True)
         formsets['dimensions'] = DimensionsFormset(
-            data, instance=self.instance, prefix='dimensions')
+            data, instance=self.instance, prefix=self.prefix + '-dimensions')
         return formsets
 
     def save(self, commit=True):

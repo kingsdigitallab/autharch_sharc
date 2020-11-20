@@ -141,7 +141,7 @@
 
 <div class="form-section">
   <h2>PUBLICATION DETAILS</h2>
-  <fieldset id="notes">
+  <fieldset id="publication_details">
     {% with publication_details=wizard.form.formsets.publication_details %}
     <div class="formset">
       <div class="management_form">
@@ -159,7 +159,7 @@
 
 <div class="form-section">
   <h2>Medium</h2>
-  <fieldset id="label">
+  <fieldset id="medium">
     {% with media=wizard.form.formsets.media %}
     <div class="formset">
       <div class="management_form">
@@ -177,7 +177,7 @@
 
 <div class="form-section">
   <h2>SIZE</h2>
-  <fieldset id="label">
+  <fieldset id="size">
     {% with sizes=wizard.form.formsets.sizes %}
     <div class="formset">
       <div class="management_form">
