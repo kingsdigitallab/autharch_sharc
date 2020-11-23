@@ -8,8 +8,10 @@ from django_elasticsearch_dsl_drf.filter_backends import (
 )
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from elasticsearch_dsl import (
+    HistogramFacet,
     DateHistogramFacet,
     TermsFacet,
+    NestedFacet
 )
 
 from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
@@ -76,6 +78,7 @@ class EADDocumentViewSet(DocumentViewSet):
             'pk': 'pk',
             'unittitle': 'unittitle.raw',
             'date_of_creation': 'date_of_creation',
+            'date_of_acquisition': 'date_of_acquisition',
             'category': 'category.lowercase'
     }
 
@@ -91,28 +94,35 @@ class EADDocumentViewSet(DocumentViewSet):
             'field': 'connection_primary',
             'enabled': True
         },
-        'date_of_creation': {
-            'field': 'date_of_creation',
-            "enabled": True,
-            'facet': DateHistogramFacet,
-            'options': {
-                'interval': 'year',
-            }
+        "acquirer": {
+            'facet': TermsFacet,
+            'field': "acquirer",
+            'enabled': True,
+            'options': ES_FACET_OPTIONS
         },
-        'date_of_acquisition': {
-            'field': 'date_of_acquisition',
-            "enabled": True,
-            'facet': DateHistogramFacet,
-            'options': {
-                'interval': 'year',
-            }
-        },
+        'work_connections':
+            {
+                'facet': TermsFacet,
+                'field': "work_connections.key",
+                'enabled': True,
+            },
     }
 
     # Suggester fields
     suggester_fields = {
         'unittitle_suggest': {
             'field': 'unittitle.suggest',
+            'suggesters': [
+                SUGGESTER_COMPLETION,
+            ],
+            'options': {
+                'size': 20,  # Override default number of suggestions
+                'skip_duplicates': True,
+                # Whether duplicate suggestions should be filtered out.
+            },
+        },
+        'category_suggest': {
+            'field': 'category.suggest',
             'suggesters': [
                 SUGGESTER_COMPLETION,
             ],
