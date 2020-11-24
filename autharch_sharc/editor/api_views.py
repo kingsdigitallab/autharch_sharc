@@ -106,6 +106,13 @@ class EADDocumentViewSet(DocumentViewSet):
                 'field': "work_connections.key",
                 'enabled': True,
             },
+        'individual_connections':
+            {
+                'facet': TermsFacet,
+                'field': "individual_connections.key",
+                'enabled': True,
+            },
+
     }
 
     # Suggester fields

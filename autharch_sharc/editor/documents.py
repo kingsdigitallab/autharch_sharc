@@ -182,6 +182,7 @@ class EADDocument(Document):
         all_connections = self._all_sh_connections(instance)
         for connection in all_connections.keys():
             sh_connection = all_connections[connection]
+            print(sh_connection)
             if sh_connection[0] == 'Works':
                 # print(sh_connection)
                 con_type = slugify(sh_connection[1])
@@ -210,7 +211,7 @@ class EADDocument(Document):
                     label = sh_connection[2]
 
                 # Texts
-                elif sh_connection[1].lower() == 'Text':
+                elif sh_connection[1].lower() == 'text':
                     if len(sh_connection) > 3:
                         if sh_connection[3] == 'Translation':
                             label = sh_connection[3]
@@ -223,10 +224,10 @@ class EADDocument(Document):
                     else:
                         label = sh_connection[1]
 
-                elif sh_connection[1].lower() == 'Performance':
+                elif sh_connection[1].lower() == 'performance':
                     if len(sh_connection) > 3:
                         if sh_connection[3] == 'Portrait':
-                            if sh_connection[4] == 'Actor portrait':
+                            if (len(sh_connection) > 4 and sh_connection[4] == 'Actor portrait'):
                                 label = 'Character - Actor Portrait'
                             else:
                                 label = 'Character - Portrait'
@@ -238,7 +239,7 @@ class EADDocument(Document):
                         label = sh_connection[1]
 
                 # Sources
-                elif sh_connection[1].lower() == 'Sources':
+                elif sh_connection[1].lower() == 'sources':
                     if len(sh_connection) > 2:
                         label = sh_connection[2]
                     else:
