@@ -4,8 +4,6 @@ from ead.constants import NS_MAP
 from ead.models import EAD, RelationEntry, UnitDateStructuredDateRange
 from elasticsearch_dsl import normalizer
 from lxml import etree
-from django.utils.text import slugify
-
 
 lowercase_sort_normalizer = normalizer(
     "lowercase_sort", filter=["lowercase", "asciifolding"]
@@ -14,6 +12,17 @@ lowercase_sort_normalizer = normalizer(
 
 @registry.register_document
 class EADDocument(Document):
+
+    class Index:
+        name = "editor"
+
+    class Django:
+        model = EAD
+        fields = [
+            "maintenancestatus_value",
+            "recordid",
+        ]
+
     creators = fields.ObjectField(
         properties={
             "key": fields.KeywordField(),
@@ -41,20 +50,11 @@ class EADDocument(Document):
     )
     connection_primary = fields.KeywordField()
     connection_secondary = fields.KeywordField()
-    individual_connections = fields.ObjectField(
-        properties={
-            "key": fields.KeywordField(),  # plays-Hamlet
-            "type": fields.KeywordField(),  # plays
-            "name": fields.TextField(),  # Hamlet
-        }
-    )
-    work_connections = fields.ObjectField(
-        properties={
-            "key": fields.KeywordField(),  # institutions-globe
-            "type": fields.KeywordField(),  # institutions
-            "name": fields.TextField(),  # The Globe Theatre
-        }
-    )
+    individual_connections = fields.KeywordField()
+    work_connections = fields.KeywordField()
+    text_connections = fields.KeywordField()
+    source_connections = fields.KeywordField()
+    performance_connections = fields.KeywordField()
 
     related_material = fields.TextField(
         fields={
@@ -73,15 +73,27 @@ class EADDocument(Document):
         }
     )
 
-    class Index:
-        name = "editor"
+    # todo this is inefficient, refactor
 
-    class Django:
-        model = EAD
-        fields = [
-            "maintenancestatus_value",
-            "recordid",
-        ]
+    def prepare_individual_connections(self, instance):
+        data = self.parse_connections(instance, {})
+        return data['individual_connections']
+
+    def prepare_work_connections(self, instance):
+        data = self.parse_connections(instance, {})
+        return data['work_connections']
+
+    def prepare_text_connections(self, instance):
+        data = self.parse_connections(instance, {})
+        return data['text_connections']
+
+    def prepare_source_connections(self, instance):
+        data = self.parse_connections(instance, {})
+        return data['source_connections']
+
+    def prepare_performance_connections(self, instance):
+        data = self.parse_connections(instance, {})
+        return data['performance_connections']
 
     def _get_year_from_date(self, date):
         try:
@@ -128,7 +140,7 @@ class EADDocument(Document):
             connections.extend([tag.strip() for tag in connection.split(';')])
         return connections
 
-    def _all_sh_connections(self, instance)-> dict:
+    def _all_sh_connections(self, instance) -> dict:
         return {
             'primary': self._prepare_connection(
                 instance, 'work_connection_primary'
@@ -143,117 +155,107 @@ class EADDocument(Document):
             )
         }
 
-    def prepare_individual_connections(self, instance):
-        """ Parse all connections looking for indiviudal types"""
-        connections = []
+    def parse_connections(self, instance, data):
         all_connections = self._all_sh_connections(instance)
-        for connection in all_connections.keys():
-            sh_connection = all_connections[connection]
-            if sh_connection[0] == 'Individual':
-                if (sh_connection[1] == 'Biographical'
-                        and len(sh_connection) > 3):
-                    # This is a biographical location
-                    label = "{}-{}".format(
-                        sh_connection[2],
-                        sh_connection[3],
+        # Init element lists
+
+        data['individual_connections'] = []
+        data['work_connections'] = []
+        data['source_connections'] = []
+        data['text_connections'] = []
+        data['performance_connections'] = []
+
+        for connection_key in all_connections.keys():
+            connection = all_connections[connection_key]
+            if connection[0].lower() == 'individual':
+                data = self.parse_individual_connections(connection, data)
+            elif connection[0].lower() == 'works':
+                data = self.parse_work_connections(connection, data)
+        return data
+
+    def parse_individual_connections(self, sh_connection, data):
+        """ Parse all connections looking for indiviudal types"""
+        if len(sh_connection) > 1:
+            if (sh_connection[1] == 'Biographical'
+                and len(sh_connection) > 3):
+                # This is a biographical location
+                label = "{} - {}".format(
+                    sh_connection[2],
+                    sh_connection[3],
+                )
+            elif len(sh_connection) > 2:
+                label = sh_connection[2]
+            else:
+                label = sh_connection[1]
+            print(label)
+            data['individual_connections'].append(label)
+        return data
+
+    def parse_work_connections(self, sh_connection, data):
+        """ Parse all connections looking for work types"""
+        if len(sh_connection) > 1:
+            label = sh_connection[1]
+            if (sh_connection[1].lower() == 'plays' or
+                sh_connection[1].lower() == 'poems'):
+                if (len(sh_connection) > 3 and
+                    sh_connection[2].lower() == 'sonnets'
+                ):
+                    # Numbered sonnets
+                    label = '{}-{}'.format(
+                        sh_connection[2], sh_connection[3]
                     )
+                elif len(sh_connection) > 2:
+                    label = sh_connection[2]
+                print(label)
+                data['work_connections'].append(label)
+
+            elif (sh_connection[1].lower() ==
+                  "attributed to shakespeare"):
+                # create type using type of attributed work
+
+                label = sh_connection[2]
+                print(label)
+                data['work_connections'].append(label)
+
+            # Texts
+            elif sh_connection[1].lower() == 'text':
+                if len(sh_connection) > 3:
+                    if sh_connection[3] == 'Translation':
+                        label = sh_connection[3]
+                    elif sh_connection[3] == 'Portrait':
+                        label = 'Character - Portrait'
+                    elif sh_connection[3] == 'Identification':
+                        label = 'Character - Identification'
                 elif len(sh_connection) > 2:
                     label = sh_connection[2]
                 else:
                     label = sh_connection[1]
-                if len(sh_connection) > 2:
-                    con_key = slugify('{}-{}'.format(
-                        sh_connection[1].lower(), label.lower()
-                    ))
-                else:
-                    con_key = slugify(label)
-                connections.append(
-                    {
-                        "key": con_key,
-                        "type": sh_connection[1],
-                        "name": label,
-                    }
-                )
-        return connections
+                data['text_connections'].append(label)
 
-    def prepare_work_connections(self, instance):
-        """ Parse all connections looking for work types"""
-        connections = []
-        all_connections = self._all_sh_connections(instance)
-        for connection in all_connections.keys():
-            sh_connection = all_connections[connection]
-            print(sh_connection)
-            if sh_connection[0] == 'Works':
-                # print(sh_connection)
-                con_type = slugify(sh_connection[1])
-                label = sh_connection[1]
-                con_key = sh_connection[1]
-                if (sh_connection[1].lower() == 'plays' or
-                        sh_connection[1].lower() == 'poems'):
-                    if (len(sh_connection) > 3 and
-                        sh_connection[2].lower() == 'sonnets'
-                    ):
-                        # Numbered sonnets
-                        label = '{}-{}'.format(
-                            sh_connection[2], sh_connection[3]
-                        )
-                    elif len(sh_connection) > 2:
-                        label = sh_connection[2]
-                        con_key = slugify('{}-{}'.format(
-                            sh_connection[1].lower(), label
-                        ))
-                elif (sh_connection[1].lower() ==
-                      "works attributed to shakespeare"):
-                    # create type using type of attributed work
-                    con_type = slugify('{}-{}'.format(
-                        sh_connection[1], sh_connection[2]
-                    ))
-                    label = sh_connection[2]
-
-                # Texts
-                elif sh_connection[1].lower() == 'text':
-                    if len(sh_connection) > 3:
-                        if sh_connection[3] == 'Translation':
-                            label = sh_connection[3]
-                        elif sh_connection[3] == 'Portrait':
+            elif sh_connection[1].lower() == 'performance':
+                if len(sh_connection) > 3:
+                    if sh_connection[3] == 'Portrait':
+                        if (len(sh_connection) > 4 and sh_connection[
+                            4] == 'Actor portrait'):
+                            label = 'Character - Actor Portrait'
+                        else:
                             label = 'Character - Portrait'
-                        elif sh_connection[3] == 'Identification':
-                            label = 'Character - Identification'
-                    elif len(sh_connection) > 2:
-                        label = sh_connection[2]
-                    else:
-                        label = sh_connection[1]
+                    elif sh_connection[3] == 'Identification':
+                        label = 'Character - Identification'
+                elif len(sh_connection) > 2:
+                    label = sh_connection[2]
+                else:
+                    label = sh_connection[1]
+                data['performance_connections'].append(label)
 
-                elif sh_connection[1].lower() == 'performance':
-                    if len(sh_connection) > 3:
-                        if sh_connection[3] == 'Portrait':
-                            if (len(sh_connection) > 4 and sh_connection[4] == 'Actor portrait'):
-                                label = 'Character - Actor Portrait'
-                            else:
-                                label = 'Character - Portrait'
-                        elif sh_connection[3] == 'Identification':
-                            label = 'Character - Identification'
-                    elif len(sh_connection) > 2:
-                        label = sh_connection[2]
-                    else:
-                        label = sh_connection[1]
-
-                # Sources
-                elif sh_connection[1].lower() == 'sources':
-                    if len(sh_connection) > 2:
-                        label = sh_connection[2]
-                    else:
-                        label = sh_connection[1]
-
-                print ("{}:{}:{}\n".format(con_key, con_type, label))
-                connections.append(
-                    {
-                        "key": con_key,
-                        "type": con_type,
-                        "name": label,
-                    }
-                )
-        return connections
+            # Sources
+            elif sh_connection[1].lower() == 'sources':
+                if len(sh_connection) > 2:
+                    label = sh_connection[2]
+                else:
+                    label = sh_connection[1]
+                data['source_connections'].append(label)
+        return data
 
     def prepare_related_material(self, instance):
         for related in instance.relatedmaterial_set.all():

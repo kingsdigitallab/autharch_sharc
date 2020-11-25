@@ -9,15 +9,15 @@ class EADDocumentSerializer(DocumentSerializer):
     class Meta:
         document = EADDocument
 
-    # fields = (
-    #     'pk',
-    #     'creators'
-    #     # 'category',
-    #     # 'connection_primary',
-    #     # 'connection_secondary',
-    #     # 'connection_type',
-    #     'date_of_acquisition',
-    #     'date_of_creation',
-    #     # 'publicationstatus_value',
-    #     'unittitle'
-    # )
+    fields = (
+        'pk',
+        'creators'
+        # 'category',
+        # 'connection_primary',
+        # 'connection_secondary',
+        # 'connection_type',
+        'date_of_acquisition',
+        'date_of_creation',
+        # 'publicationstatus_value',
+        'unittitle'
+    )

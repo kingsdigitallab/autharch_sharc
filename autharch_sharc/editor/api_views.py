@@ -89,29 +89,43 @@ class EADDocumentViewSet(DocumentViewSet):
                 'enabled': True,
                 'options': ES_FACET_OPTIONS
         },
-        'connection_primary': {
-            'facet': TermsFacet,
-            'field': 'connection_primary',
-            'enabled': True
-        },
         "acquirer": {
             'facet': TermsFacet,
             'field': "acquirer",
             'enabled': True,
             'options': ES_FACET_OPTIONS
         },
-        'work_connections':
-            {
-                'facet': TermsFacet,
-                'field': "work_connections.key",
-                'enabled': True,
-            },
-        'individual_connections':
-            {
-                'facet': TermsFacet,
-                'field': "individual_connections.key",
-                'enabled': True,
-            },
+        'individual_connections': {
+            'facet': TermsFacet,
+            'field': 'individual_connections',
+            'enabled': True,
+            'options': ES_FACET_OPTIONS
+        },
+        'work_connections': {
+            'facet': TermsFacet,
+            'field': 'work_connections',
+            'enabled': True,
+            'options': ES_FACET_OPTIONS
+        },
+        'text_connections': {
+            'facet': TermsFacet,
+            'field': 'text_connections',
+            'enabled': True,
+            'options': ES_FACET_OPTIONS
+        },
+        'performance_connections': {
+            'facet': TermsFacet,
+            'field': 'performance_connections',
+            'enabled': True,
+            'options': ES_FACET_OPTIONS
+        },
+        'source_connections': {
+            'facet': TermsFacet,
+            'field': 'source_connections',
+            'enabled': True,
+            'options': ES_FACET_OPTIONS
+        },
+
 
     }
 
