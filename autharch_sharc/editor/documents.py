@@ -1,7 +1,8 @@
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 from ead.constants import NS_MAP
-from ead.models import EAD, RelationEntry, UnitDateStructuredDateRange
+from ead.models import EAD, RelationEntry, UnitDateStructuredDateRange, \
+    DIdPhysDescStructuredDimensions
 from elasticsearch_dsl import normalizer
 from lxml import etree
 
@@ -12,7 +13,6 @@ lowercase_sort_normalizer = normalizer(
 
 @registry.register_document
 class EADDocument(Document):
-
     class Index:
         name = "editor"
 
@@ -30,6 +30,7 @@ class EADDocument(Document):
         }
     )
     pk = fields.IntegerField(attr="id")
+    reference = fields.IntegerField()
     archdesc_level = fields.KeywordField(attr='archdesc_level')
     category = fields.KeywordField(
         fields={
@@ -38,23 +39,67 @@ class EADDocument(Document):
             "suggest": fields.CompletionField(),
         }
     )
-    acquirer = fields.KeywordField(
-        fields={
-            "suggest": fields.CompletionField(),
+    related_people = fields.ObjectField(
+        properties={
+            "acquirers": fields.KeywordField(
+                fields={
+                    "suggest": fields.CompletionField(),
+                }
+            ),
+            "donors": fields.KeywordField(
+                fields={
+                    "suggest": fields.CompletionField(),
+                }
+            ),
+            "publishers": fields.KeywordField(
+                fields={
+                    "suggest": fields.CompletionField(),
+                }
+            )
         }
     )
-    donor = fields.KeywordField(
-        fields={
-            "suggest": fields.CompletionField(),
+
+    place_of_origin = fields.KeywordField()
+    related_sources = fields.ObjectField(
+        properties={
+            'individuals': fields.KeywordField(
+                fields={
+                    "suggest": fields.CompletionField(),
+                }
+            ),
+            'works': fields.KeywordField(
+                fields={
+                    "suggest": fields.CompletionField(),
+                }
+            ),
+            'texts': fields.KeywordField(
+                fields={
+                    "suggest": fields.CompletionField(),
+                }
+            ),
+            'sources': fields.KeywordField(
+                fields={
+                    "suggest": fields.CompletionField(),
+                }
+            ),
+            'performances': fields.KeywordField(
+                fields={
+                    "suggest": fields.CompletionField(),
+                }
+            ),
+
         }
     )
     connection_primary = fields.KeywordField()
     connection_secondary = fields.KeywordField()
-    individual_connections = fields.KeywordField()
-    work_connections = fields.KeywordField()
-    text_connections = fields.KeywordField()
-    source_connections = fields.KeywordField()
-    performance_connections = fields.KeywordField()
+    """ todo Will need to be rafactored once we know more"""
+    media = fields.ObjectField(
+        properties={
+            "title": fields.KeywordField(),
+            "iiif_url": fields.TextField(),
+            "thumbnail_url": fields.TextField(),
+        }
+    )
 
     related_material = fields.TextField(
         fields={
@@ -72,28 +117,71 @@ class EADDocument(Document):
             "suggest": fields.CompletionField(),
         }
     )
+    size = fields.KeywordField()
+    medium = fields.KeywordField()
+    label = fields.KeywordField()
 
-    # todo this is inefficient, refactor
+    def prepare_media(self, instance):
+        """
+        This is a placeholder for now
+        will add live data when we get it"""
+        return {
+            "title": "Test image",
+            "iiif_url": "https://rct.resourcespace.com/iiif/732115a/",
+            "thumbnail_url": "https://rct.resourcespace.com/iiif/image/34658/full/thm/0/default.jpg"
+        }
 
-    def prepare_individual_connections(self, instance):
-        data = self.parse_connections(instance, {})
-        return data['individual_connections']
+    def prepare_place_of_origin(self, instance):
+        if len(instance.originalsloc_set.all()) > 0:
+            return [
+                originalsloc.originalsloc for originalsloc in
+                instance.originalsloc_set.all()
+            ][0]
+        return []
 
-    def prepare_work_connections(self, instance):
-        data = self.parse_connections(instance, {})
-        return data['work_connections']
+    def prepare_reference(self, instance):
+        if len(instance.unitid_set.all()) > 0:
+            return [unitid.id for unitid in instance.unitid_set.all()][0]
+        return 0
 
-    def prepare_text_connections(self, instance):
-        data = self.parse_connections(instance, {})
-        return data['text_connections']
+    #
+    def prepare_size(self, instance):
+        size = ''
+        for physdescstructured in instance.physdescstructured_set.all():
+            if physdescstructured.physdescstructuredtype == 'spaceoccupied':
+                size = '{} {}'.format(
+                    physdescstructured.quantity,
+                    physdescstructured.unittype
+                )
+                for dim in DIdPhysDescStructuredDimensions.objects.filter(
+                    physdescstructured=physdescstructured):
+                    size = size + '; {}'.format(dim.dimensions)
 
-    def prepare_source_connections(self, instance):
-        data = self.parse_connections(instance, {})
-        return data['source_connections']
+        return size
 
-    def prepare_performance_connections(self, instance):
-        data = self.parse_connections(instance, {})
-        return data['performance_connections']
+    def prepare_medium(self, instance):
+        medium = ''
+        for physdescstructured in instance.physdescstructured_set.all():
+            if physdescstructured.physdescstructuredtype == 'materialtype':
+                for phys in physdescstructured.physfacet_set.all():
+                    root = etree.fromstring('<wrapper>{}</wrapper>'.format(
+                        phys.physfacet))
+                    for media in root.xpath(
+                        'e:genreform/e:part/text()', namespaces=NS_MAP
+                    ):
+                        medium = medium + media
+        return medium
+
+    def prepare_label(self, instance):
+        label = ''
+        for physdescstructured in instance.physdescstructured_set.all():
+            if (
+                physdescstructured.otherphysdescstructuredtype ==
+                "label_inscription_caption"
+            ):
+                for phys in physdescstructured.physfacet_set.all():
+                    label = label + '{}'.format(phys.physfacet)
+        return label
 
     def _get_year_from_date(self, date):
         try:
@@ -195,19 +283,21 @@ class EADDocument(Document):
         """ Parse all connections looking for work types"""
         if len(sh_connection) > 1:
             label = sh_connection[1]
-            if (sh_connection[1].lower() == 'plays' or
-                sh_connection[1].lower() == 'poems'):
-                if (len(sh_connection) > 3 and
-                    sh_connection[2].lower() == 'sonnets'
-                ):
-                    # Numbered sonnets
-                    label = '{}-{}'.format(
-                        sh_connection[2], sh_connection[3]
-                    )
-                elif len(sh_connection) > 2:
+            if (
+                sh_connection[1].lower() == 'plays' or
+                sh_connection[1].lower() == 'poems'
+            ):
+                # if (len(sh_connection) > 3 and
+                #     sh_connection[2].lower() == 'sonnets'
+                # ):
+                #     # Numbered sonnets
+                #     label = '{}-{}'.format(
+                #         sh_connection[2], sh_connection[3]
+                #     )
+                if len(sh_connection) > 2:
                     label = sh_connection[2]
-                print(label)
-                data['work_connections'].append(label)
+                for split_label in label.split(','):
+                    data['work_connections'].append(split_label.strip())
 
             elif (sh_connection[1].lower() ==
                   "attributed to shakespeare"):
@@ -313,13 +403,35 @@ class EADDocument(Document):
                 data.append(element.text.strip())
         return data
 
-    def prepare_donor(self, instance):
+    def _get_donors(self, instance):
         return EADDocument._prepare_control_access_data(
             instance, "e:persname[@relator='donor']/e:part")
 
-    def prepare_acquirer(self, instance):
+    def _get_acquirers(self, instance):
         return EADDocument._prepare_control_access_data(
             instance, "e:persname[@relator='acquirer']/e:part")
+
+    def _get_publishers(self, instance):
+        return EADDocument._prepare_control_access_data(
+            instance, "e:persname[@relator='publisher']/e:part")
+
+    def prepare_related_people(self, instance):
+        return {
+            "acquirers": self._get_acquirers(instance),
+            "donors": self._get_donors(instance),
+            "publishers": self._get_publishers(instance)
+        }
+
+    def prepare_related_sources(self, instance):
+        data = self.parse_connections(instance, {})
+
+        return {
+            'individual_connections': data['individual_connections'],
+            'works': data['work_connections'],
+            'texts': data['text_connections'],
+            'sources': data['source_connections'],
+            'performances': data['performance_connections'],
+        }
 
     def prepare_date_of_acquisition(self, instance):
         return self._get_year_range(instance, 'acquisition')
