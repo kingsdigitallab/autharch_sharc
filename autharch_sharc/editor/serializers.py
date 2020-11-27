@@ -30,7 +30,8 @@ class EADDocumentResultSerializer(DocumentSerializer):
             # 'publicationstatus_value',
             'related_material',
             'related_sources',
-            'related_people'
+            'related_people',
+            'media'
         )
 
         """

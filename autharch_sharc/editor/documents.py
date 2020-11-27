@@ -125,11 +125,11 @@ class EADDocument(Document):
         """
         This is a placeholder for now
         will add live data when we get it"""
-        return {
+        return [{
             "title": "Test image",
             "iiif_url": "https://rct.resourcespace.com/iiif/732115a/",
             "thumbnail_url": "https://rct.resourcespace.com/iiif/image/34658/full/thm/0/default.jpg"
-        }
+        }]
 
     def prepare_place_of_origin(self, instance):
         if len(instance.originalsloc_set.all()) > 0:
