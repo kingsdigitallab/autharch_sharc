@@ -32,8 +32,9 @@ class EADDocument(Document):
     pk = fields.IntegerField(attr="id")
     reference = fields.IntegerField()
     archdesc_level = fields.KeywordField(attr='archdesc_level')
-    category = fields.KeywordField(
+    category = fields.TextField(
         fields={
+            "raw": fields.KeywordField(),
             "lowercase": fields.KeywordField(
                 normalizer=lowercase_sort_normalizer),
             "suggest": fields.CompletionField(),
@@ -218,7 +219,9 @@ class EADDocument(Document):
             categories.extend(
                 [str(category) for category in root.xpath(
                     'e:genreform/e:part/text()', namespaces=NS_MAP)])
-        return categories
+        if len(categories) > 0:
+            return categories[0]
+        return ""
 
     def _prepare_connection(self, instance, localtype):
         connections = []

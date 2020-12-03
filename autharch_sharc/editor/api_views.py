@@ -1,3 +1,6 @@
+import json
+import urllib3
+import mimetypes
 from django_elasticsearch_dsl_drf.filter_backends import (
     FilteringFilterBackend,
     OrderingFilterBackend,
@@ -15,7 +18,7 @@ from elasticsearch_dsl import (
     TermsFacet,
     NestedFacet
 )
-
+from django.http import HttpResponse
 from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -24,6 +27,31 @@ from .documents import EADDocument
 from .serializers import EADDocumentResultSerializer
 
 ES_FACET_OPTIONS = {"order": {"_key": "asc"}, "size": 100}
+
+
+def simple_proxy(request, path, target_url):
+    url = '%s%s' % (target_url, path)
+    if ('QUERY_STRING' in request.META
+        and len(request.META['QUERY_STRING']) > 0):
+        url += '?' + request.META['QUERY_STRING']
+    try:
+        http = urllib3.PoolManager()
+        proxied_request = http.request(
+            'GET',
+            url
+        )
+        status_code = proxied_request.status
+        if 'content-type' in proxied_request.headers:
+            mimetype = proxied_request.headers['content-type']
+        else:
+            mimetype = proxied_request.headers.typeheader or mimetypes.guess_type(
+            url)
+        content = proxied_request.data.decode('utf-8')
+    except urllib3.exceptions.HTTPError as e:
+        return HttpResponse(e.msg, status=e.code, content_type='text/plain')
+    else:
+        return HttpResponse(content, status=status_code, content_type=mimetype)
+
 
 
 class EADDocumentViewSet(DocumentViewSet):
@@ -70,7 +98,7 @@ class EADDocumentViewSet(DocumentViewSet):
     faceted_search_fields = {
         'category': {
             'facet': TermsFacet,
-            'field': 'category.lowercase',
+            'field': 'category.raw',
             'enabled': True,
             'options': ES_FACET_OPTIONS
         },
@@ -152,13 +180,19 @@ class EADDocumentViewSet(DocumentViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            response = self.get_paginated_response(
+                self._data_to_list(serializer.data))
+            # response["Access-Control-Allow-Origin"] = "*"
+            return response
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+
+        return Response(
+            data=self._data_to_list(serializer.data)
+        )
 
     @classmethod
-    def _data_to_retrieve_response(cls, data):
+    def _data_to_list(cls, data):
         """ Repackage the document data for the vue response"""
         # related_sources = {}
         # if ('individual_connections' in data and data[
@@ -184,6 +218,12 @@ class EADDocumentViewSet(DocumentViewSet):
         # ] is not None):
         #     related_sources['sources'] = data['source_connections']
         # data['related_sources'] = related_sources
+        if ('media' in data and data['media'] is not None):
+            if len(data['media']) >0:
+                # Only include first item in media
+                # todo look at ordering/priority of items
+                # when we have more data
+                data['media'] = data['media'][0]
 
 
         # related_people = {}
@@ -197,4 +237,4 @@ class EADDocumentViewSet(DocumentViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response(self._data_to_retrieve_response(serializer.data))
+        return Response(serializer.data)
