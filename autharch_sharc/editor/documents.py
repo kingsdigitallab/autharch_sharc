@@ -97,7 +97,8 @@ class EADDocument(Document):
     media = fields.ObjectField(
         properties={
             "title": fields.KeywordField(),
-            "iiif_url": fields.TextField(),
+            "iiif_manifest_url": fields.TextField(),
+            "iiif_image_url": fields.TextField(),
             "thumbnail_url": fields.TextField(),
         }
     )
@@ -128,7 +129,8 @@ class EADDocument(Document):
         will add live data when we get it"""
         return [{
             "title": "Test image",
-            "iiif_url": "https://rct.resourcespace.com/iiif/732115a/",
+            "iiif_manifest_url": "https://rct.resourcespace.com/iiif/732115a/",
+            "iiif_image_url": "https://rct.resourcespace.com/iiif/image/34658/info.json",
             "thumbnail_url": "https://rct.resourcespace.com/iiif/image/34658/full/thm/0/default.jpg"
         }]
 
