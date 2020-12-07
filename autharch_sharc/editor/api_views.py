@@ -234,7 +234,21 @@ class EADDocumentViewSet(DocumentViewSet):
         # data['related_people'] = related_people
         return data
 
+    @classmethod
+    def _data_to_retrieve(cls, data):
+        """ Extra data transformations for single record view"""
+        if 'creators' in data:
+            # Remove keys as they're not needed for display
+            filtered_creators = []
+            for creator in data['creators']:
+                filtered_creators.append(creator['name'])
+            data['creators'] = filtered_creators
+
+        return data
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        return Response(
+            data=self._data_to_retrieve(serializer.data)
+        )

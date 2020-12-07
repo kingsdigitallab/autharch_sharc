@@ -158,7 +158,8 @@ class EADDocument(Document):
                 )
                 for dim in DIdPhysDescStructuredDimensions.objects.filter(
                     physdescstructured=physdescstructured):
-                    size = size + '; {}'.format(dim.dimensions)
+                    if dim.dimensions and len(dim.dimensions) >0:
+                        size = size + '; {}'.format(dim.dimensions)
 
         return size
 
