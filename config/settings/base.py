@@ -297,9 +297,7 @@ SOCIALACCOUNT_ADAPTER = "autharch_sharc.users.adapters.SocialAccountAdapter"
 INSTALLED_APPS += ["compressor"]
 STATICFILES_FINDERS += ["compressor.finders.CompressorFinder"]
 COMPRESS_ENABLED = True
-COMPRESS_CSS_FILTERS = [
-    'compressor.filters.cssmin.CSSMinFilter',
-]
+
 # django-libsass
 # ---------------------------------------------------------------------------
 # https://github.com/torchbox/django-libsass
