@@ -11,6 +11,7 @@
   </div>
   <div class="fieldset-body expand inline-deletable">
     {% render_field form.id %}
+    {% render_field form.controlaccess %}
     {% render_form_delete_widget form.DELETE %}
     {% with genreforms=form.formsets.genreforms %}
     <div class="formset">

@@ -147,7 +147,7 @@ class ControlAccessInlineForm(ContainerModelForm):
                 ('persnames', 'persname')]
         for formset_name, field_name in subs:
             formset = self.formsets[formset_name]
-            controlaccess.append(
+            controlaccess.extend(
                 [form.cleaned_data[field_name] for form in formset.forms
                  if form not in formset.deleted_forms])
         return ''.join(controlaccess)
@@ -174,6 +174,9 @@ class ControlAccessInlineForm(ContainerModelForm):
     class Meta:
         model = ControlAccess
         fields = ['controlaccess', 'id']
+        widgets = {
+            'controlaccess': forms.HiddenInput(),
+        }
 
 
 class CorpNameInlineForm(ContainerModelForm):
@@ -582,7 +585,6 @@ def assemble_form_errors(form):
                 errors['field'] = True
         if hasattr(form, 'formsets'):
             for formset in form.formsets.values():
-                print(type(formset))
                 for form in formset.forms:
                     errors = add_form_errors(errors, form)
         return errors
