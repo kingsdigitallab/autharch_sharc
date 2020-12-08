@@ -23,7 +23,7 @@ certificatesResolvers:
 http:
   routers:
     web-router:
-      rule: "Host(`sharc2-dev.kdl.kcl.ac.uk`)"
+      rule: "Host(`autharch_sharc.info`) || Host(`www.autharch_sharc.info`)"
 
       entryPoints:
         - web
@@ -33,7 +33,7 @@ http:
       service: django
 
     web-secure-router:
-       rule: "Host(`sharc2-dev.kdl.kcl.ac.uk`)"
+      rule: "Host(`autharch_sharc.info`) || Host(`www.autharch_sharc.info`)"
 
       entryPoints:
         - web-secure
@@ -45,7 +45,7 @@ http:
         certResolver: letsencrypt
 
     web-media-router:
-      rule: "Host(`sharc2-dev.kdl.kcl.ac.uk`) && PathPrefix(`/media/`)"
+      rule: "Host(`autharch_sharc.info`) && PathPrefix(`/media/`)"
       entryPoints:
         - web-secure
       middlewares:
