@@ -74,7 +74,20 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "django_elasticsearch_dsl",
     'reversion',
-    'django_elasticsearch_dsl_drf'
+    'django_elasticsearch_dsl_drf',
+    'wagtail.contrib.forms',
+    'wagtail.contrib.redirects',
+    'wagtail.embeds',
+    'wagtail.sites',
+    'wagtail.users',
+    'wagtail.snippets',
+    'wagtail.documents',
+    'wagtail.images',
+    'wagtail.search',
+    'wagtail.admin',
+    'wagtail.core',
+    'modelcluster',
+    'taggit',
 ]
 
 LOCAL_APPS = [
@@ -141,6 +154,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
 ]
 
 # STATIC
@@ -317,3 +331,27 @@ ELASTICSEARCH_DSL = {"default": {"hosts": "elasticsearch:9200"}}
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+
+# Wagtail
+# ------------------------------------------------------------------------------
+# https://docs.wagtail.io/en/v2.7.1/getting_started/integrating_into_django.html
+WAGTAIL_SITE_NAME = "Autharch Sharc"
+ITEMS_PER_PAGE = 10
+
+WAGTAILSEARCH_BACKENDS = {
+    'default': {
+        'BACKEND': 'wagtail.search.backends.elasticsearch7',
+        'URLS': ["http://elasticsearch:9200"],
+        'INDEX': 'sharc_wagtail',
+    }
+}
+
+WAGTAILADMIN_RICH_TEXT_EDITORS = {
+    'default': {
+        'WIDGET': 'wagtail.admin.rich_text.DraftailRichTextArea',
+    },
+}
+
+
+LOGIN_URL = '/wagtail/login/'
