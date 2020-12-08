@@ -261,10 +261,11 @@ class EADDocument(Document):
 
         for connection_key in all_connections.keys():
             connection = all_connections[connection_key]
-            if connection[0].lower() == 'individual':
-                data = self.parse_individual_connections(connection, data)
-            elif connection[0].lower() == 'works':
-                data = self.parse_work_connections(connection, data)
+            if connection and len(connection) > 0:
+                if connection[0].lower() == 'individual':
+                    data = self.parse_individual_connections(connection, data)
+                elif connection[0].lower() == 'works':
+                    data = self.parse_work_connections(connection, data)
         return data
 
     def parse_individual_connections(self, sh_connection, data):
