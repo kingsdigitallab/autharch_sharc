@@ -118,7 +118,9 @@ COMPRESS_FILTERS = {
 # Collectfast
 # ------------------------------------------------------------------------------
 # https://github.com/antonagestam/collectfast#installation
-INSTALLED_APPS = ["collectfast"] + INSTALLED_APPS  # noqa F405
+# EH: Removed for now, may be restored if site used more
+# INSTALLED_APPS = ["collectfast"] + INSTALLED_APPS  # noqa F405
+
 
 # LOGGING
 # ------------------------------------------------------------------------------
