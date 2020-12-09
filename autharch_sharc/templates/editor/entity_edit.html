@@ -57,6 +57,7 @@
     {% csrf_token %}
     {% render_field form.part %}
   </form>
+  {% include "./includes/delete_modal.html" with delete_url=delete_url %}
   {% endblock content %}
 </main>
 {% endblock main %}

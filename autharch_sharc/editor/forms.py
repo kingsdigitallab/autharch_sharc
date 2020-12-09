@@ -11,6 +11,12 @@ from ead.models import (
     SourceEntry, UnitDateStructured, UnitDateStructuredDateRange, UnitTitle)
 
 
+ENTITY_SEARCH_INPUT_ATTRS = {
+    'aria-label': 'Search',
+    'placeholder': 'Search all people and corporate bodies',
+    'type': 'search',
+}
+
 RECORD_SEARCH_INPUT_ATTRS = {
     'aria-label': 'Search',
     'placeholder': 'Search all archival records',
@@ -538,7 +544,7 @@ class EADEntitySearchForm(forms.Form):
 
     q = forms.CharField(required=False, label="Search",
                         widget=forms.TextInput(
-                            attrs=RECORD_SEARCH_INPUT_ATTRS))
+                            attrs=ENTITY_SEARCH_INPUT_ATTRS))
 
 
 class EADRecordSearchForm(forms.Form):

@@ -2,6 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 
 from ead.models import CorpName, EAD, FamName, MaintenanceEvent, Name, PersName
@@ -210,6 +211,22 @@ class RecordWizard(NamedUrlSessionWizardView):
         return [self.TEMPLATES[self.steps.current]]
 
 
+@require_POST
+def entity_delete(request, entity_type, entity_id):
+    if entity_type == 'corpname':
+        model = CorpName
+    elif entity_type == 'persname':
+        model = PersName
+    else:
+        raise Http404()
+    entity = get_object_or_404(model, pk=entity_id)
+    if request.POST.get('DELETE') == 'DELETE':
+        entity.delete()
+        return redirect('editor:entity-list')
+    return redirect('editory:entity-edit', entity_type=entity_type,
+                    entity_id=entity_id)
+
+
 def entity_edit(request, entity_type, entity_id):
     if entity_type == 'corpname':
         entity_type_name = 'Corporate body'
@@ -242,6 +259,8 @@ def entity_edit(request, entity_type, entity_id):
     else:
         form = form_class(instance=part)
     context = {
+        'delete_url': reverse('editor:entity-delete', kwargs={
+            'entity_type': entity_type, 'entity_id': entity_id}),
         'entity': entity,
         'entity_type': entity_type_name,
         'form': form,

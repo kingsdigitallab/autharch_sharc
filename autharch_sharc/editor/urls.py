@@ -17,6 +17,8 @@ urlpatterns = [
     path(r'entities/', entity_list, name='entity-list'),
     path(r'entities/<str:entity_type>/<int:entity_id>/', views.entity_edit,
          name='entity-edit'),
+    path(r'entities/<str:entity_type>/<int:entity_id>/delete/',
+         views.entity_delete, name='entity-delete'),
     path(r'records/', record_list, name='record-list'),
     path(r'records/<int:record_id>/', record_wizard, name='record-wizard'),
     path(r'records/<int:pk>/history/', record_history,

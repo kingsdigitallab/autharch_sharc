@@ -304,6 +304,19 @@ function addDuplicate() {
 
 }
 
+function showModal(modalName) {
+  $('#'+modalName).addClass('active');
+}
+
+function hideModal() {
+  $(event.target).parents('.modal').first().removeClass('active');
+}
+
+function removeNotification() {
+  $(event.target).parent().remove();
+}
+
+
 // when the pagination button in full screen mode is clicked,
 // get index of an image
 // update pagination
