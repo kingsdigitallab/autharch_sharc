@@ -4,7 +4,8 @@ from django_elasticsearch_dsl.registries import registry
 from lxml import etree
 
 from ead.constants import NS_MAP
-from ead.models import EAD, RelationEntry, UnitDateStructuredDateRange
+from ead.models import (
+    CorpName, EAD, PersName, RelationEntry, UnitDateStructuredDateRange)
 
 
 @registry.register_document
@@ -23,7 +24,10 @@ class EADDocument(Document):
     connection_type = fields.KeywordField()
     date_of_acquisition = fields.IntegerField()
     date_of_creation = fields.IntegerField()
-    publicationstatus_value = fields.KeywordField()
+    maintenancestatus_value = fields.KeywordField(
+        attr="maintenancestatus_value")
+    publicationstatus_value = fields.KeywordField(
+        attr="publicationstatus_value")
     unittitle = fields.TextField()
 
     class Index:
@@ -32,7 +36,6 @@ class EADDocument(Document):
     class Django:
         model = EAD
         fields = [
-            "maintenancestatus_value",
             "recordid",
         ]
 
@@ -123,3 +126,37 @@ class EADDocument(Document):
         except IndexError:
             title = "[No title]"
         return title
+
+
+@registry.register_document
+class EADEntityCorporateBody(Document):
+    pk = fields.IntegerField(attr="id")
+    entity_type = fields.KeywordField()
+    name = fields.TextField(attr='assembled_name')
+
+    class Index:
+        name = "editor"
+
+    class Django:
+        model = CorpName
+        fields = []
+
+    def prepare_entity_type(self, instance):
+        return "corpname"
+
+
+@registry.register_document
+class EADEntityPerson(Document):
+    pk = fields.IntegerField(attr="id")
+    entity_type = fields.KeywordField()
+    name = fields.TextField(attr='assembled_name')
+
+    class Index:
+        name = "editor"
+
+    class Django:
+        model = PersName
+        fields = []
+
+    def prepare_entity_type(self, instance):
+        return "persname"

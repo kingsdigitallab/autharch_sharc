@@ -19,6 +19,31 @@ class SearchMixin(MultipleObjectMixin, FormMixin):
 
 class SearchView(SearchMixin, FormView):
 
+    def form_valid(self, form):
+        query = form.cleaned_data.get(self.search_field)
+        requested_facets = self._split_selected_facets(
+            self.request.GET.getlist(self.facet_key))
+        kwargs = {}
+        if query:
+            kwargs['query'] = query
+        if requested_facets:
+            kwargs['filters'] = requested_facets
+        search = self.search_class(**kwargs)
+        response = search.execute()
+        facets, selected_facets = self._annotate_facets(
+            response.facets, self.request.GET)
+        context = self.get_context_data(
+            **{
+                self.context_object_name: search[0:10000],
+                self.form_name: form,
+                'facets': facets,
+                "query": query,
+                'results_count': response.hits.total.value,
+                'selected_facets': selected_facets,
+            }
+        )
+        return self.render_to_response(context)
+
     def get(self, request, *args, **kwargs):
         form_class = self.get_form_class()
         form = self.get_form(form_class)

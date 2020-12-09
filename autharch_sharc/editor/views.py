@@ -1,11 +1,20 @@
-from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from ead.models import CorpName, EAD, FamName, Name, PersName
+from django.views.generic import DetailView
+
+from ead.models import CorpName, EAD, FamName, MaintenanceEvent, Name, PersName
+
 from elasticsearch_dsl import FacetedSearch, TermsFacet
+
 from formtools.wizard.views import NamedUrlSessionWizardView
 
+import reversion
+from reversion.models import Revision, Version
+
 from . import forms
-from .documents import EADDocument
+from .documents import EADDocument, EADEntityCorporateBody, EADEntityPerson
 from .generic_views import SearchView
 
 
@@ -89,6 +98,40 @@ class FacetMixin:
         return split_facets
 
 
+class EntitySearch(FacetedSearch):
+    doc_types = [EADEntityCorporateBody, EADEntityPerson]
+    facets = {
+        'entity_type': TermsFacet(field='entity_type.keyword'),
+    }
+    fields = ['name']
+
+
+class EntityList(SearchView, FacetMixin):
+
+    context_object_name = "entities"
+    form_class = forms.EADEntitySearchForm
+    search_class = EntitySearch
+    template_name = "editor/entity_list.html"
+
+
+class HomeView(SearchView, FacetMixin):
+
+    template_name = "editor/home.html"
+
+
+class RecordHistory(DetailView):
+
+    model = EAD
+    template_name = 'editor/history.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['edit_url'] = reverse('editor:record-wizard',
+                                      kwargs={'record_id': self.object.pk})
+        context['versions'] = Version.objects.get_for_object(self.object)
+        return context
+
+
 class RecordSearch(FacetedSearch):
     doc_types = [EADDocument]
     facets = {
@@ -104,34 +147,9 @@ class RecordSearch(FacetedSearch):
 class RecordList(SearchView, FacetMixin):
 
     context_object_name = "records"
-    form_class = forms.EADSearchForm
+    form_class = forms.EADRecordSearchForm
     search_class = RecordSearch
     template_name = "editor/record_list.html"
-
-    def form_valid(self, form):
-        query = form.cleaned_data.get(self.search_field)
-        requested_facets = self._split_selected_facets(
-            self.request.GET.getlist(self.facet_key))
-        kwargs = {}
-        if query:
-            kwargs['query'] = query
-        if requested_facets:
-            kwargs['filters'] = requested_facets
-        search = self.search_class(**kwargs)
-        response = search.execute()
-        facets, selected_facets = self._annotate_facets(
-            response.facets, self.request.GET)
-        context = self.get_context_data(
-            **{
-                self.context_object_name: response,
-                self.form_name: form,
-                'facets': facets,
-                "query": query,
-                'results_count': response.hits.total.value,
-                'selected_facets': selected_facets,
-            }
-        )
-        return self.render_to_response(context)
 
 
 class RecordWizard(NamedUrlSessionWizardView):
@@ -148,15 +166,28 @@ class RecordWizard(NamedUrlSessionWizardView):
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
+        context["saved"] = self.request.GET.get('saved', False)
         context["record"] = form.instance
         if form.is_bound and not form.is_valid():
             context["form_errors"] = forms.assemble_form_errors(form)
         context["post_data"] = self.request.POST
+        context["reverted"] = self.request.GET.get('reverted', False)
         return context
 
     def done(self, form_list, **kwargs):
-        for form in form_list:
+        # In order to create a single revision while saving the model
+        # instance multiple times, only create a revision when saving
+        # the final form.
+        for form in list(form_list)[:-1]:
             form.save()
+        with reversion.create_revision():
+            instance = list(form_list)[-1].save()
+            last_maintenance_event = MaintenanceEvent.objects.filter(
+                maintenancehistory=instance).order_by(
+                    '-eventdatetime_standarddatetime')[0]
+            event_description = last_maintenance_event.eventdescription_set.all()[0].eventdescription
+            #reversion.set_user(self.request.user)
+            reversion.set_comment(event_description)
         kwargs = {"record_id": self.kwargs.get("record_id")}
         url = reverse("editor:record-wizard", kwargs=kwargs) + "?saved=true"
         return redirect(url)
@@ -177,3 +208,53 @@ class RecordWizard(NamedUrlSessionWizardView):
 
     def get_template_names(self):
         return [self.TEMPLATES[self.steps.current]]
+
+
+def entity_edit(request, entity_type, entity_id):
+    if entity_type == 'corpname':
+        entity_type_name = 'Corporate body'
+        form_class = forms.CorpNameEditForm
+        model = CorpName
+    elif entity_type == 'persname':
+        entity_type_name = 'Person'
+        form_class = forms.PersNameEditForm
+        model = PersName
+    else:
+        raise Http404()
+    entity = get_object_or_404(model, pk=entity_id)
+    # Since we are not doing anything with the name, and only editing
+    # its one part, avoid the complexity of container forms and inline
+    # formsets and just have the form built for the part. There's no
+    # way this could cause problems later.
+    part = entity.part_set.all()[0]
+    form_errors = []
+    if request.method == 'POST':
+        form = form_class(request.POST, instance=part)
+        if form.is_valid():
+            form.save()
+            entity.save()
+            url = reverse('editor:entity-edit', kwargs={
+                'entity_type': entity_type, 'entity_id': entity_id}) + \
+                '?saved=true'
+            return redirect(url)
+        else:
+            form_errors = forms.assemble_form_errors(form)
+    else:
+        form = form_class(instance=part)
+    context = {
+        'entity': entity,
+        'entity_type': entity_type_name,
+        'form': form,
+        'form_errors': form_errors,
+        'reverted': request.GET.get('reverted', False),
+        'saved': request.GET.get('saved', False),
+    }
+    return render(request, 'editor/entity_edit.html', context)
+
+
+def revert(request):
+    revision_id = request.POST.get('revision_id')
+    revision = get_object_or_404(Revision, pk=revision_id)
+    revision.revert(delete=True)
+    return redirect(request.POST.get('redirect_url')
+                    + '?reverted={}'.format(revision_id))

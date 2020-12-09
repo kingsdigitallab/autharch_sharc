@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load editor_form_tags %}
+
+{% block main %}
+<main id="entity-edit">
+  {% block page_header %}
+  <div class="header-fixed">
+    <div class="action-buttons">
+      <button aria-label="delete" class="danger-clear" onclick="showModal('delete-modal')"><i class="far fa-trash-alt"></i> Delete</button>
+      <input type="submit" value="Save" form="record-form" class="save"/>
+    </div>
+  </div>
+  {% endblock page_header %}
+
+  {% block content %}
+  <div class="form-header">
+    <div class="breadcrumbs">
+      <ul>
+        <li><a href="{% url 'editor:home' %}">Home</a></li>
+        <li><a href="{% url 'editor:entity-list'%}">People and corporate bodies</a></li>
+      </ul>
+    </div>
+
+    {% if form_errors %}
+    <div class="error-notification">
+      <button class="icon-only" aria-label="close notification" onclick="removeNotification()">&#xf00d;</button>
+      <h4>Errors</h4>
+      {% for error in form_errors.non_field %}
+      <p>{{ error }}</p>
+      {% endfor %}
+      {% if form_errors.field %}
+      <p>There are field-specific errors; please check the form and correct.</p>
+      {% endif %}
+      <h4>
+    </div>
+    {% endif %}
+
+    {% if saved %}
+    <div class="success-notification">
+      <button class="icon-only" aria-label="close notification" onclick="removeNotification()">&#xf00d;</button> 
+      <h4>Your edits were successfully saved.</h4>
+    </div>
+    {% endif %}
+
+    <h1>{{ entity }}</h1>
+
+    <div class="submenu">
+      <div class="subitems">
+        <ul>
+          <li>Type: <span class="highlight">{{ entity_type }}</span></li>
+          <li>Record ID: <span class="highlight">{{ entity.id }}</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <form action="." id="record-form" method="post">
+    {% csrf_token %}
+    {% render_field form.part %}
+  </form>
+  {% endblock content %}
+</main>
+{% endblock main %}

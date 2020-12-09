@@ -11,6 +11,12 @@
           <li>Publication status: <span class="highlight{% if is_deleted %} danger-clear{% endif %}">{{ record.publicationstatus_value }}{% if is_deleted %} (deleted){% endif %}</span></li>
           <li>Maintenance status: <span class="highlight">{{ record.maintenancestatus_value }}</span></li>
           <li>Updated: <span class="highlight">{{ last_revision.date_created }}</span> by <span class="highlight">{{ last_revision.user }}</span></li>
+          <li>
+            <a href="{% url 'editor:record-history' pk=record.pk %}">
+              <i class="far fa-clock"></i>
+              <span class="dotted-underline">History</span>
+            </a>
+          </li>
         </ul>
       </div>
     </div>
@@ -50,6 +56,12 @@
       <button class="icon-only" aria-label="close notification" onclick="removeNotification()">&#xf00d;</button>
       <h4>Your edits were successfully saved.</h4>
     </div>
+    {% elif reverted %}
+    <div class="success-notification">
+      <button class="icon-only" aria-label="close notification" onclick="removeNotification()">&#xf00d;</button>
+      <h4>The version was sucessfully restored, (version id: {{ reverted }}).</h4>
+    </div>
+
     {% endif %}
 
     <h1>{{ record }}</h1>

@@ -179,23 +179,6 @@ class ControlAccessInlineForm(ContainerModelForm):
         }
 
 
-class CorpNameInlineForm(ContainerModelForm):
-
-    def _add_formsets(self, *args, **kwargs):
-        formsets = {}
-        data = kwargs.get('data')
-        CorpNamePartFormset = forms.inlineformset_factory(
-            CorpName, CorpNamePart, form=CorpNamePartInlineForm, extra=0,
-            max_num=1, validate_max=True)
-        formsets['parts'] = CorpNamePartFormset(
-            data, instance=self.instance, prefix=self.prefix + '-part')
-        return formsets
-
-    class Meta:
-        model = CorpName
-        fields = ['id']
-
-
 class CorpNamePartInlineForm(forms.ModelForm):
 
     class Meta:
@@ -319,23 +302,6 @@ class OriginationInlineForm(forms.ModelForm):
     class Meta:
         model = Origination
         fields = ['id', 'corpnames', 'label', 'persnames']
-
-
-class PersNameInlineForm(ContainerModelForm):
-
-    def _add_formsets(self, *args, **kwargs):
-        formsets = {}
-        data = kwargs.get('data')
-        PartFormset = forms.inlineformset_factory(
-            PersName, PersNamePart, form=PersNamePartInlineForm, extra=0,
-            max_num=1, validate_max=True)
-        formsets['parts'] = PartFormset(
-            data, instance=self.instance, prefix=self.prefix + '-part')
-        return formsets
-
-    class Meta:
-        model = PersName
-        fields = ['id']
 
 
 class PersNamePartInlineForm(forms.ModelForm):
@@ -554,7 +520,28 @@ class EADMaintenanceForm(ContainerModelForm):
         fields = ['maintenancestatus_value', 'publicationstatus_value']
 
 
-class EADSearchForm(forms.Form):
+class CorpNameEditForm(forms.ModelForm):
+
+    class Meta:
+        model = CorpNamePart
+        fields = ['part']
+
+
+class PersNameEditForm(forms.ModelForm):
+
+    class Meta:
+        model = PersNamePart
+        fields = ['part']
+
+
+class EADEntitySearchForm(forms.Form):
+
+    q = forms.CharField(required=False, label="Search",
+                        widget=forms.TextInput(
+                            attrs=RECORD_SEARCH_INPUT_ATTRS))
+
+
+class EADRecordSearchForm(forms.Form):
 
     q = forms.CharField(required=False, label='Search',
                         widget=forms.TextInput(

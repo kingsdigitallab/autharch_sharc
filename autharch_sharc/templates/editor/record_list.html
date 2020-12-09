@@ -27,16 +27,14 @@
               <a href="" class="checkbox-anchor" id="year-range-anchor">Filter</a>
             </fieldset>
             {% endif %}
-            {% with facets=records.facets.date_of_creation %}
-            {% if facets %}
+            {% if facets.date_of_creation %}
             <fieldset>
               <legend>Date of Creation</legend>
-              {% for facet in facets %}
+              {% for facet in facets.date_of_creation %}
               {% render_facet facet %}
               {% endfor %}
             </fieldset>
             {% endif %}
-            {% endwith %}
             {% if facets.fields.archival_level|length > 0 %}
             <fieldset class="filter-list" id="document-level-filter">
               <legend>Document level</legend>
@@ -48,56 +46,46 @@
               {% endfor %}
             </fieldset>
             {% endif %}
-            {% with facets=records.facets.creators %}
-            {% if facets %}
+            {% if facets.creators %}
             <fieldset class="filter-list" id="creators-filter">
               <legend>Creators</legend>
-              {% for facet in facets %}
+              {% for facet in facets.creators %}
               {% render_facet facet %}
               {% endfor %}
             </fieldset>
             {% endif %}
-            {% endwith %}
-            {% with facets=records.facets.categories %}
-            {% if facets %}
+            {% if facets.categories %}
             <fieldset class="filter-list" id="categories-filter">
               <legend>Categories</legend>
-              {% for facet in facets %}
+              {% for facet in facets.categories %}
               {% render_facet facet %}
               {% endfor %}
             </fieldset>
             {% endif %}
-            {% endwith %}
-            {% with facets=records.facets.connection_types %}
-            {% if facets %}
+            {% if facets.connection_types %}
             <fieldset class="filter-list" id="connection-types-filter">
               <legend>Connection Types</legend>
-              {% for facet in facets %}
+              {% for facet in facets.connection_types %}
               {% render_facet facet %}
               {% endfor %}
             </fieldset>
             {% endif %}
-            {% endwith %}
-            {% with facets=records.facets.connections_primary %}
-            {% if facets %}
+            {% if facets.connections_primary %}
             <fieldset class="filter-list" id="connections-primary-filter">
               <legend>Primary Connections</legend>
-              {% for facet in facets %}
+              {% for facet in facets.connections_primary %}
               {% render_facet facet %}
               {% endfor %}
             </fieldset>
             {% endif %}
-            {% endwith %}
-            {% with facets=records.facets.connections_secondary %}
-            {% if facets %}
+            {% if facets.connections_secondary %}
             <fieldset class="filter-list" id="connections-secondary-filter">
               <legend>Secondary Connections</legend>
-              {% for facet in facets %}
+              {% for facet in facets.connections_secondary %}
               {% render_facet facet %}
               {% endfor %}
             </fieldset>
             {% endif %}
-            {% endwith %}
             {% if facets.fields.transcription_text|length > 0 %}
             <fieldset class="filter-list" id="has-transcriptions-filter">
               <legend>Transcriptions</legend>

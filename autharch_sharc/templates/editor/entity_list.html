@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load editor_form_tags %}
+{% block main %}
+<main>
+  {% block page_header %}
+  <div class="page-header">
+    <h1>People and corporate bodies ({{ results_count }})</h1>
+    <div class="search-filter">
+      <form action="." class="search" method="get">
+        <label>
+          <span class="for-screen-readers">Search</span>
+          {{ form.q }}
+        </label>
+        <input type="submit" class="search-button" aria-label="Search button" value="&#xf002;"/>
+      </form>
+      <div class="filter-block">
+        <input type="checkbox" class="none" id="filter" value="Filter">
+        <label for="filter" class="filter-button"><span class="for-screen-readers">Filter</span></label>
+        <div class="filters-hidden">
+          <a href="." class="dotted-underline clear-filters active">Clear filters</a>
+          <div class="filters">
+            {% if facets.entity_type %}
+            <fieldset>
+              <legend>Entity Type</legend>
+              {% for facet in facets.entity_type %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock page_header %}
+
+  {% block content %}
+  {% if selected_facets %}
+  <div class="selected-facets">
+    <h4>Selected filters</h4>
+    <p>
+      {% for selected_facet in selected_facets %}
+      {% render_facet selected_facet %}
+      {% endfor %}
+    </p>
+  </div>
+  {% endif %}
+  <div class="table-container">
+    {% if query %}
+    <h2>Search results for "{{ query }}" <a href="." class="dotted-underline clear-filters active mgn-left">Clear search</a></h2>
+    {% endif %}
+    <table id="records-table" class="tablesorter">
+      <thead>
+        <tr>
+          <th class="description" scope="col" data-label="Name" data-placeholder="Filter by name">Name</th>
+          <th class="filter-select" scope="col" data-label="Type" data-placeholder="Select">Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entity in entities %}
+        <tr>
+          <td class="description entity"><a href="{% url 'editor:entity-edit' entity_type=entity.entity_type entity_id=entity.pk %}">{{ entity.name }}</a></td>
+          <td>{{ entity.entity_type }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div id="records-table_pager_info" class="pager">
+    {% if results_count > 10 %}
+    <div class="page-size">
+      <p>
+        rows per page: <a href="#" data-label="10">10</a>
+        {% if results_count > 25 %}
+          | <a href="#" data-label="25">25</a>
+          {% if results_count > 50 %}
+          | <a href="#" data-label="50">50</a>
+            {% if results_count > 100 %}
+            | <a href="#" data-label="100">100</a>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </p>
+    </div>
+    <div class="page-list">
+      <button class="first"><i class="fal fa-step-backward"></i></button>
+      <button class="prev"><i class="fal fa-caret-left"></i></button>
+      <span class="pagecount"></span>
+      <button class="next"><i class="fal fa-caret-right"></i></button>
+      <button class="last"><i class="fal fa-step-forward"></i></button>
+    </div>
+    {% endif %}
+  </div>
+  {% endblock content %}
+</main>
+{% endblock main %}
