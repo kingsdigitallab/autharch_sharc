@@ -70,6 +70,7 @@ unidecode==1.1.1          # via wagtail
 urllib3==1.25.10          # via django-controlled-vocabulary, elasticsearch, requests
 wagtail==2.11.2           # via -r requirements/./base.in
 webencodings==0.5.1       # via html5lib
+whitenoise==5.2.0         # via -r requirements/./base.in
 willow==1.4               # via wagtail
 xlrd==1.2.0               # via tablib
 xlsxwriter==1.3.7         # via wagtail
