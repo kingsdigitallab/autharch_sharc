@@ -16,6 +16,14 @@ http:
         - csrf
       service: django
 
+    autharch-web-router:
+      rule: "Host(`sharc-autharch-stg.kdl.kcl.ac.uk`)"
+      entryPoints:
+        - web
+      middlewares:
+        - csrf
+      service: django
+
     web-media-router:
       rule: "Host(`sharc2-dev.kdl.kcl.ac.uk`) && PathPrefix(`/media/`)"
       entryPoints:
