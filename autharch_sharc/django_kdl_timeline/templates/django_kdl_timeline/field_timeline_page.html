@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block meta_title %}Timeline{% endblock %}
+
+{% block title %}
+    Timeline
+{% endblock %}
+
+{% block css %}
+    <link title="timeline-styles" rel="stylesheet"
+          href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+{% endblock %}
+
+{% block main %}
+    <div id='timeline-embed' style="width: 100%; height: 600px"></div>
+{% endblock %}
+
+{% block footer_scripts %}
+    <script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
+    <script type="text/javascript">
+        var options = {
+            hash_bookmark: true,
+            zoom_sequence: [0.1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89],
+            initial_zoom: 0,
+            scale_factor: 0.1,
+            marker_height_min: 50,
+            marker_width_min: 150,
+            timenav_height_min: 300,
+            dragging: true,
+            optimal_tick_width: 150,
+        }
+        var timeline_json = '{{ timeline_json_url }}';
+        window.timeline = new TL.Timeline('timeline-embed', timeline_json, options);
+        //
+        $(window).on("load", function(){
+            $("#timeline-embed").click(function(ev){
+                //
+                if (ev.target){
+                    if ($(ev.target).attr('class') == "{{ ev_target_class }}"){
+                        ev.preventDefault();
+                        if (timeline){
+                            timeline.goToId($(ev.target).data("uniqueId"));
+                        }
+                    }
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

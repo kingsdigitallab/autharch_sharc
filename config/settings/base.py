@@ -86,6 +86,7 @@ THIRD_PARTY_APPS = [
     'wagtail.search',
     'wagtail.admin',
     'wagtail.core',
+    'wagtail.api.v2',
     'modelcluster',
     'taggit',
 ]
@@ -95,6 +96,7 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     'controlled_vocabulary',
     "ead",
+    "django_kdl_timeline",
     'editor',
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

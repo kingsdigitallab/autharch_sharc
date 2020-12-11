@@ -10,6 +10,7 @@ from editor.api_views import simple_proxy
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
+from django_kdl_timeline.api import wagtail_api_router
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
@@ -22,7 +23,9 @@ urlpatterns = [
     path("users/", include("autharch_sharc.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
+    path('api/wagtail/', wagtail_api_router.urls),
     path("editor/", include("editor.urls")),
+    path("timeline/", include("django_kdl_timeline.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # API URLS
