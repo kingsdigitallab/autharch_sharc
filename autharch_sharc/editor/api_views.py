@@ -22,15 +22,15 @@ from django.http import HttpResponse
 from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
 from rest_framework import permissions
 from rest_framework.response import Response
-from wagtail.snippets.models import register_snippet
-from django_kdl_timeline.models import TimelineEventWithImageSnippet
+
+
 
 from .documents import EADDocument
 from .serializers import EADDocumentResultSerializer
 
 ES_FACET_OPTIONS = {"order": {"_key": "asc"}, "size": 100}
 
-register_snippet(TimelineEventWithImageSnippet)
+
 
 def simple_proxy(request, path, target_url):
     url = '%s%s' % (target_url, path)
