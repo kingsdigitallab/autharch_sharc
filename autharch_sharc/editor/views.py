@@ -1,9 +1,10 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
-from django.views.generic import DetailView
+from django.views.generic import DetailView, TemplateView
 
 from ead.models import CorpName, EAD, FamName, MaintenanceEvent, Name, PersName
 
@@ -107,7 +108,7 @@ class EntitySearch(FacetedSearch):
     fields = ['name']
 
 
-class EntityList(SearchView, FacetMixin):
+class EntityList(LoginRequiredMixin, SearchView, FacetMixin):
 
     context_object_name = "entities"
     form_class = forms.EADEntitySearchForm
@@ -115,18 +116,31 @@ class EntityList(SearchView, FacetMixin):
     template_name = "editor/entity_list.html"
 
 
-class HomeView(SearchView, FacetMixin):
+class HomeView(LoginRequiredMixin, TemplateView):
 
     template_name = "editor/home.html"
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["current_section"] = 'home'
+        context['modified'] = self._get_modified_records(self.request.user)
+        return context
 
-class RecordHistory(DetailView):
+    def _get_modified_records(self, user):
+        versions = Version.objects.get_for_model(EAD).filter(
+            revision__user=user)
+        record_ids = [version.object_id for version in versions]
+        return EAD.objects.filter(id__in=record_ids)
+
+
+class RecordHistory(LoginRequiredMixin, DetailView):
 
     model = EAD
     template_name = 'editor/history.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["current_section"] = 'records'
         context['edit_url'] = reverse('editor:record-wizard',
                                       kwargs={'record_id': self.object.pk})
         context['versions'] = Version.objects.get_for_object(self.object)
@@ -145,15 +159,20 @@ class RecordSearch(FacetedSearch):
     fields = ['creators.name', 'unittitle']
 
 
-class RecordList(SearchView, FacetMixin):
+class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
 
     context_object_name = "records"
     form_class = forms.EADRecordSearchForm
     search_class = RecordSearch
     template_name = "editor/record_list.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_section"] = 'records'
+        return context
 
-class RecordWizard(NamedUrlSessionWizardView):
+
+class RecordWizard(LoginRequiredMixin, NamedUrlSessionWizardView):
     """Wizard for editing EAD records."""
 
     form_list = [
@@ -167,6 +186,7 @@ class RecordWizard(NamedUrlSessionWizardView):
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
+        context["current_section"] = 'records'
         context["saved"] = self.request.GET.get('saved', False)
         context["record"] = form.instance
         if form.is_bound and not form.is_valid():
@@ -211,6 +231,7 @@ class RecordWizard(NamedUrlSessionWizardView):
         return [self.TEMPLATES[self.steps.current]]
 
 
+@login_required
 @require_POST
 def entity_delete(request, entity_type, entity_id):
     if entity_type == 'corpname':
@@ -227,6 +248,7 @@ def entity_delete(request, entity_type, entity_id):
                     entity_id=entity_id)
 
 
+@login_required
 def entity_edit(request, entity_type, entity_id):
     if entity_type == 'corpname':
         entity_type_name = 'Corporate body'
@@ -259,6 +281,7 @@ def entity_edit(request, entity_type, entity_id):
     else:
         form = form_class(instance=part)
     context = {
+        'current_section': 'entities',
         'delete_url': reverse('editor:entity-delete', kwargs={
             'entity_type': entity_type, 'entity_id': entity_id}),
         'entity': entity,
@@ -271,6 +294,7 @@ def entity_edit(request, entity_type, entity_id):
     return render(request, 'editor/entity_edit.html', context)
 
 
+@login_required
 def revert(request):
     revision_id = request.POST.get('revision_id')
     revision = get_object_or_404(Revision, pk=revision_id)

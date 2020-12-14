@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block main %}
+<main>
+  {% block page_header %}
+  <div class="page-header">
+    <h1>Dashboard</h1>
+  </div>
+  {% endblock page_header %}
+
+  {% block content %}
+  <h2>Recently modified by me ({{ modified.count }})</h2>
+  <!-- display table if there are any recently modified records -->
+  {% if recently_modified_entities or recently_modified_records %}
+  <div class="table-container">
+    <table id="modified-table" class="tablesorter">
+      <thead>
+        <tr>
+          <th class="description" scope="col" data-label="Title" data-placeholder="Filter by title">Title</th>
+          <th class="filter-select" scope="col" data-label="Type/level" data-placeholder="Select">Type/level</th>
+          <th class="filter-select" scope="col" data-label="Publication status" data-placeholder="Select">Publication status</th>
+          <th class="sorter-sugar" scope="col" data-label="Updated" data-placeholder="Filter by date">Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in modified %}
+        <tr>
+          <td class="description archival-record"><a href="{% url 'editor:record-edit' record_id=record.pk %}">{{ record }}</a></td>
+          <td></td>
+          <td></td>
+          <td data-text=""></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <!-- if count of records and entities exceeds 10, add pagination -->
+  <div id="modified-table_pager_info" class="pager">
+    {% if recently_modified_entities.count|add:recently_modified_records.count > 10 %}
+    <div class="page-size">
+      <p>
+        rows per page:
+        <a href="#" data-label="10">10</a>
+        {% if modified.count > 25 %} | <a href="#" data-label="25">25</a>
+        {% if modified.count > 50 %} | <a href="#"  data-label="50">50</a>
+        {% if modified.count > 100 %} | <a href="#"  data-label="100">100</a>
+        {% endif%}
+        {% endif %}
+        {% endif %}
+      </p>
+    </div>
+    <div class="page-list">
+      <button class="first"><i class="fal fa-step-backward"></i></button>
+      <button class="prev"><i class="fal fa-caret-left"></i></button>
+      <span class="pagecount"></span>
+      <button class="next"><i class="fal fa-caret-right"></i></button>
+      <button class="last"><i class="fal fa-step-forward"></i></button>
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="empty-block">
+    <p>You don't have recently modified records.</p>
+    <p>Browse <a href="{% url 'editor:record-list' %}" class="dotted-underline">Archival records</a>.</p>
+  </div>
+  {% endif %}
+  {% endblock content %}
+</main>
+{% endblock main %}

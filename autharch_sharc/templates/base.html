@@ -32,41 +32,30 @@
         <span class="line3" aria-hidden="true"></span>
       </label>
       <nav id="menu-links">
-        {% comment %}<div class="link{% if current_section == 'home' %} active{% endif %}">
+        <div class="link{% if current_section == 'home' %} active{% endif %}">
           <a href="{% url 'editor:home' %}">
             <i class="fal fa-home"></i>
             <h4>Dashboard</h4>
           </a>
         </div>
         <div class="link{% if current_section == 'entities' %} active{% endif %}">
-          <a href="{% url 'editor:entities-list' %}">
+          <a href="{% url 'editor:entity-list' %}">
             <i class="fal fa-users"></i>
             <h4>People and<br> corporate bodies</h4>
           </a>
         </div>
         <div class="link{% if current_section == 'records' %} active{% endif %}">
-          <a href="{% url 'editor:records-list' %}">
+          <a href="{% url 'editor:record-list' %}">
             <i class="fal fa-archive"></i>
             <h4>Archival records</h4>
           </a>
         </div>
-        <!-- TODO: display if deleted > 0 -->
-        {% if show_delete %}
-        <div class="link{% if current_section == 'deleted' %} active{% endif %}">
+        {% comment %}<div class="link{% if current_section == 'deleted' %} active{% endif %}">
           <a href="{% url 'editor:deleted-list' %}">
             <i class="far fa-trash-alt"></i>
             <h4>Deleted</h4>
           </a>
-        </div>
-        {% endif %}
-        {% if show_delete %}
-        <div class="link{% if current_section == 'duplicates' %} active{% endif %}">
-          <a href="{% url 'editor:duplicates-list' %}">
-            <i class="fal fa-copy"></i>
-            <h4>Duplicates</h4>
-          </a>
-        </div>
-        {% endif %}{% endcomment %}
+        </div>{% endcomment %}
       </nav>
       {% comment %}<div id="menu-account">
         <div class="link{% if current_section == 'account' %} active{% endif %}">
