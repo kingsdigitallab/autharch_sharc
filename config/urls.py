@@ -4,13 +4,12 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
-from rest_framework.authtoken.views import obtain_auth_token
+from django_kdl_timeline.api import wagtail_api_router
 from editor.api_views import simple_proxy
-
+from rest_framework.authtoken.views import obtain_auth_token
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
-from django_kdl_timeline.api import wagtail_api_router
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
@@ -23,27 +22,29 @@ urlpatterns = [
     path("users/", include("autharch_sharc.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
-    path('api/wagtail/', wagtail_api_router.urls),
+    path("api/wagtail/", wagtail_api_router.urls),
     path("editor/", include("editor.urls")),
-    path("timeline/", include("django_kdl_timeline.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # API URLS
 urlpatterns += [
     # API base url
     path("api/", include("config.api_router")),
-    re_path(r'^rct/(?P<path>.*)$', simple_proxy, {'target_url': 'https://rct.resourcespace.com/'}),
+    re_path(
+        r"^rct/(?P<path>.*)$",
+        simple_proxy,
+        {"target_url": "https://rct.resourcespace.com/"},
+    ),
     # DRF auth token
     path("auth-token/", obtain_auth_token),
 ]
 
 # Wagtail URLS
 urlpatterns += [
-    re_path('wagtail/', include(wagtailadmin_urls)),
-    re_path('documents/', include(wagtaildocs_urls)),
-    re_path('', include(wagtail_urls)),
-    ]
-
+    re_path("wagtail/", include(wagtailadmin_urls)),
+    re_path("documents/", include(wagtaildocs_urls)),
+    re_path("", include(wagtail_urls)),
+]
 
 
 if settings.DEBUG:
