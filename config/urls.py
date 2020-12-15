@@ -5,7 +5,7 @@ from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from django_kdl_timeline.api import wagtail_api_router
-from editor.api_views import simple_proxy
+from editor import api_views
 from rest_framework.authtoken.views import obtain_auth_token
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.core import urls as wagtail_urls
@@ -28,11 +28,14 @@ urlpatterns = [
 
 # API URLS
 urlpatterns += [
+    path(
+        r"api/events/", api_views.SharcListTimelineEvents.as_view(), name="event-list"
+    ),
     # API base url
     path("api/", include("config.api_router")),
     re_path(
         r"^rct/(?P<path>.*)$",
-        simple_proxy,
+        api_views.simple_proxy,
         {"target_url": "https://rct.resourcespace.com/"},
     ),
     # DRF auth token

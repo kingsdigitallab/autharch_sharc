@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import api_views, views
+from . import views
 
 app_name = "editor"
 
@@ -13,5 +13,4 @@ urlpatterns = [
     path(
         "records/<int:record_id>/<str:step>/", record_wizard, name="record-wizard-step"
     ),
-    path(r"events/", api_views.SharcListTimelineEvents.as_view(), name="event-list"),
 ]

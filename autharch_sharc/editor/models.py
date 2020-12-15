@@ -23,8 +23,8 @@ class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
             Match to manifest by RCIN when ready"""
             data["media"] = {
                 "link": "/objects/{}".format(self.RCIN),
-                "thumbnail": "https://rct.resourcespace.com/iiif/image/{}/full/thm"
-                "/0/default.jpg".format(self.RCIN),
+                "thumbnail": "https://rct.resourcespace.com/iiif/image/{"
+                "}/full/thm/0/default.jpg".format(self.RCIN),
             }
         return data
 
@@ -36,6 +36,7 @@ class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
     class Meta:
         verbose_name = "Timeline event"
         verbose_name_plural = "Timeline events"
+        ordering = ["start_date_year"]
 
     def __str__(self):
         return "{}:{} (RCIN {})".format(self.start_date_year, self.headline, self.RCIN)
