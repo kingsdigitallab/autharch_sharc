@@ -1,28 +1,42 @@
 from django import forms
-
-from lxml import etree
-
 from ead.constants import NS_MAP
 from ead.models import (
-    Bibliography, ControlAccess, CorpName, CorpNamePart, CustodHist,
-    DIdPhysDescStructured, DIdPhysDescStructuredDimensions,
-    DIdPhysDescStructuredPhysFacet, EAD, EventDescription, MaintenanceEvent,
-    Origination, PersName, PersNamePart, PhysLoc, ScopeContent, Source,
-    SourceEntry, UnitDateStructured, UnitDateStructuredDateRange, UnitTitle)
-
+    EAD,
+    Bibliography,
+    ControlAccess,
+    CorpName,
+    CorpNamePart,
+    CustodHist,
+    DIdPhysDescStructured,
+    DIdPhysDescStructuredDimensions,
+    DIdPhysDescStructuredPhysFacet,
+    EventDescription,
+    MaintenanceEvent,
+    Origination,
+    PersName,
+    PersNamePart,
+    PhysLoc,
+    ScopeContent,
+    Source,
+    SourceEntry,
+    UnitDateStructured,
+    UnitDateStructuredDateRange,
+    UnitTitle,
+)
+from lxml import etree
 
 RECORD_SEARCH_INPUT_ATTRS = {
-    'aria-label': 'Search',
-    'placeholder': 'Search all archival records',
-    'type': 'search',
+    "aria-label": "Search",
+    "placeholder": "Search all archival records",
+    "type": "search",
 }
 
 RECORD_SEARCH_START_YEAR_INPUT_ATTRS = {
-    'aria-label': 'Start year',
+    "aria-label": "Start year",
 }
 
 RECORD_SEARCH_END_YEAR_INPUT_ATTRS = {
-    'aria-label': 'End year',
+    "aria-label": "End year",
 }
 
 
@@ -50,12 +64,14 @@ class ContainerModelForm(forms.ModelForm):
         raise NotImplementedError
 
     def has_changed(self):
-        return bool(self.changed_data) or \
-            any(formset.has_changed() for formset in self.formsets.values())
+        return bool(self.changed_data) or any(
+            formset.has_changed() for formset in self.formsets.values()
+        )
 
     def is_valid(self):
-        return super().is_valid() and \
-            all(formset.is_valid() for formset in self.formsets.values())
+        return super().is_valid() and all(
+            formset.is_valid() for formset in self.formsets.values()
+        )
 
     @property
     def media(self):
@@ -83,36 +99,46 @@ class BibliographyInlineForm(ContainerModelForm):
 
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         initial_bibrefs = self._parse_bibliography()
         BibRefFormset = forms.formset_factory(
-            BibRefForm, can_delete=True, extra=0, min_num=1, validate_min=True)
-        formsets['bibrefs'] = BibRefFormset(
-            data, initial=initial_bibrefs, prefix=self.prefix + '-bibref')
+            BibRefForm, can_delete=True, extra=0, min_num=1, validate_min=True
+        )
+        formsets["bibrefs"] = BibRefFormset(
+            data, initial=initial_bibrefs, prefix=self.prefix + "-bibref"
+        )
         return formsets
 
     def clean_bibliography(self):
-        formset = self.formsets['bibrefs']
+        formset = self.formsets["bibrefs"]
         bibrefs = [
-            form.cleaned_data['bibref'] for form in formset.forms
-            if form not in formset.deleted_forms]
-        bibliography = ''.join(bibrefs)
+            form.cleaned_data["bibref"]
+            for form in formset.forms
+            if form not in formset.deleted_forms
+        ]
+        bibliography = "".join(bibrefs)
         return bibliography
 
     def _parse_bibliography(self):
         """Returns the bibrefs in the instance's bibliography field as initial
         data for a non-model formset."""
         bibrefs = []
-        root = etree.fromstring('<wrapper>{}</wrapper>'.format(
-            self.instance.bibliography))
-        for bibref in root.xpath('//e:bibref', namespaces=NS_MAP):
-            bibrefs.append({'bibref': etree.tostring(
-                bibref, encoding='unicode', xml_declaration=False)})
+        root = etree.fromstring(
+            "<wrapper>{}</wrapper>".format(self.instance.bibliography)
+        )
+        for bibref in root.xpath("//e:bibref", namespaces=NS_MAP):
+            bibrefs.append(
+                {
+                    "bibref": etree.tostring(
+                        bibref, encoding="unicode", xml_declaration=False
+                    )
+                }
+            )
         return bibrefs
 
     class Meta:
         model = Bibliography
-        fields = ['archdesc', 'bibliography', 'id']
+        fields = ["archdesc", "bibliography", "id"]
 
 
 class BibRefForm(forms.Form):
@@ -120,98 +146,127 @@ class BibRefForm(forms.Form):
 
 
 class ControlAccessInlineForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
-        initial_genreforms, initial_geognames, initial_persnames = \
-            self._parse_controlaccess()
+        data = kwargs.get("data")
+        (
+            initial_genreforms,
+            initial_geognames,
+            initial_persnames,
+        ) = self._parse_controlaccess()
         GenreformFormset = forms.formset_factory(
-            GenreformInlineForm, can_delete=True, extra=0)
-        formsets['genreforms'] = GenreformFormset(
-            data, initial=initial_genreforms,
-            prefix=self.prefix + '-genreform')
+            GenreformInlineForm, can_delete=True, extra=0
+        )
+        formsets["genreforms"] = GenreformFormset(
+            data, initial=initial_genreforms, prefix=self.prefix + "-genreform"
+        )
         GeognameFormset = forms.formset_factory(
-            GeognameInlineForm, can_delete=True, extra=0)
-        formsets['geognames'] = GeognameFormset(
-            data, initial=initial_geognames, prefix=self.prefix + '-geogname')
+            GeognameInlineForm, can_delete=True, extra=0
+        )
+        formsets["geognames"] = GeognameFormset(
+            data, initial=initial_geognames, prefix=self.prefix + "-geogname"
+        )
         PersnameFormset = forms.formset_factory(
-            PersnameNonModelInlineForm, can_delete=True, extra=0)
-        formsets['persnames'] = PersnameFormset(
-            data, initial=initial_persnames, prefix=self.prefix + '-persname')
+            PersnameNonModelInlineForm, can_delete=True, extra=0
+        )
+        formsets["persnames"] = PersnameFormset(
+            data, initial=initial_persnames, prefix=self.prefix + "-persname"
+        )
         return formsets
 
     def clean_controlaccess(self):
         controlaccess = []
-        subs = [('genreforms', 'genreform'), ('geognames', 'geogname'),
-                ('persnames', 'persname')]
+        subs = [
+            ("genreforms", "genreform"),
+            ("geognames", "geogname"),
+            ("persnames", "persname"),
+        ]
         for formset_name, field_name in subs:
             formset = self.formsets[formset_name]
             controlaccess.append(
-                [form.cleaned_data[field_name] for form in formset.forms
-                 if form not in formset.deleted_forms])
-        return ''.join(controlaccess)
+                [
+                    form.cleaned_data[field_name]
+                    for form in formset.forms
+                    if form not in formset.deleted_forms
+                ]
+            )
+        return "".join(controlaccess)
 
     def _parse_controlaccess(self):
         """Returns the genreforms, geognames, and persnames in the instance's
         controlaccess field as initial data for non-model formsets."""
-        root = etree.fromstring('<wrapper>{}</wrapper>'.format(
-            self.instance.controlaccess))
-        genreforms = [{'genreform': etree.tostring(
-            genreform, encoding='unicode', xml_declaration=False)}
-                      for genreform in root.xpath('//e:genreform',
-                                                  namespaces=NS_MAP)]
-        geognames = [{'geogname': etree.tostring(
-            geogname, encoding='unicode', xml_declaration=False)}
-                     for geogname in root.xpath('//e:geogname',
-                                                namespaces=NS_MAP)]
-        persnames = [{'persname': etree.tostring(
-            persname, encoding='unicode', xml_declaration=False)}
-                     for persname in root.xpath('//e:persname',
-                                                namespaces=NS_MAP)]
+        root = etree.fromstring(
+            "<wrapper>{}</wrapper>".format(self.instance.controlaccess)
+        )
+        genreforms = [
+            {
+                "genreform": etree.tostring(
+                    genreform, encoding="unicode", xml_declaration=False
+                )
+            }
+            for genreform in root.xpath("//e:genreform", namespaces=NS_MAP)
+        ]
+        geognames = [
+            {
+                "geogname": etree.tostring(
+                    geogname, encoding="unicode", xml_declaration=False
+                )
+            }
+            for geogname in root.xpath("//e:geogname", namespaces=NS_MAP)
+        ]
+        persnames = [
+            {
+                "persname": etree.tostring(
+                    persname, encoding="unicode", xml_declaration=False
+                )
+            }
+            for persname in root.xpath("//e:persname", namespaces=NS_MAP)
+        ]
         return genreforms, geognames, persnames
 
     class Meta:
         model = ControlAccess
-        fields = ['controlaccess', 'id']
+        fields = ["controlaccess", "id"]
 
 
 class CorpNameInlineForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         CorpNamePartFormset = forms.inlineformset_factory(
-            CorpName, CorpNamePart, form=CorpNamePartInlineForm, extra=0,
-            max_num=1, validate_max=True)
-        formsets['parts'] = CorpNamePartFormset(
-            data, instance=self.instance, prefix=self.prefix + '-part')
+            CorpName,
+            CorpNamePart,
+            form=CorpNamePartInlineForm,
+            extra=0,
+            max_num=1,
+            validate_max=True,
+        )
+        formsets["parts"] = CorpNamePartFormset(
+            data, instance=self.instance, prefix=self.prefix + "-part"
+        )
         return formsets
 
     class Meta:
         model = CorpName
-        fields = ['id']
+        fields = ["id"]
 
 
 class CorpNamePartInlineForm(forms.ModelForm):
-
     class Meta:
         model = CorpNamePart
-        fields = ['id', 'part']
+        fields = ["id", "part"]
 
 
 class CustodHistInlineForm(forms.ModelForm):
-
     class Meta:
         model = CustodHist
-        fields = ['id', 'custodhist']
+        fields = ["id", "custodhist"]
 
 
 class EventDescriptionInlineForm(forms.ModelForm):
-
     class Meta:
         model = EventDescription
-        fields = ['maintenanceevent', 'eventdescription', 'id']
+        fields = ["maintenanceevent", "eventdescription", "id"]
 
 
 class GenreformInlineForm(forms.Form):
@@ -225,121 +280,146 @@ class GeognameInlineForm(forms.Form):
 
 
 class LabelInlineForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         PhysFacetFormset = forms.inlineformset_factory(
-            DIdPhysDescStructured, DIdPhysDescStructuredPhysFacet,
-            form=LabelPhysFacetInlineForm, extra=1, max_num=1, min_num=1,
-            validate_max=True, validate_min=True)
-        formsets['physfacets'] = PhysFacetFormset(
-            data, instance=self.instance, prefix='physfacet')
+            DIdPhysDescStructured,
+            DIdPhysDescStructuredPhysFacet,
+            form=LabelPhysFacetInlineForm,
+            extra=1,
+            max_num=1,
+            min_num=1,
+            validate_max=True,
+            validate_min=True,
+        )
+        formsets["physfacets"] = PhysFacetFormset(
+            data, instance=self.instance, prefix="physfacet"
+        )
         return formsets
 
     def save(self, commit=True):
         if not self.errors:
-            self.instance.physdescstructuredtype = DIdPhysDescStructured.STRUCTURED_TYPE_OTHER
-            self.instance.otherphysdescstructuredtype = 'label_inscription_caption'
+            self.instance.physdescstructuredtype = (
+                DIdPhysDescStructured.STRUCTURED_TYPE_OTHER
+            )
+            self.instance.otherphysdescstructuredtype = "label_inscription_caption"
             self.instance.quantity = 1
-            self.instance.unittype = 'item'
+            self.instance.unittype = "item"
             self.instance.coverage = DIdPhysDescStructured.COVERAGE_PART
         super().save(commit)
 
     class Meta:
         model = DIdPhysDescStructured
-        fields = ['id']
+        fields = ["id"]
 
 
 class LabelPhysFacetInlineForm(forms.ModelForm):
-
     class Meta:
         model = DIdPhysDescStructuredPhysFacet
-        fields = ['id', 'physfacet']
+        fields = ["id", "physfacet"]
 
 
 class MaintenanceEventInlineForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         EventDescriptionFormset = forms.inlineformset_factory(
-            MaintenanceEvent, EventDescription,
-            form=EventDescriptionInlineForm, extra=0, min_num=1,
-            validate_min=True)
-        formsets['eventdescriptions'] = EventDescriptionFormset(
-            data, instance=self.instance,
-            prefix=self.prefix + '-eventdescription')
+            MaintenanceEvent,
+            EventDescription,
+            form=EventDescriptionInlineForm,
+            extra=0,
+            min_num=1,
+            validate_min=True,
+        )
+        formsets["eventdescriptions"] = EventDescriptionFormset(
+            data, instance=self.instance, prefix=self.prefix + "-eventdescription"
+        )
         return formsets
 
     class Meta:
         model = MaintenanceEvent
-        fields = ['id', 'maintenancehistory', 'agent', 'agenttype_value',
-                  'eventtype_value']
+        fields = [
+            "id",
+            "maintenancehistory",
+            "agent",
+            "agenttype_value",
+            "eventtype_value",
+        ]
 
 
 class MediumInlineForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         PhysFacetFormset = forms.inlineformset_factory(
-            DIdPhysDescStructured, DIdPhysDescStructuredPhysFacet,
-            form=MediumPhysFacetInlineForm, extra=1, max_num=1, min_num=1,
-            validate_max=True, validate_min=True)
-        formsets['physfacets'] = PhysFacetFormset(
-            data, instance=self.instance, prefix='physfacet')
+            DIdPhysDescStructured,
+            DIdPhysDescStructuredPhysFacet,
+            form=MediumPhysFacetInlineForm,
+            extra=1,
+            max_num=1,
+            min_num=1,
+            validate_max=True,
+            validate_min=True,
+        )
+        formsets["physfacets"] = PhysFacetFormset(
+            data, instance=self.instance, prefix="physfacet"
+        )
         return formsets
 
     def save(self, commit=True):
         if not self.errors:
-            self.instance.physdescstructuredtype = DIdPhysDescStructured.STRUCTURED_TYPE_MATERIAL
+            self.instance.physdescstructuredtype = (
+                DIdPhysDescStructured.STRUCTURED_TYPE_MATERIAL
+            )
             self.instance.quantity = 1
-            self.instance.unittype = 'item'
+            self.instance.unittype = "item"
             self.instance.coverage = DIdPhysDescStructured.COVERAGE_WHOLE
         super().save(commit)
 
     class Meta:
         model = DIdPhysDescStructured
-        fields = ['id']
+        fields = ["id"]
 
 
 class MediumPhysFacetInlineForm(forms.ModelForm):
-
     class Meta:
         model = DIdPhysDescStructuredPhysFacet
-        fields = ['id', 'physfacet']
+        fields = ["id", "physfacet"]
 
 
 class OriginationInlineForm(forms.ModelForm):
-
     class Meta:
         model = Origination
-        fields = ['id', 'corpnames', 'label', 'persnames']
+        fields = ["id", "corpnames", "label", "persnames"]
 
 
 class PersNameInlineForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         PartFormset = forms.inlineformset_factory(
-            PersName, PersNamePart, form=PersNamePartInlineForm, extra=0,
-            max_num=1, validate_max=True)
-        formsets['parts'] = PartFormset(
-            data, instance=self.instance, prefix=self.prefix + '-part')
+            PersName,
+            PersNamePart,
+            form=PersNamePartInlineForm,
+            extra=0,
+            max_num=1,
+            validate_max=True,
+        )
+        formsets["parts"] = PartFormset(
+            data, instance=self.instance, prefix=self.prefix + "-part"
+        )
         return formsets
 
     class Meta:
         model = PersName
-        fields = ['id']
+        fields = ["id"]
 
 
 class PersNamePartInlineForm(forms.ModelForm):
-
     class Meta:
         model = PersNamePart
-        fields = ['id', 'part']
+        fields = ["id", "part"]
 
 
 class PersnameNonModelInlineForm(forms.Form):
@@ -348,220 +428,300 @@ class PersnameNonModelInlineForm(forms.Form):
 
 
 class PhyslocInlineForm(forms.ModelForm):
-
     class Meta:
         model = PhysLoc
-        fields = ['id', 'physloc']
+        fields = ["id", "physloc"]
 
 
 class ScopeContentInlineForm(forms.ModelForm):
-
     class Meta:
         model = ScopeContent
-        fields = ['id', 'scopecontent']
+        fields = ["id", "scopecontent"]
 
 
 class SizeDimensionsInlineForm(forms.ModelForm):
-
     class Meta:
         model = DIdPhysDescStructuredDimensions
-        fields = ['id', 'dimensions']
+        fields = ["id", "dimensions"]
 
 
 class SizeInlineForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         DimensionsFormset = forms.inlineformset_factory(
-            DIdPhysDescStructured, DIdPhysDescStructuredDimensions,
-            form=SizeDimensionsInlineForm, extra=1, max_num=1, min_num=1,
-            validate_max=True, validate_min=True)
-        formsets['sizes'] = DimensionsFormset(
-            data, instance=self.instance, prefix='physfacet')
+            DIdPhysDescStructured,
+            DIdPhysDescStructuredDimensions,
+            form=SizeDimensionsInlineForm,
+            extra=1,
+            max_num=1,
+            min_num=1,
+            validate_max=True,
+            validate_min=True,
+        )
+        formsets["sizes"] = DimensionsFormset(
+            data, instance=self.instance, prefix="physfacet"
+        )
         return formsets
 
     def save(self, commit=True):
         if not self.errors:
-            self.instance.physdescstructuredtype = DIdPhysDescStructured.STRUCTURED_TYPE_SPACE
+            self.instance.physdescstructuredtype = (
+                DIdPhysDescStructured.STRUCTURED_TYPE_SPACE
+            )
             self.instance.quantity = 1
-            self.instance.unittype = 'item'
+            self.instance.unittype = "item"
             self.instance.coverage = DIdPhysDescStructured.COVERAGE_WHOLE
         super().save(commit)
 
     class Meta:
         model = DIdPhysDescStructured
-        fields = ['id']
+        fields = ["id"]
 
 
 class SourceEntryInlineForm(forms.ModelForm):
-
     class Meta:
         model = SourceEntry
-        fields = ['id', 'sourceentry']
+        fields = ["id", "sourceentry"]
 
 
 class SourceInlineForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         SourceEntryFormset = forms.inlineformset_factory(
-            Source, SourceEntry, form=SourceEntryInlineForm, extra=0)
-        formsets['sourceentries'] = SourceEntryFormset(
-            data, instance=self.instance, prefix=self.prefix + '-sourceentry')
+            Source, SourceEntry, form=SourceEntryInlineForm, extra=0
+        )
+        formsets["sourceentries"] = SourceEntryFormset(
+            data, instance=self.instance, prefix=self.prefix + "-sourceentry"
+        )
         return formsets
 
     class Meta:
         model = Source
-        fields = ['id']
+        fields = ["id"]
 
 
 class UnitDateStructuredDateRangeInlineForm(forms.ModelForm):
-
     class Meta:
         model = UnitDateStructuredDateRange
-        fields = ['id', 'fromdate_standarddate', 'todate_standarddate']
+        fields = ["id", "fromdate_standarddate", "todate_standarddate"]
 
 
 class UnitDateStructuredInlineForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         DateRangeFormset = forms.inlineformset_factory(
-            UnitDateStructured, UnitDateStructuredDateRange,
-            form=UnitDateStructuredDateRangeInlineForm, extra=1, max_num=1,
-            validate_max=True)
-        formsets['dateranges'] = DateRangeFormset(
-            data, instance=self.instance, prefix=self.prefix + '-daterange')
+            UnitDateStructured,
+            UnitDateStructuredDateRange,
+            form=UnitDateStructuredDateRangeInlineForm,
+            extra=1,
+            max_num=1,
+            validate_max=True,
+        )
+        formsets["dateranges"] = DateRangeFormset(
+            data, instance=self.instance, prefix=self.prefix + "-daterange"
+        )
         return formsets
 
     def save(self, commit=True):
         if not self.errors:
-            self.instance.datechar = 'creation'
+            self.instance.datechar = "creation"
         super().save(commit)
 
     class Meta:
         model = UnitDateStructured
-        fields = ['id']
+        fields = ["id"]
 
 
 class UnitTitleInlineForm(forms.ModelForm):
-
     class Meta:
         model = UnitTitle
-        fields = ['id', 'unittitle']
+        fields = ["id", "unittitle"]
 
 
 class EADContentForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         BibliographyFormset = forms.inlineformset_factory(
-            EAD, Bibliography, form=BibliographyInlineForm, extra=1, max_num=1,
-            validate_max=True)
-        formsets['bibliographies'] = BibliographyFormset(
-            data, instance=self.instance, prefix='bibliography')
+            EAD,
+            Bibliography,
+            form=BibliographyInlineForm,
+            extra=1,
+            max_num=1,
+            validate_max=True,
+        )
+        formsets["bibliographies"] = BibliographyFormset(
+            data, instance=self.instance, prefix="bibliography"
+        )
         ControlAccessFormset = forms.inlineformset_factory(
-            EAD, ControlAccess, form=ControlAccessInlineForm, extra=0,
-            max_num=1, validate_max=True)
-        formsets['controlaccesses'] = ControlAccessFormset(
-            data, instance=self.instance, prefix='controlaccess')
+            EAD,
+            ControlAccess,
+            form=ControlAccessInlineForm,
+            extra=0,
+            max_num=1,
+            validate_max=True,
+        )
+        formsets["controlaccesses"] = ControlAccessFormset(
+            data, instance=self.instance, prefix="controlaccess"
+        )
         CustodHistFormset = forms.inlineformset_factory(
-            EAD, CustodHist, form=CustodHistInlineForm, extra=0)
-        formsets['custodhists'] = CustodHistFormset(
-            data, instance=self.instance, prefix='custodhist')
+            EAD, CustodHist, form=CustodHistInlineForm, extra=0
+        )
+        formsets["custodhists"] = CustodHistFormset(
+            data, instance=self.instance, prefix="custodhist"
+        )
         LabelFormset = forms.inlineformset_factory(
-            EAD, DIdPhysDescStructured, form=LabelInlineForm, extra=0,
-            max_num=1, validate_max=True)
-        formsets['labels'] = LabelFormset(
-            data, instance=self.instance, prefix='label',
+            EAD,
+            DIdPhysDescStructured,
+            form=LabelInlineForm,
+            extra=0,
+            max_num=1,
+            validate_max=True,
+        )
+        formsets["labels"] = LabelFormset(
+            data,
+            instance=self.instance,
+            prefix="label",
             queryset=DIdPhysDescStructured.objects.filter(
-                otherphysdescstructuredtype='label_inscription_caption'))
+                otherphysdescstructuredtype="label_inscription_caption"
+            ),
+        )
         MediumFormset = forms.inlineformset_factory(
-            EAD, DIdPhysDescStructured, form=MediumInlineForm, extra=0)
-        formsets['media'] = MediumFormset(
-            data, instance=self.instance, prefix='medium',
+            EAD, DIdPhysDescStructured, form=MediumInlineForm, extra=0
+        )
+        formsets["media"] = MediumFormset(
+            data,
+            instance=self.instance,
+            prefix="medium",
             queryset=DIdPhysDescStructured.objects.filter(
-                physdescstructuredtype=DIdPhysDescStructured.STRUCTURED_TYPE_MATERIAL))
+                physdescstructuredtype=DIdPhysDescStructured.STRUCTURED_TYPE_MATERIAL
+            ),
+        )
         ScopeContentFormset = forms.inlineformset_factory(
-            EAD, ScopeContent, form=ScopeContentInlineForm, extra=1, max_num=1,
-            validate_max=True)
-        formsets['notes'] = ScopeContentFormset(
-            data, instance=self.instance, prefix='scopecontent_notes',
-            queryset=ScopeContent.objects.filter(localtype='notes'))
+            EAD,
+            ScopeContent,
+            form=ScopeContentInlineForm,
+            extra=1,
+            max_num=1,
+            validate_max=True,
+        )
+        formsets["notes"] = ScopeContentFormset(
+            data,
+            instance=self.instance,
+            prefix="scopecontent_notes",
+            queryset=ScopeContent.objects.filter(localtype="notes"),
+        )
         OriginationFormset = forms.inlineformset_factory(
-            EAD, Origination, form=OriginationInlineForm, extra=0)
-        formsets['originations'] = OriginationFormset(
-            data, instance=self.instance, prefix='origination')
+            EAD, Origination, form=OriginationInlineForm, extra=0
+        )
+        formsets["originations"] = OriginationFormset(
+            data, instance=self.instance, prefix="origination"
+        )
         PhysLocFormset = forms.inlineformset_factory(
-            EAD, PhysLoc, form=PhyslocInlineForm, extra=0)
-        formsets['physlocs'] = PhysLocFormset(
-            data, instance=self.instance, prefix='physloc')
-        formsets['publication_details'] = ScopeContentFormset(
-            data, instance=self.instance,
-            prefix='scopecontent_publication_details',
-            queryset=ScopeContent.objects.filter(
-                localtype='publication_details'))
+            EAD, PhysLoc, form=PhyslocInlineForm, extra=0
+        )
+        formsets["physlocs"] = PhysLocFormset(
+            data, instance=self.instance, prefix="physloc"
+        )
+        formsets["publication_details"] = ScopeContentFormset(
+            data,
+            instance=self.instance,
+            prefix="scopecontent_publication_details",
+            queryset=ScopeContent.objects.filter(localtype="publication_details"),
+        )
         SizeFormset = forms.inlineformset_factory(
-            EAD, DIdPhysDescStructured, form=SizeInlineForm, extra=0)
-        formsets['sizes'] = SizeFormset(
-            data, instance=self.instance, prefix='size',
+            EAD, DIdPhysDescStructured, form=SizeInlineForm, extra=0
+        )
+        formsets["sizes"] = SizeFormset(
+            data,
+            instance=self.instance,
+            prefix="size",
             queryset=DIdPhysDescStructured.objects.filter(
-                physdescstructuredtype=DIdPhysDescStructured.STRUCTURED_TYPE_SPACE))
+                physdescstructuredtype=DIdPhysDescStructured.STRUCTURED_TYPE_SPACE
+            ),
+        )
         SourceFormset = forms.inlineformset_factory(
-            EAD, Source, form=SourceInlineForm, extra=0)
-        formsets['sources'] = SourceFormset(
-            data, instance=self.instance, prefix='source')
+            EAD, Source, form=SourceInlineForm, extra=0
+        )
+        formsets["sources"] = SourceFormset(
+            data, instance=self.instance, prefix="source"
+        )
         UnitDateStructuredFormset = forms.inlineformset_factory(
-            EAD, UnitDateStructured, form=UnitDateStructuredInlineForm,
-            extra=1, max_num=1, validate_max=True)
-        formsets['unitdatestructureds'] = UnitDateStructuredFormset(
-            data, instance=self.instance, prefix='unitdatestructured',
-            queryset=UnitDateStructured.objects.filter(datechar='creation'))
+            EAD,
+            UnitDateStructured,
+            form=UnitDateStructuredInlineForm,
+            extra=1,
+            max_num=1,
+            validate_max=True,
+        )
+        formsets["unitdatestructureds"] = UnitDateStructuredFormset(
+            data,
+            instance=self.instance,
+            prefix="unitdatestructured",
+            queryset=UnitDateStructured.objects.filter(datechar="creation"),
+        )
         UnitTitleFormset = forms.inlineformset_factory(
-            EAD, UnitTitle, form=UnitTitleInlineForm, extra=1, max_num=1,
-            min_num=1, validate_max=True, validate_min=True)
-        formsets['unittitles'] = UnitTitleFormset(
-            data, instance=self.instance, prefix='unittitle')
+            EAD,
+            UnitTitle,
+            form=UnitTitleInlineForm,
+            extra=1,
+            max_num=1,
+            min_num=1,
+            validate_max=True,
+            validate_min=True,
+        )
+        formsets["unittitles"] = UnitTitleFormset(
+            data, instance=self.instance, prefix="unittitle"
+        )
         return formsets
 
     class Meta:
         model = EAD
-        fields = ['recordid']
+        fields = ["recordid"]
 
 
 class EADMaintenanceForm(ContainerModelForm):
-
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
+        data = kwargs.get("data")
         MaintenanceEventFormset = forms.inlineformset_factory(
-            EAD, MaintenanceEvent, form=MaintenanceEventInlineForm, extra=0,
-            min_num=1, validate_min=True)
-        formsets['maintenanceevents'] = MaintenanceEventFormset(
-            data, instance=self.instance,
-            prefix='maintenanceevent')
+            EAD,
+            MaintenanceEvent,
+            form=MaintenanceEventInlineForm,
+            extra=0,
+            min_num=1,
+            validate_min=True,
+        )
+        formsets["maintenanceevents"] = MaintenanceEventFormset(
+            data, instance=self.instance, prefix="maintenanceevent"
+        )
         return formsets
 
     class Meta:
         model = EAD
-        fields = ['maintenancestatus_value', 'publicationstatus_value']
+        fields = ["maintenancestatus_value", "publicationstatus_value"]
 
 
 class EADSearchForm(forms.Form):
 
-    q = forms.CharField(required=False, label='Search',
-                        widget=forms.TextInput(
-                            attrs=RECORD_SEARCH_INPUT_ATTRS))
+    q = forms.CharField(
+        required=False,
+        label="Search",
+        widget=forms.TextInput(attrs=RECORD_SEARCH_INPUT_ATTRS),
+    )
     start_year = forms.IntegerField(
-        required=False, label='Creation start year', widget=forms.NumberInput(
-            attrs=RECORD_SEARCH_START_YEAR_INPUT_ATTRS))
+        required=False,
+        label="Creation start year",
+        widget=forms.NumberInput(attrs=RECORD_SEARCH_START_YEAR_INPUT_ATTRS),
+    )
     end_year = forms.IntegerField(
-        required=False, label='Creation end year', widget=forms.NumberInput(
-            attrs=RECORD_SEARCH_END_YEAR_INPUT_ATTRS))
+        required=False,
+        label="Creation end year",
+        widget=forms.NumberInput(attrs=RECORD_SEARCH_END_YEAR_INPUT_ATTRS),
+    )
 
 
 def assemble_form_errors(form):
@@ -574,20 +734,21 @@ def assemble_form_errors(form):
     strings.
 
     """
+
     def add_form_errors(errors, form):
         for field, field_errors in form.errors.items():
-            if field == '__all__':
-                errors['non_field'].extend(field_errors)
+            if field == "__all__":
+                errors["non_field"].extend(field_errors)
             else:
-                errors['field'] = True
-        if hasattr(form, 'formsets'):
+                errors["field"] = True
+        if hasattr(form, "formsets"):
             for formset in form.formsets.values():
                 for form in formset.forms:
                     errors = add_form_errors(errors, form)
         return errors
 
-    errors = {'field': False, 'non_field': []}
+    errors = {"field": False, "non_field": []}
     errors = add_form_errors(errors, form)
-    if not(errors['field'] or errors['non_field']):
+    if not (errors["field"] or errors["non_field"]):
         errors = {}
     return errors

@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from ead.models import CorpName, EAD, FamName, Name, PersName
+from ead.models import EAD, CorpName, FamName, Name, PersName
 from elasticsearch_dsl import FacetedSearch, TermsFacet
 from formtools.wizard.views import NamedUrlSessionWizardView
 
@@ -11,7 +11,7 @@ from .generic_views import SearchView
 
 class FacetMixin:
 
-    facet_key = 'facets'  # GET querystring name for facet name/value pairs
+    facet_key = "facets"  # GET querystring name for facet name/value pairs
 
     def _annotate_facets(self, facets, query_dict):
         """Return a dictionary of `facets` annotated with links to apply or
@@ -27,26 +27,28 @@ class FacetMixin:
         selected_facets = []
         for facet_name in facets:
             display_values = None
-            if facet_name == 'creators':
+            if facet_name == "creators":
                 display_values = {
-                    'corpnames': CorpName,
-                    'famnames': FamName,
-                    'names': Name,
-                    'persnames': PersName,
+                    "corpnames": CorpName,
+                    "famnames": FamName,
+                    "names": Name,
+                    "persnames": PersName,
                 }
             for idx, (value, count, selected) in enumerate(facets[facet_name]):
                 if selected:
-                    link = self._create_unapply_link(
-                        facet_name, value, query_dict)
+                    link = self._create_unapply_link(facet_name, value, query_dict)
                 else:
-                    link = self._create_apply_link(
-                        facet_name, value, query_dict)
+                    link = self._create_apply_link(facet_name, value, query_dict)
                 if display_values is None:
                     display_value = value
                 else:
-                    if facet_name == 'creators':
-                        creator_type, pk = value.split('-')
-                        display_value = display_values[creator_type].objects.get(pk=pk).assembled_name
+                    if facet_name == "creators":
+                        creator_type, pk = value.split("-")
+                        display_value = (
+                            display_values[creator_type]
+                            .objects.get(pk=pk)
+                            .assembled_name
+                        )
                 new_data = (display_value, count, link, selected)
                 facets[facet_name][idx] = new_data
                 if selected:
@@ -56,27 +58,27 @@ class FacetMixin:
     def _create_apply_link(self, facet_name, value, query_dict):
         """Return a querystring to apply the facet `value` to the existing
         querystring in `query_dict`."""
-        new_facet = '{}:{}'.format(facet_name, value)
+        new_facet = "{}:{}".format(facet_name, value)
         qd = query_dict.copy()
         facets = qd.getlist(self.facet_key)
         facets.append(new_facet)
         qd.setlist(self.facet_key, facets)
-        link = '?{}'.format(qd.urlencode())
+        link = "?{}".format(qd.urlencode())
         return link
 
     def _create_unapply_link(self, facet_name, value, query_dict):
         """Return a querystring to unapply the facet `value` from the existing
         querystring in `query_dict`."""
-        old_facet = '{}:{}'.format(facet_name, value)
+        old_facet = "{}:{}".format(facet_name, value)
         qd = query_dict.copy()
         facets = qd.getlist(self.facet_key)
         facets.remove(old_facet)
         qd.setlist(self.facet_key, facets)
         link = qd.urlencode()
         if link:
-            link = '?{}'.format(link)
+            link = "?{}".format(link)
         else:
-            link = '.'
+            link = "."
         return link
 
     def _split_selected_facets(self, selected_facets):
@@ -84,7 +86,7 @@ class FacetMixin:
         each belongs to."""
         split_facets = {}
         for selected_facet in selected_facets:
-            facet, value = selected_facet.split(':', maxsplit=1)
+            facet, value = selected_facet.split(":", maxsplit=1)
             split_facets.setdefault(facet, []).append(value)
         return split_facets
 
@@ -92,13 +94,13 @@ class FacetMixin:
 class RecordSearch(FacetedSearch):
     doc_types = [EADDocument]
     facets = {
-        'categories': TermsFacet(field='category'),
-        'connections_primary': TermsFacet(field='connection_primary'),
-        'connections_secondary': TermsFacet(field='connection_secondary'),
-        'connection_types': TermsFacet(field='connection_type'),
-        'creators': TermsFacet(field='creators.key', size=10),
+        "categories": TermsFacet(field="category"),
+        "connections_primary": TermsFacet(field="connection_primary"),
+        "connections_secondary": TermsFacet(field="connection_secondary"),
+        "connection_types": TermsFacet(field="connection_type"),
+        "creators": TermsFacet(field="creators.key", size=10),
     }
-    fields = ['creators.name', 'unittitle']
+    fields = ["creators.name", "unittitle"]
 
 
 class RecordList(SearchView, FacetMixin):
@@ -111,24 +113,26 @@ class RecordList(SearchView, FacetMixin):
     def form_valid(self, form):
         query = form.cleaned_data.get(self.search_field)
         requested_facets = self._split_selected_facets(
-            self.request.GET.getlist(self.facet_key))
+            self.request.GET.getlist(self.facet_key)
+        )
         kwargs = {}
         if query:
-            kwargs['query'] = query
+            kwargs["query"] = query
         if requested_facets:
-            kwargs['filters'] = requested_facets
+            kwargs["filters"] = requested_facets
         search = self.search_class(**kwargs)
         response = search.execute()
         facets, selected_facets = self._annotate_facets(
-            response.facets, self.request.GET)
+            response.facets, self.request.GET
+        )
         context = self.get_context_data(
             **{
                 self.context_object_name: response,
                 self.form_name: form,
-                'facets': facets,
+                "facets": facets,
                 "query": query,
-                'results_count': response.hits.total.value,
-                'selected_facets': selected_facets,
+                "results_count": response.hits.total.value,
+                "selected_facets": selected_facets,
             }
         )
         return self.render_to_response(context)
