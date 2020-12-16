@@ -1,5 +1,6 @@
 from django.db import models
 from django_kdl_timeline.models import AbstractTimelineEventSnippet
+from editor.documents import EADDocument
 from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.snippets.models import register_snippet
 
@@ -18,14 +19,21 @@ class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
         data = super().get_timeline_data()
         if self.RCIN:
             data["unique_id"] = self.RCIN
-            """ Use the manifests from RCT here
-            Will need refactoring after more data received
-            Match to manifest by RCIN when ready"""
-            data["media"] = {
-                "link": "/objects/{}".format(self.RCIN),
-                "thumbnail": "https://rct.resourcespace.com/iiif/image/{"
-                "}/full/thm/0/default.jpg".format(self.RCIN),
-            }
+            # Query the documents for document with RCIN
+            rcin_search = EADDocument.search().query("match", reference=self.RCIN)
+            response = rcin_search.execute()
+            for h in response:
+                # Use the media object from there to get image/thumbnail
+                data["media"] = {
+                    "title": self.headline,
+                    "link": "/objects/{}".format(self.RCIN),
+                    "url": h.media[0].iiif_image_url,
+                    "thumbnail": h.media[0].thumbnail_url,
+                }
+                # Currently use the first media object we get
+                # may need to change
+                break
+
         return data
 
     panels = AbstractTimelineEventSnippet.panels + [

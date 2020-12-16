@@ -66,6 +66,7 @@ class EADDocumentViewSet(DocumentViewSet):
 
     search_fields = (
         "unittitle",
+        "reference",
         "category",
         "connection_primary",
         "related_sources.works",
@@ -77,6 +78,7 @@ class EADDocumentViewSet(DocumentViewSet):
 
     filter_fields = {
         "pk": "pk",
+        "reference": "reference",
         "unittitle": "unittitle.raw",
         "date_of_creation": "date_of_creation",
         "date_of_acquisition": "date_of_acquisition",
