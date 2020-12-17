@@ -25,6 +25,7 @@ ES_FACET_OPTIONS = {"order": {"_key": "asc"}, "size": 100}
 
 
 class SharcListTimelineEvents(ListTimelineEvents):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     model = SharcTimelineEventSnippet
 
 
