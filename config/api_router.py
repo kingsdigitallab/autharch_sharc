@@ -10,8 +10,6 @@ else:
     router = SimpleRouter()
 
 router.register("users", UserViewSet)
-router.register(r'documents',
-                EADDocumentViewSet,
-                basename='eaddocument')
+router.register(r"documents", EADDocumentViewSet, basename="eaddocument")
 app_name = "api"
 urlpatterns = router.urls
