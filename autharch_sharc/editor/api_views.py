@@ -16,32 +16,12 @@ from django_kdl_timeline.views import ListTimelineEvents
 from editor.models import SharcTimelineEventSnippet
 from elasticsearch_dsl import TermsFacet
 from rest_framework import permissions
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .documents import EADDocument
 from .serializers import EADDocumentResultSerializer
 
 ES_FACET_OPTIONS = {"order": {"_key": "asc"}, "size": 100}
-
-
-@api_view()
-def HomePlays(request):
-    """
-    Return the play information for the home page with updated
-    doc counts
-    """
-
-    plays = [
-        {
-            "id": 0,
-            "resource": "@/assets/images/PlayKingLear.jpg",
-            "title": "King Lear",
-            "count": 150,
-        },
-    ]
-
-    return Response(plays)
 
 
 class SharcListTimelineEvents(ListTimelineEvents):
