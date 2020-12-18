@@ -2,6 +2,10 @@ from django.db import models
 from django_kdl_timeline.models import AbstractTimelineEventSnippet
 from editor.documents import EADDocument
 from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.api import APIField
+from wagtail.core.fields import RichTextField
+from wagtail.core.models import Page
+from wagtail.search import index
 from wagtail.snippets.models import register_snippet
 
 
@@ -27,7 +31,7 @@ class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
                 data["media"] = {
                     "title": self.headline,
                     "link": "/objects/{}".format(self.RCIN),
-                    "url": h.media[0].iiif_image_url,
+                    "url": h.media[0].full_image_url,
                     "thumbnail": h.media[0].thumbnail_url,
                 }
                 # Currently use the first media object we get
@@ -51,3 +55,25 @@ class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
 
 
 register_snippet(SharcTimelineEventSnippet)
+
+
+class RichTextPage(Page):
+    body = RichTextField(blank=True, null=True)
+
+    search_fields = Page.search_fields + [
+        index.SearchField("body"),
+    ]
+
+    subpage_types = ["RichTextPage"]
+
+    content_panels = [
+        FieldPanel("title", classname="full title"),
+        FieldPanel("body"),
+    ]
+
+    api_fields = [
+        APIField("title"),
+        APIField("body"),
+    ]
+
+    promote_panels = Page.promote_panels

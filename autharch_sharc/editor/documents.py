@@ -102,6 +102,7 @@ class EADDocument(Document):
             "label": fields.TextField(),
             "iiif_manifest_url": fields.TextField(),
             "iiif_image_url": fields.TextField(),
+            "full_image_url": fields.TextField(),
             "thumbnail_url": fields.TextField(),
             "image_width": fields.IntegerField(),
             "image_height": fields.IntegerField(),
@@ -147,9 +148,10 @@ class EADDocument(Document):
         media = []
         # Temporary defaults so we have data for the frontend
         iiif_manifest_url = "https://rct.resourcespace.com/iiif/732115a/"
-        iiif_image_url = (
+        full_image_url = (
             "https://rct.resourcespace.com/iiif/image/34658" "/full/max/0/default.jpg"
         )
+        iiif_image_url = "https://rct.resourcespace.com/iiif/image/34658"
         thumbnail_url = (
             "https://rct.resourcespace.com/iiif/image/34658" "/full/thm/0/default.jpg"
         )
@@ -175,7 +177,8 @@ class EADDocument(Document):
                             label = canvas["label"]
                         image = canvas["images"][0]
                         # Full size image
-                        iiif_image_url = image["resource"]["@id"]
+                        full_image_url = image["resource"]["@id"]
+                        iiif_image_url = image["resource"]["service"]["@id"]
                         if "width" in image["resource"]:
                             image_width = image["resource"]["width"]
                         if "height" in image["resource"]:
@@ -195,6 +198,7 @@ class EADDocument(Document):
                     "label": label,
                     "iiif_manifest_url": iiif_manifest_url,
                     "iiif_image_url": iiif_image_url,
+                    "full_image_url": full_image_url,
                     "thumbnail_url": thumbnail_url,
                     "image_width": image_width,
                     "image_height": image_height,
@@ -216,6 +220,7 @@ class EADDocument(Document):
                     "label": label,
                     "iiif_manifest_url": iiif_manifest_url,
                     "iiif_image_url": iiif_image_url,
+                    "full_image_url": full_image_url,
                     "thumbnail_url": thumbnail_url,
                     "image_width": image_width,
                     "image_height": image_height,
