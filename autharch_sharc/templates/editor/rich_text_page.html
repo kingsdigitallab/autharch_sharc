@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+
+{% block main %}
+  {% block page_header %}
+    {{ title }}
+  {% endblock page_header %}
+  {% block content %}
+    {{ body }}
+  {% endblock content %}
+{% endblock main %}
