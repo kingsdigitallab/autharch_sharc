@@ -73,6 +73,7 @@ class ResourceBlock(blocks.StructBlock):
 
     class Meta:
         abstract = True
+        template = "editor/blocks/resource_block.html"
 
 
 class ResourceDocumentBlock(ResourceBlock):
@@ -96,6 +97,7 @@ class ResourceEmbedBlock(ResourceBlock):
 class StreamFieldPage(Page):
     body = StreamField(
         [
+            ("heading", blocks.CharBlock(classname="full title")),
             ("image", ResourceImageBlock()),
             ("document", ResourceDocumentBlock(icon="doc-full-inverse")),
             ("embed", ResourceEmbedBlock(icon="media")),

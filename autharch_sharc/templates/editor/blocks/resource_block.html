@@ -1,0 +1,19 @@
+{% load wagtailimages_tags wagtailcore_tags wagtailembeds_tags %}
+<div>
+  <div>
+    <h3>{{ value.heading }}</h3>
+    {{ value.body }}
+    {% if value.document %}
+    <p>
+      <button class="button-secondary small pdf mgn-right">Download PDF</button>
+      PDF title
+    </p>
+    {% endif %}
+  {% if value.image %}
+    {% image value.image width-400 %}
+  {% endif %}
+  {% if value.embed %}
+    {{ value.embed }}
+  {% endif %}
+  </div>
+</div>
