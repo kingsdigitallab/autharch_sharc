@@ -6,6 +6,7 @@ from wagtail.api import APIField
 from wagtail.core import blocks
 from wagtail.core.fields import RichTextField, StreamField
 from wagtail.core.models import Page
+from wagtail.core.templatetags.wagtailcore_tags import RichText
 from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.embeds.blocks import EmbedBlock
 from wagtail.images.blocks import ImageChooserBlock
@@ -71,6 +72,25 @@ class ResourceBlock(blocks.StructBlock):
     heading = blocks.CharBlock(form_classname="full title")
     body = blocks.RichTextBlock()
 
+    def get_api_representation(self, value, context=None):
+        body = RichText(value.get("body").source)
+        return {
+            "heading": value.get("heading"),
+            "body": body.source,
+        }
+        # wagtail_headless_preview
+        # dict_list = []
+        # for item in value:
+        #     temp_dict = {
+        #         'period_name': value.get("period_name"),
+        #         'description': value.get("description"),
+        #         'duration': value.get("duration"),
+        #         'events': value.get('events')
+        #     }
+        #     print(value.get('events'))
+        #     dict_list.append(temp_dict)
+        #     return dict_list
+
     class Meta:
         abstract = True
         template = "editor/blocks/resource_block.html"
@@ -81,17 +101,46 @@ class ResourceDocumentBlock(ResourceBlock):
 
     document = DocumentChooserBlock(icon="doc-full-inverse")
 
+    def get_api_representation(self, value, context=None):
+        api_values = super().get_api_representation(value)
+        doc = value.get("document")
+        api_values["document"] = {
+            "title": doc.title,
+            "filename": doc.filename,
+            "url": doc.url,
+        }
+        return api_values
+
 
 class ResourceImageBlock(ResourceBlock):
     """ Resource with image attached"""
 
     image = ImageChooserBlock()
+    # todo rendition width?
+    full_rendition = "width-1000"
+
+    def get_api_representation(self, value, context=None):
+        api_values = super().get_api_representation(value)
+        image = value.get("image")
+        api_values["image"] = {
+            "filename": image.filename,
+            "full_url": image.get_rendition(self.full_rendition).url,
+            "full_width": image.get_rendition(self.full_rendition).width,
+            "full_height": image.get_rendition(self.full_rendition).height,
+        }
+        return api_values
 
 
 class ResourceEmbedBlock(ResourceBlock):
     """ Resource with embed attached"""
 
     embed = EmbedBlock(icon="media")
+
+    def get_api_representation(self, value, context=None):
+        api_values = super().get_api_representation(value)
+        embed = value.get("embed")
+        api_values["embed"] = {"url": embed.url}
+        return api_values
 
 
 class StreamFieldPage(Page):

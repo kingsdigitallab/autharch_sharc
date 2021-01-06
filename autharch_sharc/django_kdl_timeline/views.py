@@ -1,23 +1,16 @@
-from rest_framework.views import APIView
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework import authentication, permissions
-from django.contrib.auth.models import User
-
 # Create your views here.
-import json
 
-from django.http import HttpResponse
-from django.views.generic import View
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import TimelineEventWithImageSnippet
-
 
 
 class ListTimelineEvents(APIView):
     """
     Return events as JSON for async requests
     """
+
     model = TimelineEventWithImageSnippet
 
     def get_events(self, request):
@@ -31,9 +24,9 @@ class ListTimelineEvents(APIView):
         # get event objects
         events = self.model.objects.all()
         # Add filtering
-        if 'category' in request.GET:
-            if len(request.GET['category']) > 0:
-                events.filter(category__category_name=request.GET['category'])
+        if "category" in request.GET:
+            if len(request.GET["category"]) > 0:
+                events.filter(category__category_name=request.GET["category"])
         return events
 
     def events_to_slides(self, events):
@@ -51,5 +44,5 @@ class ListTimelineEvents(APIView):
         slides = list()
         if events:
             slides = self.events_to_slides(events)
-        timeline = {'events': slides}
+        timeline = {"events": slides}
         return Response(timeline)
