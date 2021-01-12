@@ -14,9 +14,11 @@ from django_elasticsearch_dsl_drf.filter_backends import (
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from django_kdl_timeline.views import ListTimelineEvents
 from editor.models import SharcTimelineEventSnippet
-from elasticsearch_dsl import TermsFacet
+from elasticsearch_dsl import Search, TermsFacet
+from elasticsearch_dsl.query import Match, MultiMatch
 from rest_framework import permissions
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .documents import EADDocument
 from .serializers import EADDocumentResultSerializer
@@ -74,6 +76,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "related_sources.texts",
         "related_sources.performances",
         "related_sources.sources",
+        "related_sources.individuals",
         "acquirer",
     )
 
@@ -89,6 +92,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "text": "related_sources.texts",
         "performance": "related_sources.performances",
         "sources": "related_sources.sources",
+        "individuals": "related_sources.individuals",
     }
 
     faceted_search_fields = {
@@ -241,3 +245,54 @@ class EADDocumentViewSet(DocumentViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(data=self._data_to_retrieve(serializer.data))
+
+
+# class SharcSiteMultiSearch(EADDocumentViewSet):
+#     """ Extension to view set to allow searching of wagtail"""
+#
+#
+#     filter_backends = [
+#         # ...
+#         OrderingFilterBackend,
+#         DefaultOrderingFilterBackend,
+#         CompoundSearchFilterBackend,
+#         # ...
+#     ]
+
+
+class SharcListSearchResults(APIView):
+    """Class to provide searches on documents and wagtail
+    in one response"""
+
+    search_fields = EADDocumentViewSet.search_fields + ("title", "body")
+
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def document_search(self, request):
+        docviewset = EADDocumentViewSet()
+        search = ""
+        s = Search(index=docviewset.index, using=docviewset.client)
+        if "search" in request.GET:
+            if len(request.GET["search"]) > 0:
+                search = request.GET["search"]
+            q = MultiMatch(query=search, fields=self.search_fields)
+            response = s.query(q).execute()
+        else:
+            response = s.execute()
+
+        results = list()
+        for h in response:
+            results.append({"title": h.unittitle})
+        # rcin_search = EADDocument.search().query("match",
+        # reference=self.RCIN)
+        # response = rcin_search.execute()
+        # for h in response:
+        #
+        # docviewset = EADDocumentViewSet()
+        # docviewset.request = request
+        # response = docviewset.list(request)
+        return results
+
+    def get(self, request, *args, **kwargs):
+        results = self.document_search(request)
+        return Response({"results": results})

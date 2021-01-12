@@ -73,31 +73,31 @@ THIRD_PARTY_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
     "django_elasticsearch_dsl",
-    'reversion',
-    'django_elasticsearch_dsl_drf',
-    'wagtail.contrib.forms',
-    'wagtail.contrib.redirects',
-    'wagtail.embeds',
-    'wagtail.sites',
-    'wagtail.users',
-    'wagtail.snippets',
-    'wagtail.documents',
-    'wagtail.images',
-    'wagtail.search',
-    'wagtail.admin',
-    'wagtail.core',
-    'wagtail.api.v2',
-    'modelcluster',
-    'taggit',
+    "reversion",
+    "django_elasticsearch_dsl_drf",
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    "wagtail.embeds",
+    "wagtail.sites",
+    "wagtail.users",
+    "wagtail.snippets",
+    "wagtail.documents",
+    "wagtail.images",
+    "wagtail.search",
+    "wagtail.admin",
+    "wagtail.core",
+    "wagtail.api.v2",
+    "modelcluster",
+    "taggit",
 ]
 
 LOCAL_APPS = [
     "autharch_sharc.users.apps.UsersConfig",
     # Your stuff: custom apps go here
-    'controlled_vocabulary',
+    "controlled_vocabulary",
     "ead",
     "django_kdl_timeline",
-    'editor',
+    "editor",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -157,7 +157,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
 # STATIC
@@ -304,9 +304,7 @@ COMPRESS_ENABLED = True
 # django-libsass
 # ---------------------------------------------------------------------------
 # https://github.com/torchbox/django-libsass
-COMPRESS_PRECOMPILERS = (
-    ('text/x-scss', 'django_libsass.SassCompiler'),
-)
+COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
 # django-rest-framework
 # -------------------------------------------------------------------------------
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
@@ -315,10 +313,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.TokenAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES":
-        ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_PAGINATION_CLASS":
-        "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 12,
     "ORDERING_PARAM": "ordering",
 }
@@ -341,18 +337,18 @@ WAGTAIL_SITE_NAME = "Autharch Sharc"
 ITEMS_PER_PAGE = 10
 
 WAGTAILSEARCH_BACKENDS = {
-    'default': {
-        'BACKEND': 'wagtail.search.backends.elasticsearch7',
-        'URLS': ["http://elasticsearch:9200"],
-        'INDEX': 'sharc_wagtail',
+    "default": {
+        "BACKEND": "wagtail.search.backends.elasticsearch7",
+        "URLS": ["http://elasticsearch:9200"],
+        "INDEX": "editor",
     }
 }
 
 WAGTAILADMIN_RICH_TEXT_EDITORS = {
-    'default': {
-        'WIDGET': 'wagtail.admin.rich_text.DraftailRichTextArea',
+    "default": {
+        "WIDGET": "wagtail.admin.rich_text.DraftailRichTextArea",
     },
 }
 
 
-LOGIN_URL = '/wagtail/login/'
+LOGIN_URL = "/wagtail/login/"

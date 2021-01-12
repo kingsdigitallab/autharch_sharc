@@ -1,6 +1,8 @@
 from django.db import models
+# from django_elasticsearch_dsl import Document, fields
+# from django_elasticsearch_dsl.registries import registry
 from django_kdl_timeline.models import AbstractTimelineEventSnippet
-from editor.documents import EADDocument
+from elasticsearch_dsl import normalizer
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.api import APIField
 from wagtail.core import blocks
@@ -12,6 +14,8 @@ from wagtail.embeds.blocks import EmbedBlock
 from wagtail.images.blocks import ImageChooserBlock
 from wagtail.search import index
 from wagtail.snippets.models import register_snippet
+
+# from .documents import EADDocument
 
 
 class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
@@ -29,19 +33,19 @@ class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
         if self.RCIN:
             data["unique_id"] = self.RCIN
             # Query the documents for document with RCIN
-            rcin_search = EADDocument.search().query("match", reference=self.RCIN)
-            response = rcin_search.execute()
-            for h in response:
-                # Use the media object from there to get image/thumbnail
-                data["media"] = {
-                    "title": self.headline,
-                    "link": "/objects/{}".format(self.RCIN),
-                    "url": h.media[0].full_image_url,
-                    "thumbnail": h.media[0].thumbnail_url,
-                }
-                # Currently use the first media object we get
-                # may need to change
-                break
+            # response = EADDocument.search().query(
+            #     "match", reference=self.RCIN)
+            # for h in response:
+            #     # Use the media object from there to get image/thumbnail
+            #     data["media"] = {
+            #         "title": self.headline,
+            #         "link": "/objects/{}".format(self.RCIN),
+            #         "url": h.media[0].full_image_url,
+            #         "thumbnail": h.media[0].thumbnail_url,
+            #     }
+            #     # Currently use the first media object we get
+            #     # may need to change
+            #     break
 
         return data
 
@@ -162,6 +166,10 @@ class StreamFieldPage(Page):
         APIField("body"),
     ]
 
+    search_fields = Page.search_fields + [
+        index.SearchField("body"),
+    ]
+
     promote_panels = Page.promote_panels
 
 
@@ -185,3 +193,8 @@ class RichTextPage(Page):
     ]
 
     promote_panels = Page.promote_panels
+
+
+lowercase_sort_normalizer = normalizer(
+    "lowercase_sort", filter=["lowercase", "asciifolding"]
+)

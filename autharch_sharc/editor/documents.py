@@ -14,6 +14,7 @@ from lxml import etree
 lowercase_sort_normalizer = normalizer(
     "lowercase_sort", filter=["lowercase", "asciifolding"]
 )
+from editor.models import RichTextPage, StreamFieldPage
 
 
 @registry.register_document
@@ -147,13 +148,13 @@ class EADDocument(Document):
 
         media = []
         # Temporary defaults so we have data for the frontend
-        iiif_manifest_url = "https://rct.resourcespace.com/iiif/732115a/"
+        iiif_manifest_url = "/rct/iiif/732115a/"
         full_image_url = (
-            "https://rct.resourcespace.com/iiif/image/34658" "/full/max/0/default.jpg"
+            "https://rct.resourcespace.com/iiif/image/34658/full/max/0/default.jpg"
         )
-        iiif_image_url = "https://rct.resourcespace.com/iiif/image/34658"
+        iiif_image_url = "/rct/iiif/image/34658"
         thumbnail_url = (
-            "https://rct.resourcespace.com/iiif/image/34658" "/full/thm/0/default.jpg"
+            "https://rct.resourcespace.com/iiif/image/34658/full/thm/0/default.jpg"
         )
         image_width = 4015
         image_height = 2980
@@ -167,7 +168,7 @@ class EADDocument(Document):
         if r.status_code == 200 and len(r.text) > 0:
             # It's there, parse it
             response = r.json()
-            print(manifest_url)
+            # print(manifest_url)
 
             try:
                 if "sequences" in response and len(response["sequences"]) > 0:
@@ -179,6 +180,9 @@ class EADDocument(Document):
                         # Full size image
                         full_image_url = image["resource"]["@id"]
                         iiif_image_url = image["resource"]["service"]["@id"]
+                        iiif_image_url = iiif_image_url.replace(
+                            "https://rct.resourcespace.com/", "/rct"
+                        )
                         if "width" in image["resource"]:
                             image_width = image["resource"]["width"]
                         if "height" in image["resource"]:
@@ -530,7 +534,7 @@ class EADDocument(Document):
         data = self.parse_connections(instance, {})
 
         return {
-            "individual_connections": data["individual_connections"],
+            "individuals": data["individual_connections"],
             "works": data["work_connections"],
             "texts": data["text_connections"],
             "sources": data["source_connections"],
@@ -549,3 +553,76 @@ class EADDocument(Document):
         except IndexError:
             title = "[No title]"
         return title
+
+
+@registry.register_document
+class WagtailRichTextPageDocument(Document):
+    """Document to merge wagtail pages into other documents for
+    site search"""
+
+    class Index:
+        name = "editor2"
+
+    class Django:
+        model = RichTextPage
+        fields = ["id", "title", "slug"]
+
+    def prepare(self, instance):
+        body = instance.body
+        data = {
+            "pk": instance.pk,
+            "unittitle": instance.title,
+            "body": body,
+            "date_of_creation": instance.last_published_at.year,
+            "category": instance._meta.object_name,
+            "reference": instance.slug,
+            "size": "",
+            "medium": "",
+            "label": "",
+            "creators": [],
+            "place_of_origin": "",
+            "date_of_acquisition": "",
+            "related_material": [],
+            "related_sources": [],
+            "related_people": [],
+            "media": [],
+        }
+        return data
+
+
+@registry.register_document
+class WagtailStreamFieldPageDocument(Document):
+    """Document to merge wagtail pages into other documents for
+    site search"""
+
+    class Index:
+        name = "editor2"
+
+    class Django:
+        model = StreamFieldPage
+        fields = ["id", "title", "slug"]
+
+    def prepare(self, instance):
+        body = ""
+        body_blocks = instance.body
+        for block in body_blocks:
+            body += str(block)
+        data = {
+            "pk": instance.pk,
+            "unittitle": instance.title,
+            "body": body,
+            "date_of_creation": instance.last_published_at.year,
+            "category": instance._meta.object_name,
+            "reference": instance.slug,
+            "size": "",
+            "medium": "",
+            "label": "",
+            "creators": [],
+            "place_of_origin": "",
+            "date_of_acquisition": "",
+            "related_material": [],
+            "related_sources": [],
+            "related_people": [],
+            "media": [],
+        }
+        return data
