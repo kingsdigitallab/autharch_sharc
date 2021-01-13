@@ -16,6 +16,24 @@ lowercase_sort_normalizer = normalizer(
 )
 from editor.models import RichTextPage, StreamFieldPage
 
+"""
+Search fields for EAD document searching
+Included here so we can use it in api view and in building search content
+"""
+eaddocument_search_fields = (
+        "unittitle",
+        "reference",
+        "category",
+        "connection_primary",
+        "related_sources.works",
+        "related_sources.texts",
+        "related_sources.performances",
+        "related_sources.sources",
+        "related_sources.individuals",
+        "acquirer",
+        "label"
+    )
+
 
 @registry.register_document
 class EADDocument(Document):
@@ -131,6 +149,34 @@ class EADDocument(Document):
     size = fields.KeywordField()
     medium = fields.KeywordField()
     label = fields.KeywordField()
+
+    search_content = fields.TextField(
+        fields={
+            "raw": fields.KeywordField(),
+            "sort": fields.KeywordField(normalizer=lowercase_sort_normalizer),
+        }
+    )
+
+    def prepare_search_content(self, instance):
+        """ Deliberately empty so we can instantiate this at
+        the end in prepare"""
+        return ""
+
+    def get_search_content(self, data):
+        """ Run after all other fields prepared to ensure
+        fields are populated"""
+        content = ''
+        for field in eaddocument_search_fields:
+            if field in data:
+                content = content + ' ' + str(data[field])
+        return content
+
+    def prepare(self, instance):
+        data = super().prepare(instance)
+        data['search_content'] = self.get_search_content(data)
+        return data
+
+
 
     def prepare_media(self, instance):
         """
@@ -560,8 +606,7 @@ class WagtailRichTextPageDocument(EADDocument):
     """Document to merge wagtail pages into other documents for
     site search"""
 
-    class Index:
-        name = "editor"
+
 
     class Django:
         model = RichTextPage
@@ -594,6 +639,7 @@ class WagtailRichTextPageDocument(EADDocument):
             "related_people": [],
             "media": [],
         }
+        data['search_content'] = self.get_search_content(data) + body
         return data
 
 
@@ -602,8 +648,6 @@ class WagtailStreamFieldPageDocument(EADDocument):
     """Document to merge wagtail pages into other documents for
     site search"""
 
-    class Index:
-        name = "editor"
 
     class Django:
         model = StreamFieldPage
@@ -639,4 +683,5 @@ class WagtailStreamFieldPageDocument(EADDocument):
             "related_people": [],
             "media": [],
         }
+        data['search_content'] = self.get_search_content(data) + body
         return data

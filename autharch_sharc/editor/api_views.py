@@ -14,13 +14,13 @@ from django_elasticsearch_dsl_drf.filter_backends import (
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from django_kdl_timeline.views import ListTimelineEvents
 from editor.models import SharcTimelineEventSnippet
-from elasticsearch_dsl import Search, TermsFacet
-from elasticsearch_dsl.query import Match, MultiMatch
+from elasticsearch_dsl import Search, TermsFacet, Q
+from elasticsearch_dsl.query import Match, QueryString, MatchPhrasePrefix
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from .documents import EADDocument
+from editor.models import RichTextPage, StreamFieldPage
+from .documents import EADDocument, eaddocument_search_fields
 from .serializers import EADDocumentResultSerializer
 
 ES_FACET_OPTIONS = {"order": {"_key": "asc"}, "size": 100}
@@ -67,18 +67,7 @@ class EADDocumentViewSet(DocumentViewSet):
         SuggesterFilterBackend,
     ]
 
-    search_fields = (
-        "unittitle",
-        "reference",
-        "category",
-        "connection_primary",
-        "related_sources.works",
-        "related_sources.texts",
-        "related_sources.performances",
-        "related_sources.sources",
-        "related_sources.individuals",
-        "acquirer",
-    )
+    search_fields = ('search_content',)
 
     filter_fields = {
         "pk": "pk",
@@ -247,24 +236,11 @@ class EADDocumentViewSet(DocumentViewSet):
         return Response(data=self._data_to_retrieve(serializer.data))
 
 
-# class SharcSiteMultiSearch(EADDocumentViewSet):
-#     """ Extension to view set to allow searching of wagtail"""
-#
-#
-#     filter_backends = [
-#         # ...
-#         OrderingFilterBackend,
-#         DefaultOrderingFilterBackend,
-#         CompoundSearchFilterBackend,
-#         # ...
-#     ]
-
-
 class SharcListSearchResults(APIView):
-    """Class to provide searches on documents and wagtail
+    """Class to provide searches on documents and wagtail objects
     in one response"""
 
-    search_fields = EADDocumentViewSet.search_fields + ("title", "body")
+    search_fields = EADDocumentViewSet.search_fields
 
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -272,17 +248,44 @@ class SharcListSearchResults(APIView):
         docviewset = EADDocumentViewSet()
         search = ""
         s = Search(index=docviewset.index, using=docviewset.client)
+        s = s.highlight_options(order='score')
+        s = s.highlight('search_content', fragment_size=50)
         if "search" in request.GET:
             if len(request.GET["search"]) > 0:
                 search = request.GET["search"]
-            q = MultiMatch(query=search, fields=self.search_fields)
+            q = MatchPhrasePrefix(search_content={"query": search})
             response = s.query(q).execute()
         else:
             response = s.execute()
 
         results = list()
         for h in response:
-            results.append({"title": h.unittitle})
+            url = ''
+            description = ''
+            highlights = []
+            if h.meta and 'highlight' in h.meta:
+                for hlight in h.meta.highlight:
+                    highlights.append(hlight)
+            if h.category == 'RichTextPage' or h.category == 'StreamFieldPage':
+                page = None
+                if h.category == 'RichTextPage':
+                    page = RichTextPage.objects.get(pk=h.pk)
+                if h.category == 'StreamFieldPage':
+                    page = StreamFieldPage.objects.get(pk=h.pk)
+                url = page.full_url
+                object_type = 'page'
+                description = h.body
+            else:
+                object_type = "object"
+                url = "/objects/" + str(h.pk)
+                description = h.label
+            results.append({"title": h.unittitle,
+                            "pk": h.pk,
+                            "url": url,
+                            "type:": object_type,
+                            "description": description,
+                            'highlights': highlights
+                            })
         # rcin_search = EADDocument.search().query("match",
         # reference=self.RCIN)
         # response = rcin_search.execute()
