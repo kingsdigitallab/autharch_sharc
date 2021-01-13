@@ -623,6 +623,7 @@ class WagtailRichTextPageDocument(EADDocument):
 
     def prepare(self, instance):
         body = instance.body
+
         if instance.last_published_at is not None:
             date_of_creation = instance.last_published_at.year
         else:
@@ -672,11 +673,15 @@ class WagtailStreamFieldPageDocument(EADDocument):
         body_blocks = instance.body
         for block in body_blocks:
             body += str(block)
+        try:
+            date_of_creation = instance.last_published_at.year
+        except AttributeError:
+            date_of_creation = None
         data = {
             "pk": instance.pk,
             "unittitle": instance.title,
             "body": body,
-            "date_of_creation": instance.last_published_at.year,
+            "date_of_creation": date_of_creation,
             "category": instance._meta.object_name,
             "reference": instance.slug,
             "doc_type": "page",
