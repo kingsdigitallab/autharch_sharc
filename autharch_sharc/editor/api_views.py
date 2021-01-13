@@ -82,6 +82,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "performance": "related_sources.performances",
         "sources": "related_sources.sources",
         "individuals": "related_sources.individuals",
+        "doc_type": "doc_type"
     }
 
     faceted_search_fields = {
@@ -259,9 +260,11 @@ class SharcListSearchResults(APIView):
             response = s.execute()
 
         results = list()
+        count = 0
         for h in response:
             url = ''
             description = ''
+            count = response.hits.total['value']
             highlights = []
             if h.meta and 'highlight' in h.meta:
                 for hlight in h.meta.highlight:
@@ -294,8 +297,13 @@ class SharcListSearchResults(APIView):
         # docviewset = EADDocumentViewSet()
         # docviewset.request = request
         # response = docviewset.list(request)
-        return results
+
+        next_page = ''
+        return results, count, next_page
 
     def get(self, request, *args, **kwargs):
-        results = self.document_search(request)
-        return Response({"results": results})
+        results, count, next_page = self.document_search(request)
+        return Response({"results": results,
+                         "count": count,
+                         "next": "http://127.0.0.1:8000/api/documents/?page=2",
+                         })

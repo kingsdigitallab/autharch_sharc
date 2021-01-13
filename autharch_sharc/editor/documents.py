@@ -149,6 +149,7 @@ class EADDocument(Document):
     size = fields.KeywordField()
     medium = fields.KeywordField()
     label = fields.KeywordField()
+    doc_type = fields.KeywordField()
 
     search_content = fields.TextField(
         fields={
@@ -156,6 +157,9 @@ class EADDocument(Document):
             "sort": fields.KeywordField(normalizer=lowercase_sort_normalizer),
         }
     )
+
+    def prepare_doc_type(self, instance):
+        return "object"
 
     def prepare_search_content(self, instance):
         """ Deliberately empty so we can instantiate this at
@@ -606,8 +610,6 @@ class WagtailRichTextPageDocument(EADDocument):
     """Document to merge wagtail pages into other documents for
     site search"""
 
-
-
     class Django:
         model = RichTextPage
         fields = ["id", "title", "slug"]
@@ -621,13 +623,18 @@ class WagtailRichTextPageDocument(EADDocument):
 
     def prepare(self, instance):
         body = instance.body
+        if instance.last_published_at is not None:
+            date_of_creation = instance.last_published_at.year
+        else:
+            date_of_creation = 0
         data = {
             "pk": instance.pk,
             "unittitle": instance.title,
             "body": body,
-            "date_of_creation": instance.last_published_at.year,
+            "date_of_creation": date_of_creation,
             "category": instance._meta.object_name,
             "reference": instance.slug,
+            "doc_type": "page",
             "size": "",
             "medium": "",
             "label": "",
@@ -672,6 +679,7 @@ class WagtailStreamFieldPageDocument(EADDocument):
             "date_of_creation": instance.last_published_at.year,
             "category": instance._meta.object_name,
             "reference": instance.slug,
+            "doc_type": "page",
             "size": "",
             "medium": "",
             "label": "",

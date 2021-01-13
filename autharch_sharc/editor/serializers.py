@@ -32,4 +32,6 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "related_sources",
             "related_people",
             "media",
+            "search_content",
+            "doc_type"
         )
