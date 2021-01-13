@@ -569,11 +569,15 @@ class WagtailRichTextPageDocument(Document):
 
     def prepare(self, instance):
         body = instance.body
+        try:
+            date_of_creation = instance.last_published_at.year
+        except AttributeError:
+            date_of_creation = None
         data = {
             "pk": instance.pk,
             "unittitle": instance.title,
             "body": body,
-            "date_of_creation": instance.last_published_at.year,
+            "date_of_creation": date_of_creation,
             "category": instance._meta.object_name,
             "reference": instance.slug,
             "size": "",
@@ -607,11 +611,15 @@ class WagtailStreamFieldPageDocument(Document):
         body_blocks = instance.body
         for block in body_blocks:
             body += str(block)
+        try:
+            date_of_creation = instance.last_published_at.year
+        except AttributeError:
+            date_of_creation = None
         data = {
             "pk": instance.pk,
             "unittitle": instance.title,
             "body": body,
-            "date_of_creation": instance.last_published_at.year,
+            "date_of_creation": date_of_creation,
             "category": instance._meta.object_name,
             "reference": instance.slug,
             "size": "",
