@@ -556,16 +556,23 @@ class EADDocument(Document):
 
 
 @registry.register_document
-class WagtailRichTextPageDocument(Document):
+class WagtailRichTextPageDocument(EADDocument):
     """Document to merge wagtail pages into other documents for
     site search"""
 
     class Index:
-        name = "editor2"
+        name = "editor"
 
     class Django:
         model = RichTextPage
         fields = ["id", "title", "slug"]
+
+    @classmethod
+    def generate_id(cls, object_instance):
+        """
+        Overloaded to stop conflicts with ead documents
+        """
+        return object_instance.pk+10000
 
     def prepare(self, instance):
         body = instance.body
@@ -591,16 +598,23 @@ class WagtailRichTextPageDocument(Document):
 
 
 @registry.register_document
-class WagtailStreamFieldPageDocument(Document):
+class WagtailStreamFieldPageDocument(EADDocument):
     """Document to merge wagtail pages into other documents for
     site search"""
 
     class Index:
-        name = "editor2"
+        name = "editor"
 
     class Django:
         model = StreamFieldPage
         fields = ["id", "title", "slug"]
+
+    @classmethod
+    def generate_id(cls, object_instance):
+        """
+        Overloaded to stop conflicts with ead documents
+        """
+        return object_instance.pk + 10000
 
     def prepare(self, instance):
         body = ""
