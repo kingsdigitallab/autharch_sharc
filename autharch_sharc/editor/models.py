@@ -100,14 +100,12 @@ class ResourceBlock(blocks.StructBlock):
         template = "editor/blocks/resource_block.html"
 
 
-class ResourceDocumentBlock(ResourceBlock):
+class ResourceDocumentBlock(DocumentChooserBlock):
     """ Block with a document e.g. pdf attached """
-
-    document = DocumentChooserBlock(icon="doc-full-inverse")
 
     def get_api_representation(self, value, context=None):
         api_values = super().get_api_representation(value)
-        doc = value.get("document")
+        doc = value
         api_values["document"] = {
             "title": doc.title,
             "filename": doc.filename,
@@ -116,17 +114,18 @@ class ResourceDocumentBlock(ResourceBlock):
         return api_values
 
 
-class ResourceImageBlock(ResourceBlock):
+class ResourceImageBlock(ImageChooserBlock):
     """ Resource with image attached"""
 
-    image = ImageChooserBlock()
+
     # todo rendition width?
     full_rendition = "width-1000"
 
     def get_api_representation(self, value, context=None):
-        api_values = super().get_api_representation(value)
-        image = value.get("image")
-        api_values["image"] = {
+        # api_values = super().get_api_representation(value)
+        image = value
+        api_values = {
+            "id": value.pk,
             "filename": image.filename,
             "full_url": image.get_rendition(self.full_rendition).url,
             "full_width": image.get_rendition(self.full_rendition).width,
@@ -135,23 +134,28 @@ class ResourceImageBlock(ResourceBlock):
         return api_values
 
 
-class ResourceEmbedBlock(ResourceBlock):
+class ResourceEmbedBlock(EmbedBlock):
     """ Resource with embed attached"""
 
-    embed = EmbedBlock(icon="media")
-
     def get_api_representation(self, value, context=None):
-        api_values = super().get_api_representation(value)
-        embed = value.get("embed")
-        api_values["embed"] = {"url": embed.url}
-        return api_values
+        return {
+            "html": value.html,
+            "url": value.url
+        }
+
+
+
+class ResourcePageBlock(blocks.PageChooserBlock):
+    pass
 
 
 class StreamFieldPage(Page):
     body = StreamField(
         [
             ("heading", blocks.CharBlock(classname="full title")),
+            ('paragraph', blocks.RichTextBlock()),
             ("image", ResourceImageBlock()),
+            ("page", ResourcePageBlock()),
             ("document", ResourceDocumentBlock(icon="doc-full-inverse")),
             ("embed", ResourceEmbedBlock(icon="media")),
         ]
