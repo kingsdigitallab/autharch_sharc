@@ -84,7 +84,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "text": "related_sources.texts",
         "performance": "related_sources.performances",
         "sources": "related_sources.sources",
-        "individuals": "related_sources.individuals",
+        "individual_connections": "related_sources.individuals",
         "doc_type": "doc_type"
     }
 
