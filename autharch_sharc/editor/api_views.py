@@ -33,7 +33,8 @@ class SharcListTimelineEvents(ListTimelineEvents):
 
 def simple_proxy(request, path, target_url):
     url = "%s%s" % (target_url, path)
-    if "QUERY_STRING" in request.META and len(request.META["QUERY_STRING"]) > 0:
+    if "QUERY_STRING" in request.META and len(
+        request.META["QUERY_STRING"]) > 0:
         url += "?" + request.META["QUERY_STRING"]
     try:
         http = urllib3.PoolManager()
@@ -42,7 +43,9 @@ def simple_proxy(request, path, target_url):
         if "content-type" in proxied_request.headers:
             mimetype = proxied_request.headers["content-type"]
         else:
-            mimetype = proxied_request.headers.typeheader or mimetypes.guess_type(url)
+            mimetype = proxied_request.headers.typeheader or \
+                       mimetypes.guess_type(
+                url)
         content = proxied_request.data.decode("utf-8")
     except urllib3.exceptions.HTTPError as e:
         return HttpResponse(e.msg, status=e.code, content_type="text/plain")
@@ -163,13 +166,20 @@ class EADDocumentViewSet(DocumentViewSet):
 
     ordering = ("unittitle", "date_of_creation")
 
+    def get_doc_type_queryset(self):
+        # Include only objects in this search
+        return self.filter_queryset(
+            self.get_queryset()).filter("terms", doc_type=['object']
+                                        )
+
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.get_doc_type_queryset()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            response = self.get_paginated_response(self._data_to_list(serializer.data))
+            response = self.get_paginated_response(
+                self._data_to_list(serializer.data))
             # response["Access-Control-Allow-Origin"] = "*"
             return response
 
@@ -237,73 +247,82 @@ class EADDocumentViewSet(DocumentViewSet):
         return Response(data=self._data_to_retrieve(serializer.data))
 
 
-class SharcListSearchResults(APIView):
-    """Class to provide searches on documents and wagtail objects
-    in one response"""
+class SharcSiteSearch(EADDocumentViewSet):
+    """
+    Provides searches on documents and wagtail objects
+         in one response"""
 
-    search_fields = EADDocumentViewSet.search_fields
+    def get_doc_type_queryset(self):
+        # Include all objects in this search
+        return self.filter_queryset(self.get_queryset())
 
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def document_search(self, request):
-        docviewset = EADDocumentViewSet()
-        search = ""
-        s = Search(index=docviewset.index, using=docviewset.client)
-        s = s.highlight_options(order='score')
-        s = s.highlight('search_content', fragment_size=50)
-        if "search" in request.GET:
-            if len(request.GET["search"]) > 0:
-                search = request.GET["search"]
-            q = MatchPhrasePrefix(search_content={"query": search})
-            response = s.query(q).execute()
-        else:
-            response = s.execute()
-
-        results = list()
-        count = 0
-        for h in response:
-            url = ''
-            description = ''
-            count = response.hits.total['value']
-            highlights = []
-            if h.meta and 'highlight' in h.meta:
-                for hlight in h.meta.highlight:
-                    highlights.append(hlight)
-            if h.category == 'RichTextPage' or h.category == 'StreamFieldPage':
-                page = None
-                if h.category == 'RichTextPage':
-                    page = RichTextPage.objects.get(pk=h.pk)
-                if h.category == 'StreamFieldPage':
-                    page = StreamFieldPage.objects.get(pk=h.pk)
-                url = page.full_url
-                object_type = 'page'
-                description = h.body
-            else:
-                object_type = "object"
-                url = "/objects/" + str(h.pk)
-                description = h.label
-            results.append({"title": h.unittitle,
-                            "pk": h.pk,
-                            "url": url,
-                            "type:": object_type,
-                            "description": description,
-                            'highlights': highlights
-                            })
-        # rcin_search = EADDocument.search().query("match",
-        # reference=self.RCIN)
-        # response = rcin_search.execute()
-        # for h in response:
-        #
-        # docviewset = EADDocumentViewSet()
-        # docviewset.request = request
-        # response = docviewset.list(request)
-
-        next_page = ''
-        return results, count, next_page
-
-    def get(self, request, *args, **kwargs):
-        results, count, next_page = self.document_search(request)
-        return Response({"results": results,
-                         "count": count,
-                         "next": "http://127.0.0.1:8000/api/documents/?page=2",
-                         })
+# class SharcListSearchResults(APIView):
+#
+#
+#     search_fields = EADDocumentViewSet.search_fields
+#
+#     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+#
+#     def document_search(self, request):
+#         docviewset = EADDocumentViewSet()
+#         search = ""
+#         s = Search(index=docviewset.index, using=docviewset.client)
+#         s = s.highlight_options(order='score')
+#         s = s.highlight('search_content', fragment_size=50)
+#         if "search" in request.GET:
+#             if len(request.GET["search"]) > 0:
+#                 search = request.GET["search"]
+#             q = MatchPhrasePrefix(search_content={"query": search})
+#             response = s.query(q).execute()
+#         else:
+#             response = s.execute()
+#
+#         results = list()
+#         count = 0
+#         for h in response:
+#             url = ''
+#             description = ''
+#             count = response.hits.total['value']
+#             highlights = []
+#             if h.meta and 'highlight' in h.meta:
+#                 for hlight in h.meta.highlight:
+#                     highlights.append(hlight)
+#             if h.category == 'RichTextPage' or h.category ==
+#             'StreamFieldPage':
+#                 page = None
+#                 if h.category == 'RichTextPage':
+#                     page = RichTextPage.objects.get(pk=h.pk)
+#                 if h.category == 'StreamFieldPage':
+#                     page = StreamFieldPage.objects.get(pk=h.pk)
+#                 url = page.full_url
+#                 object_type = 'page'
+#                 description = h.body
+#             else:
+#                 object_type = "object"
+#                 url = "/objects/" + str(h.pk)
+#                 description = h.label
+#             results.append({"title": h.unittitle,
+#                             "pk": h.pk,
+#                             "url": url,
+#                             "type:": object_type,
+#                             "description": description,
+#                             'highlights': highlights
+#                             })
+#         # rcin_search = EADDocument.search().query("match",
+#         # reference=self.RCIN)
+#         # response = rcin_search.execute()
+#         # for h in response:
+#         #
+#         # docviewset = EADDocumentViewSet()
+#         # docviewset.request = request
+#         # response = docviewset.list(request)
+#
+#         next_page = ''
+#         return results, count, next_page
+#
+#     def get(self, request, *args, **kwargs):
+#         results, count, next_page = self.document_search(request)
+#         return Response({"results": results,
+#                          "count": count,
+#                          "next": "http://127.0.0.1:8000/api/documents/?page=2",
+#                          })

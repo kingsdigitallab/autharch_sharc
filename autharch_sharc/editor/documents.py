@@ -621,6 +621,12 @@ class WagtailRichTextPageDocument(EADDocument):
         """
         return object_instance.pk+10000
 
+    def get_queryset(self):
+        """
+        Only index live documents
+        """
+        return self.django.model._default_manager.all().live()
+
     def prepare(self, instance):
         body = instance.body
 
@@ -667,6 +673,12 @@ class WagtailStreamFieldPageDocument(EADDocument):
         Overloaded to stop conflicts with ead documents
         """
         return object_instance.pk + 10000
+
+    def get_queryset(self):
+        """
+        Only index live documents
+        """
+        return self.django.model._default_manager.all().live()
 
     def prepare(self, instance):
         body = ""

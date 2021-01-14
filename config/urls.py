@@ -32,9 +32,6 @@ urlpatterns += [
     path(
         r"api/events/", api_views.SharcListTimelineEvents.as_view(), name="event-list"
     ),
-    path(
-        r"api/search/", api_views.SharcListSearchResults.as_view(), name="site-search"
-    ),
     # API base url
     path("api/", include("config.api_router")),
     re_path(
