@@ -15,6 +15,8 @@ from wagtail.images.blocks import ImageChooserBlock
 from wagtail.search import index
 from wagtail.snippets.models import register_snippet
 
+from rest_framework.fields import CharField
+
 # from .documents import EADDocument
 
 
@@ -144,7 +146,6 @@ class ResourceEmbedBlock(EmbedBlock):
         }
 
 
-
 class ResourcePageBlock(blocks.PageChooserBlock):
     pass
 
@@ -191,14 +192,21 @@ class RichTextPage(Page):
         FieldPanel("body"),
     ]
 
+    def body_html(self):
+        return str(RichText(self.body))
+
     api_fields = [
         APIField("title"),
         APIField("body"),
+        APIField("body_html")
     ]
 
     promote_panels = Page.promote_panels
 
-
-lowercase_sort_normalizer = normalizer(
-    "lowercase_sort", filter=["lowercase", "asciifolding"]
-)
+    def get_api_representation(self, value, context=None):
+        """ Render the body as html for the frontend"""
+        body = RichText(value.get("body").source)
+        return {
+            "title": value.get("title"),
+            "body": body.source,
+        }
