@@ -276,18 +276,33 @@ class SharcSiteSearch(EADDocumentViewSet):
 
 
 
-class ThemeDocuments(EADDocumentViewSet):
+class ThemeView(APIView):
     """
-    Objects attached to a theme
-    Add themes.raw to faceted search field
+    Objects attached to a group e.g. themes
 
     """
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def get_doc_type_queryset(self):
-        # Include all objects in this search
-        #self.filter_queryset(self.get_queryset()).query(Exists(field="themes"))
-        return self.filter_queryset(
-            self.get_queryset()).query(Exists(field="themes"))
+    def document_search(self, request):
+        """ Get all documents with a theme
+        aggregate them into lists by theme"""
+        docviewset = EADDocumentViewSet()
+        s = Search(index=docviewset.index, using=docviewset.client)
+        response = s.query(Exists(field="themes.raw")).execute()
+        results = dict()
+        for h in response:
+            theme = h.themes[0]
+            if theme not in results:
+                results[theme] = list()
+            result = results[theme]
+            result.append(
+                EADDocumentResultSerializer(h).data)
+            results[theme] = result
+        return results
+
+    def get(self, request, *args, **kwargs):
+        results = self.document_search(request)
+        return Response({"themes": results})
 
 
 # class SharcListSearchResults(APIView):

@@ -14,7 +14,9 @@ from lxml import etree
 lowercase_sort_normalizer = normalizer(
     "lowercase_sort", filter=["lowercase", "asciifolding"]
 )
-from editor.models import RichTextPage, StreamFieldPage
+from editor.models.editor_models import (EADObject, EADObjectGroup)
+from editor.models.wagtail_models import (
+    RichTextPage, SharcTimelineEventSnippet, StreamFieldPage)
 
 """
 Search fields for EAD document searching
@@ -59,7 +61,8 @@ class EADDocument(Document):
     category = fields.TextField(
         fields={
             "raw": fields.KeywordField(),
-            "lowercase": fields.KeywordField(normalizer=lowercase_sort_normalizer),
+            "lowercase": fields.KeywordField(
+                normalizer=lowercase_sort_normalizer),
             "suggest": fields.CompletionField(),
         }
     )
@@ -166,14 +169,10 @@ class EADDocument(Document):
     )
 
     def prepare_themes(self, instance):
-        """ Includes test data until it's linked with editor"""
+        """ EAD Group Objects"""
         RCIN = self.prepare_reference(instance)
-        if RCIN in ['1080415', '405737', '703051']:
-            return ['William Shakespeare']
-        if RCIN in ['654947', '816031']:
-            return ['On the Page']
-        if RCIN in ['654947', '919794']:
-            return ['On the Stage']
+        for ead_object in EADObject.objects.filter(RCIN=RCIN):
+            return [ead_object.ead_group.title,]
         return []
 
     def prepare_doc_type(self, instance):

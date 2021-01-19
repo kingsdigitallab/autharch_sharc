@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter, SimpleRouter
 
 from autharch_sharc.editor.api_views import (
     EADDocumentViewSet,
-    SharcSiteSearch
+    SharcSiteSearch,
 )
 from autharch_sharc.users.api.views import UserViewSet
 
