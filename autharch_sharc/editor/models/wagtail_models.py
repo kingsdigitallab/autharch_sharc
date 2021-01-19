@@ -17,8 +17,6 @@ from wagtail.snippets.models import register_snippet
 
 from rest_framework.fields import CharField
 
-from ead.models import EAD
-
 
 class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
     """Events imported from csv for Sharc
@@ -211,15 +209,3 @@ class RichTextPage(Page):
             "title": value.get("title"),
             "body": body.source,
         }
-
-
-class EADObjectGroup(models.Model):
-    """ Group of ead objects e.g. theme"""
-    title = models.CharField(null=True, blank=True)
-    slug = models.CharField(null=True, blank=True)
-    introduction = models.TextField(null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    ead_objects = models.ForeignKey(
-        'EAD',
-        on_delete=models.CASCADE,
-    )

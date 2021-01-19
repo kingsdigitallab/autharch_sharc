@@ -15,7 +15,7 @@ from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from django_kdl_timeline.views import ListTimelineEvents
 from editor.models import SharcTimelineEventSnippet
 from elasticsearch_dsl import Search, TermsFacet, Q
-from elasticsearch_dsl.query import Match, QueryString, MatchPhrasePrefix
+from elasticsearch_dsl.query import Match, QueryString, Exists, MatchPhrasePrefix
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -79,6 +79,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "date_of_creation": "date_of_creation",
         "date_of_acquisition": "date_of_acquisition",
         "category": "category.lowercase",
+        "themes": "themes.raw",
         "acquirer": "related_people.acquirers",
         "work": "related_sources.works",
         "text": "related_sources.texts",
@@ -93,6 +94,12 @@ class EADDocumentViewSet(DocumentViewSet):
             "facet": TermsFacet,
             "field": "category.raw",
             "enabled": True,
+            "options": ES_FACET_OPTIONS,
+        },
+        "themes": {
+            "facet": TermsFacet,
+            "field": "themes.raw",
+            "enabled": False,
             "options": ES_FACET_OPTIONS,
         },
         "acquirer": {
@@ -255,6 +262,33 @@ class SharcSiteSearch(EADDocumentViewSet):
     def get_doc_type_queryset(self):
         # Include all objects in this search
         return self.filter_queryset(self.get_queryset())
+
+# class SharcSiteSearch(EADDocumentViewSet):
+#     """
+#     Provides searches on documents and wagtail objects
+#          in one response"""
+#
+#     def get_doc_type_queryset(self):
+#         # Include all objects in this search
+#         q= self.filter_queryset(
+#             self.get_queryset()).query(MatchPhrasePrefix(themes={"query": "On"}))
+#         return self.filter_queryset(self.get_queryset())
+
+
+
+class ThemeDocuments(EADDocumentViewSet):
+    """
+    Objects attached to a theme
+    Add themes.raw to faceted search field
+
+    """
+
+    def get_doc_type_queryset(self):
+        # Include all objects in this search
+        #self.filter_queryset(self.get_queryset()).query(Exists(field="themes"))
+        return self.filter_queryset(
+            self.get_queryset()).query(Exists(field="themes"))
+
 
 # class SharcListSearchResults(APIView):
 #

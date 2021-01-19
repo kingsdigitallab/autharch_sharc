@@ -63,6 +63,13 @@ class EADDocument(Document):
             "suggest": fields.CompletionField(),
         }
     )
+    themes = fields.TextField(
+        fields={
+            "raw": fields.KeywordField(),
+            "lowercase": fields.KeywordField(
+                normalizer=lowercase_sort_normalizer),
+        }
+    )
     related_people = fields.ObjectField(
         properties={
             "acquirers": fields.KeywordField(
@@ -157,6 +164,17 @@ class EADDocument(Document):
             "sort": fields.KeywordField(normalizer=lowercase_sort_normalizer),
         }
     )
+
+    def prepare_themes(self, instance):
+        """ Includes test data until it's linked with editor"""
+        RCIN = self.prepare_reference(instance)
+        if RCIN in ['1080415', '405737', '703051']:
+            return ['William Shakespeare']
+        if RCIN in ['654947', '816031']:
+            return ['On the Page']
+        if RCIN in ['654947', '919794']:
+            return ['On the Stage']
+        return []
 
     def prepare_doc_type(self, instance):
         return "object"
