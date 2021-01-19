@@ -17,7 +17,7 @@ from wagtail.snippets.models import register_snippet
 
 from rest_framework.fields import CharField
 
-# from .documents import EADDocument
+from ead.models import EAD
 
 
 class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
@@ -62,7 +62,8 @@ class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
         ordering = ["start_date_year"]
 
     def __str__(self):
-        return "{}:{} (RCIN {})".format(self.start_date_year, self.headline, self.RCIN)
+        return "{}:{} (RCIN {})".format(
+            self.start_date_year, self.headline, self.RCIN)
 
 
 register_snippet(SharcTimelineEventSnippet)
@@ -210,3 +211,15 @@ class RichTextPage(Page):
             "title": value.get("title"),
             "body": body.source,
         }
+
+
+class EADObjectGroup(models.Model):
+    """ Group of ead objects e.g. theme"""
+    title = models.CharField(null=True, blank=True)
+    slug = models.CharField(null=True, blank=True)
+    introduction = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    ead_objects = models.ForeignKey(
+        'EAD',
+        on_delete=models.CASCADE,
+    )
