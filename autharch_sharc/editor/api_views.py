@@ -21,7 +21,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from editor.models import RichTextPage, StreamFieldPage
 from .documents import EADDocument, eaddocument_search_fields
-from .serializers import EADDocumentResultSerializer
+from .serializers import (EADDocumentResultSerializer,
+                          EADDocumentThemeResultSerializer)
 
 ES_FACET_OPTIONS = {"order": {"_key": "asc"}, "size": 100}
 
@@ -289,16 +290,25 @@ class ThemeView(APIView):
         docviewset = EADDocumentViewSet()
         s = Search(index=docviewset.index, using=docviewset.client)
         response = s.query(Exists(field="themes.raw")).execute()
-        results = dict()
+        themes_results = dict()
+        # Collate response into different themes
         for h in response:
             theme = h.themes[0]
-            if theme not in results:
-                results[theme] = list()
-            result = results[theme]
+            if theme not in themes_results:
+                themes_results[theme] = list()
+            result = themes_results[theme]
             result.append(
-                EADDocumentResultSerializer(h).data)
-            results[theme] = result
-        return results
+                EADDocumentThemeResultSerializer(h).data)
+            themes_results[theme] = result
+        themes = []
+        # Refactor into expected api results
+        for theme in themes_results.keys():
+            themes.append({
+                            "id": 1, # no used, kept for clarity
+                            "title": theme,
+                            "featuredObjects": themes_results[theme]
+                        })
+        return themes
 
     def get(self, request, *args, **kwargs):
         results = self.document_search(request)
