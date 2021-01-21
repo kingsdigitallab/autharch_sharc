@@ -189,6 +189,7 @@ class RichTextPage(Page):
     content_panels = [
         FieldPanel("title", classname="full title"),
         FieldPanel("body"),
+        FieldPanel("show_in_menus"),
     ]
 
     def body_html(self):
