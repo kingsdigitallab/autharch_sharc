@@ -34,7 +34,6 @@ class EADDocumentTestCase(TestCase):
 
         self.assertEqual(len(data['individual_elements']), 2)
 
-
     def test_parse_work_connections(self):
         doc = EADDocument()
         doc.work_elements = []

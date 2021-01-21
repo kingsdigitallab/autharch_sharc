@@ -302,12 +302,24 @@ class ThemeView(APIView):
             themes_results[theme] = result
         themes = []
         # Refactor into expected api results
-        for theme in themes_results.keys():
+
+        # Will always goes first
+        # todo refactor this if we decide to add a theme order
+        if "William Shakespeare" in themes_results:
             themes.append({
-                            "id": 1, # no used, kept for clarity
-                            "title": theme,
-                            "featuredObjects": themes_results[theme]
-                        })
+                    "id": 1,  # no used, kept for clarity
+                    "title": "William Shakespeare",
+                    "featuredObjects": themes_results[
+                        "William Shakespeare"]
+                })
+        # others
+        for theme in themes_results.keys():
+            if theme != "William Shakespeare":
+                themes.append({
+                    "id": 1,  # no used, kept for clarity
+                    "title": theme,
+                    "featuredObjects": themes_results[theme]
+                })
         return themes
 
     def get(self, request, *args, **kwargs):
