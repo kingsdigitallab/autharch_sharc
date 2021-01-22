@@ -1,9 +1,10 @@
+import pytest
+
 from django.test import RequestFactory, TestCase
+from autharch_sharc.editor.documents import EADDocument
 
-from editor.documents import EADDocument
 
-
-class EADDocumentTestCase(TestCase):
+class EADDocumentTestClass:
     test_connection_strings = [
         "None",
         "Individual; Biographical; Biographies",
@@ -32,7 +33,7 @@ class EADDocumentTestCase(TestCase):
             if connection[0].lower() == 'individual':
                 data = doc.parse_individual_connections(connection)
 
-        self.assertEqual(len(data['individual_elements']), 2)
+        assertEqual(len(data['individual_elements']), 2)
 
     def test_parse_work_connections(self):
         doc = EADDocument()

@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .models import (TimelineSlide)
+from autharch_sharc.django_kdl_timeline.models import (TimelineSlide)
 import json
 
 

@@ -14,9 +14,9 @@ from lxml import etree
 lowercase_sort_normalizer = normalizer(
     "lowercase_sort", filter=["lowercase", "asciifolding"]
 )
-from editor.models.editor_models import (EADObject, EADObjectGroup)
-from editor.models.wagtail_models import (
-    RichTextPage, SharcTimelineEventSnippet, StreamFieldPage)
+from autharch_sharc.editor.models import (EADObject, EADObjectGroup)
+from autharch_sharc.editor.models import (
+    RichTextPage, StreamFieldPage)
 
 """
 Search fields for EAD document searching

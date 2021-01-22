@@ -12,15 +12,15 @@ from django_elasticsearch_dsl_drf.filter_backends import (
     SuggesterFilterBackend,
 )
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
-from django_kdl_timeline.views import ListTimelineEvents
-from editor.models import SharcTimelineEventSnippet
-from elasticsearch_dsl import Search, TermsFacet, Q
-from elasticsearch_dsl.query import Match, QueryString, Exists, MatchPhrasePrefix
+from elasticsearch_dsl import Search, TermsFacet
+from elasticsearch_dsl.query import Exists
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from editor.models import RichTextPage, StreamFieldPage
-from .documents import EADDocument, eaddocument_search_fields
+
+from autharch_sharc.django_kdl_timeline.views import ListTimelineEvents
+from autharch_sharc.editor.models import SharcTimelineEventSnippet
+from .documents import EADDocument
 from .serializers import (EADDocumentResultSerializer,
                           EADDocumentThemeResultSerializer)
 
@@ -46,7 +46,7 @@ def simple_proxy(request, path, target_url):
         else:
             mimetype = proxied_request.headers.typeheader or \
                        mimetypes.guess_type(
-                url)
+                           url)
         content = proxied_request.data.decode("utf-8")
     except urllib3.exceptions.HTTPError as e:
         return HttpResponse(e.msg, status=e.code, content_type="text/plain")
@@ -264,6 +264,7 @@ class SharcSiteSearch(EADDocumentViewSet):
         # Include all objects in this search
         return self.filter_queryset(self.get_queryset())
 
+
 # class SharcSiteSearch(EADDocumentViewSet):
 #     """
 #     Provides searches on documents and wagtail objects
@@ -272,9 +273,9 @@ class SharcSiteSearch(EADDocumentViewSet):
 #     def get_doc_type_queryset(self):
 #         # Include all objects in this search
 #         q= self.filter_queryset(
-#             self.get_queryset()).query(MatchPhrasePrefix(themes={"query": "On"}))
+#             self.get_queryset()).query(MatchPhrasePrefix(themes={"query":
+#             "On"}))
 #         return self.filter_queryset(self.get_queryset())
-
 
 
 class ThemeView(APIView):
@@ -307,11 +308,11 @@ class ThemeView(APIView):
         # todo refactor this if we decide to add a theme order
         if "William Shakespeare" in themes_results:
             themes.append({
-                    "id": 1,  # no used, kept for clarity
-                    "title": "William Shakespeare",
-                    "featuredObjects": themes_results[
-                        "William Shakespeare"]
-                })
+                "id": 1,  # no used, kept for clarity
+                "title": "William Shakespeare",
+                "featuredObjects": themes_results[
+                    "William Shakespeare"]
+            })
         # others
         for theme in themes_results.keys():
             if theme != "William Shakespeare":
@@ -325,7 +326,6 @@ class ThemeView(APIView):
     def get(self, request, *args, **kwargs):
         results = self.document_search(request)
         return Response({"themes": results})
-
 
 # class SharcListSearchResults(APIView):
 #
@@ -395,5 +395,6 @@ class ThemeView(APIView):
 #         results, count, next_page = self.document_search(request)
 #         return Response({"results": results,
 #                          "count": count,
-#                          "next": "http://127.0.0.1:8000/api/documents/?page=2",
+#                          "next":
+#                          "http://127.0.0.1:8000/api/documents/?page=2",
 #                          })

@@ -96,8 +96,8 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     "controlled_vocabulary",
     "ead",
-    "django_kdl_timeline",
-    "editor",
+    "autharch_sharc.django_kdl_timeline.apps.KdlTimelineConfig",
+    "autharch_sharc.editor.apps.EditorConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

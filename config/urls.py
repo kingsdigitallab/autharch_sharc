@@ -4,9 +4,9 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
-from django_kdl_timeline.api import wagtail_api_router
+from autharch_sharc.django_kdl_timeline.api import wagtail_api_router
 
-from editor import api_views
+from autharch_sharc.editor import api_views
 from rest_framework.authtoken.views import obtain_auth_token
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.core import urls as wagtail_urls
@@ -24,7 +24,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
     path("api/wagtail/", wagtail_api_router.urls),
-    path("editor/", include("editor.urls")),
+    path("editor/", include("autharch_sharc.editor.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # API URLS

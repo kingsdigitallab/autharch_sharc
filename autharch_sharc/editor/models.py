@@ -1,7 +1,9 @@
 from django.db import models
 # from django_elasticsearch_dsl import Document, fields
 # from django_elasticsearch_dsl.registries import registry
-from django_kdl_timeline.models import AbstractTimelineEventSnippet
+from autharch_sharc.django_kdl_timeline.models import (
+    AbstractTimelineEventSnippet
+)
 from elasticsearch_dsl import normalizer
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.api import APIField
@@ -210,3 +212,25 @@ class RichTextPage(Page):
             "title": value.get("title"),
             "body": body.source,
         }
+
+
+
+class EADObjectGroup(models.Model):
+    """ Group of ead objects e.g. theme"""
+    title = models.TextField(null=True, blank=True)
+    slug = models.CharField(null=True, blank=True, max_length=128)
+    introduction = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+
+
+
+class EADObject(models.Model):
+    """ Contains just the RCIN rather than foreign key
+    to allow rebuilding of documents without deleting data"""
+    RCIN = models.CharField(null=True, blank=True, max_length=128)
+
+    ead_group = models.ForeignKey(
+        'EADObjectGroup',
+        on_delete=models.CASCADE,
+        null=True
+    )
