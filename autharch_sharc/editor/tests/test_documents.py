@@ -60,7 +60,7 @@ class TestEADDocument:
         assert len(data["performance_connections"]) == 2
 
     # def prepare_themes(self, instance):
-     
+
     # def prepare_doc_type(self, instance):
 
     #
