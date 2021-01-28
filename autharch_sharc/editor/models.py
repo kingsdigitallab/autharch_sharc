@@ -85,18 +85,7 @@ class ResourceBlock(blocks.StructBlock):
             "heading": value.get("heading"),
             "body": body.source,
         }
-        # wagtail_headless_preview
-        # dict_list = []
-        # for item in value:
-        #     temp_dict = {
-        #         'period_name': value.get("period_name"),
-        #         'description': value.get("description"),
-        #         'duration': value.get("duration"),
-        #         'events': value.get('events')
-        #     }
-        #     print(value.get('events'))
-        #     dict_list.append(temp_dict)
-        #     return dict_list
+        
 
     class Meta:
         abstract = True
@@ -107,9 +96,9 @@ class ResourceDocumentBlock(DocumentChooserBlock):
     """ Block with a document e.g. pdf attached """
 
     def get_api_representation(self, value, context=None):
-        api_values = super().get_api_representation(value)
+
         doc = value
-        api_values["document"] = {
+        api_values = {
             "title": doc.title,
             "filename": doc.filename,
             "url": doc.url,
@@ -120,12 +109,11 @@ class ResourceDocumentBlock(DocumentChooserBlock):
 class ResourceImageBlock(ImageChooserBlock):
     """ Resource with image attached"""
 
-
     # todo rendition width?
     full_rendition = "width-1000"
 
     def get_api_representation(self, value, context=None):
-        # api_values = super().get_api_representation(value)
+
         image = value
         api_values = {
             "id": value.pk,
