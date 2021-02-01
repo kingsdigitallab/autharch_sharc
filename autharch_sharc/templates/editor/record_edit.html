@@ -11,7 +11,6 @@
       <div class="mobile-hide">
         <ul>
           <li>Publication status: <span class="highlight{% if is_deleted %} danger-clear{% endif %}">{{ record.publicationstatus_value }}{% if is_deleted %} (deleted){% endif %}</span></li>
-          <li>Maintenance status: <span class="highlight">{{ record.maintenancestatus_value }}</span></li>
           <li>Updated: <span class="highlight">{{ last_revision.date_created }}</span> by <span class="highlight">{{ last_revision.user }}</span></li>
           <li>
             <a href="{% url 'editor:record-history' pk=record.pk %}">
@@ -179,35 +178,41 @@
         <div class="fieldset-body expand">
           <div class="two-column-table">
             <div>
-              {% with originations=form.formsets.originations %}
               <div class="formset">
+                {% with originations=form.formsets.originations %}
                 <div class="management_form">
                   {{ originations.management_form }}
                 </div>
                 <div class="fieldsets">
                   {% for origination in originations.forms %}
-                  {% render_field origination.id %}
-                  {% with persnames=origination.formsets.persnames %}
-                  {% for persname in persnames.forms %}
-                  {% include "./includes/originationpersname_inline_form.html" with form=persname %}
-                  {% endfor %}
-                  {% endwith %}
+                  {% include "./includes/origination_inline_form.html" with form=origination %}
                   {% endfor %}
                 </div>
+                {% endwith %}
+                <label class="create linked-button">
+                  <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('origination', this)">Add creator
+                </label>
               </div>
-              {% endwith %}
             </div>
             <div>
               {% with controlaccesses=form.formsets.controlaccesses %}
-              {% for controlaccess in controlaccesses.forms %}
-              {% with persnames=controlaccess.formsets.persnames %}
-              {{ persnames.management_form }}
-              {% for persname in persnames.forms %}
-              {% render_field persname.persname %}
-              {% render_field persname.relator %}
-              {% endfor %}
-              {% endwith %}
-              {% endfor %}
+              <div class="formset">
+                {% for controlaccess in controlaccesses.forms %}
+                {% with persnames=controlaccess.formsets.persnames %}
+                <div class="management_form">
+                  {{ persnames.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for persname in persnames.forms %}
+                  {% include "./includes/persname_non_model_inline_form.html" with form=persname %}
+                  {% endfor %}
+                </div>
+                {% endwith %}
+                <label class="create linked-button">
+                  <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('associatedpersname', this)">Add associated person
+                </label>
+                {% endfor %}
+              </div>
               {% endwith %}
             </div>
           </div>
@@ -396,6 +401,10 @@
     number of extra forms server-side.{% endcomment %}
     {% block empty_forms %}
     {% with formsets=form.formsets %}
+    {% with origination_form=formsets.originations.empty_form %}
+    {% include "./includes/origination_inline_form.html" with form=origination_form %}
+    {% include "./includes/originationpersname_inline_form.html" with form=origination_form.formsets.persnames.empty_form %}
+    {% endwith %}
     {% with bibliography_form=formsets.bibliographies.empty_form %}
     {% include "./includes/bibliography_inline_form.html" with form=bibliography_form %}
     {% include "./includes/bibref_inline_form.html" with form=bibliography_form.formsets.bibrefs.empty_form %}

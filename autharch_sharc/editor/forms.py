@@ -333,8 +333,9 @@ class OriginationInlineForm(ContainerModelForm):
         formsets = {}
         data = kwargs.get('data')
         PersNameFormset = forms.inlineformset_factory(
-            Origination, OriginationPersName,
-            form=OriginationPersNameInlineForm, extra=0)
+            Origination, OriginationPersName, exclude=[],
+            form=OriginationPersNameInlineForm, extra=1, max_num=1, min_num=1,
+            validate_max=True, validate_min=True)
         formsets['persnames'] = PersNameFormset(
             data, instance=self.instance, prefix=self.prefix + '-persname')
         return formsets
@@ -350,9 +351,9 @@ class OriginationPersNameInlineForm(ContainerModelForm):
         formsets = {}
         data = kwargs.get('data')
         PartFormset = forms.inlineformset_factory(
-            OriginationPersName, OriginationPersNamePart,
-            form=OriginationPersNamePartInlineForm, extra=0, max_num=1,
-            validate_max=True)
+            OriginationPersName, OriginationPersNamePart, exclude=[],
+            form=OriginationPersNamePartInlineForm, extra=1, max_num=1,
+            min_num=1, validate_max=True, validate_min=True)
         formsets['parts'] = PartFormset(
             data, instance=self.instance, prefix=self.prefix + '-part')
         return formsets
@@ -364,9 +365,21 @@ class OriginationPersNameInlineForm(ContainerModelForm):
 
 class OriginationPersNamePartInlineForm(forms.ModelForm):
 
+    order = forms.IntegerField(required=False, widget=forms.HiddenInput)
+
+    def clean_order(self):
+        order = self.cleaned_data.get('order', 1) or 1
+        return order
+
     class Meta:
         model = OriginationPersNamePart
-        fields = ['id', 'part']
+        fields = ['id', 'order', 'part']
+        labels = {
+            'part': 'Creator',
+        }
+        widgets = {
+            'part': forms.TextInput(),
+        }
 
 
 class PersnameNonModelInlineForm(forms.Form):
@@ -378,7 +391,7 @@ class PersnameNonModelInlineForm(forms.Form):
         cleaned_data = super().clean()
         persname = cleaned_data.get('persname')
         relator = cleaned_data.get('relator')
-        if persname and relator:
+        if persname is not None and relator:
             persname.set('relator', relator)
         cleaned_data['persname'] = etree.tostring(
             persname, encoding='unicode', xml_declaration=False)
@@ -680,6 +693,7 @@ def assemble_form_errors(form):
             if field == '__all__':
                 errors['non_field'].extend(field_errors)
             else:
+                print('{}: {}: {}'.format(type(form), field, field_errors))
                 errors['field'] = True
         if hasattr(form, 'formsets'):
             for formset in form.formsets.values():
