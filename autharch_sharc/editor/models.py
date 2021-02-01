@@ -85,7 +85,7 @@ class ResourceBlock(blocks.StructBlock):
             "heading": value.get("heading"),
             "body": body.source,
         }
-        
+
 
     class Meta:
         abstract = True

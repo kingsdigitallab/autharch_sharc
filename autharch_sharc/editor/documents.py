@@ -248,7 +248,7 @@ class EADDocument(Document):
                         full_image_url = image["resource"]["@id"]
                         iiif_image_url = image["resource"]["service"]["@id"]
                         iiif_image_url = iiif_image_url.replace(
-                            "https://rct.resourcespace.com/", "/rct"
+                            "https://rct.resourcespace.com/", "/rct/"
                         )
                         if "width" in image["resource"]:
                             image_width = image["resource"]["width"]
