@@ -1,7 +1,6 @@
 {% load editor_form_tags %}
 <fieldset data-form-type="source">
   <div class="fieldset-header">
-    <h4>??</h4>
     <div class="flex">
       <div>
         {% include "./delete_inline_button.html" %}
@@ -13,7 +12,6 @@
     {% render_form_delete_widget form.DELETE %}
     {% render_field form.id %}
     {% with sourceentries=form.formsets.sourceentries %}
-    <h3>??</h3>
     <div class="management_form">
       {{ sourceentries.management_form }}
     </div>

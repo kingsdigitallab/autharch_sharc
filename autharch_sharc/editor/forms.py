@@ -2,13 +2,17 @@ from django import forms
 
 from lxml import etree
 
-from ead.constants import NS_MAP
+from ead.constants import EAD_NAMESPACE, EAD_NS, NS_MAP
 from ead.models import (
-    Bibliography, ControlAccess, CorpName, CorpNamePart, CustodHist,
-    DIdPhysDescStructured, DIdPhysDescStructuredDimensions,
-    DIdPhysDescStructuredPhysFacet, EAD, EventDescription, MaintenanceEvent,
-    Origination, PersName, PersNamePart, PhysLoc, ScopeContent, Source,
-    SourceEntry, UnitDateStructured, UnitDateStructuredDateRange, UnitTitle)
+    Bibliography, ControlAccess, CustodHist, DIdPhysDescStructured,
+    DIdPhysDescStructuredDimensions, DIdPhysDescStructuredPhysFacet, EAD,
+    EventDescription, MaintenanceEvent, Origination, OriginationCorpName,
+    OriginationCorpNamePart, OriginationPersName, OriginationPersNamePart,
+    PhysLoc, RightsDeclaration, ScopeContent, Source, SourceEntry, UnitDate,
+    UnitDateStructured, UnitDateStructuredDateRange, UnitTitle)
+
+
+NS_MAP_2 = {None: EAD_NAMESPACE}
 
 
 ENTITY_SEARCH_INPUT_ATTRS = {
@@ -122,7 +126,8 @@ class BibliographyInlineForm(ContainerModelForm):
 
 
 class BibRefForm(forms.Form):
-    bibref = forms.CharField(widget=forms.Textarea)
+    bibref = forms.CharField(label='Published reference',
+                             widget=forms.Textarea)
 
 
 class ControlAccessInlineForm(ContainerModelForm):
@@ -133,12 +138,14 @@ class ControlAccessInlineForm(ContainerModelForm):
         initial_genreforms, initial_geognames, initial_persnames = \
             self._parse_controlaccess()
         GenreformFormset = forms.formset_factory(
-            GenreformInlineForm, can_delete=True, extra=0)
+            GenreformInlineForm, can_delete=True, extra=1, max_num=1,
+            validate_max=True)
         formsets['genreforms'] = GenreformFormset(
             data, initial=initial_genreforms,
             prefix=self.prefix + '-genreform')
         GeognameFormset = forms.formset_factory(
-            GeognameInlineForm, can_delete=True, extra=0)
+            GeognameInlineForm, can_delete=True, extra=1, max_num=1,
+            validate_max=True)
         formsets['geognames'] = GeognameFormset(
             data, initial=initial_geognames, prefix=self.prefix + '-geogname')
         PersnameFormset = forms.formset_factory(
@@ -154,7 +161,8 @@ class ControlAccessInlineForm(ContainerModelForm):
         for formset_name, field_name in subs:
             formset = self.formsets[formset_name]
             controlaccess.extend(
-                [form.cleaned_data[field_name] for form in formset.forms
+                [form.cleaned_data.get(field_name, '')
+                 for form in formset.forms
                  if form not in formset.deleted_forms])
         return ''.join(controlaccess)
 
@@ -164,15 +172,17 @@ class ControlAccessInlineForm(ContainerModelForm):
         root = etree.fromstring('<wrapper>{}</wrapper>'.format(
             self.instance.controlaccess))
         genreforms = [{'genreform': etree.tostring(
-            genreform, encoding='unicode', xml_declaration=False)}
+            genreform, encoding='unicode', method='text')}
                       for genreform in root.xpath('//e:genreform',
                                                   namespaces=NS_MAP)]
         geognames = [{'geogname': etree.tostring(
-            geogname, encoding='unicode', xml_declaration=False)}
+            geogname, encoding='unicode', method='text')}
                      for geogname in root.xpath('//e:geogname',
                                                 namespaces=NS_MAP)]
-        persnames = [{'persname': etree.tostring(
-            persname, encoding='unicode', xml_declaration=False)}
+        persnames = [{
+            'persname': etree.tostring(persname, encoding='unicode',
+                                       method='text'),
+            'relator': persname.get('relator', '')}
                      for persname in root.xpath('//e:persname',
                                                 namespaces=NS_MAP)]
         return genreforms, geognames, persnames
@@ -185,18 +195,14 @@ class ControlAccessInlineForm(ContainerModelForm):
         }
 
 
-class CorpNamePartInlineForm(forms.ModelForm):
-
-    class Meta:
-        model = CorpNamePart
-        fields = ['id', 'part']
-
-
 class CustodHistInlineForm(forms.ModelForm):
 
     class Meta:
         model = CustodHist
         fields = ['id', 'custodhist']
+        labels = {
+            'custodhist': 'Provenance'
+        }
 
 
 class EventDescriptionInlineForm(forms.ModelForm):
@@ -210,10 +216,22 @@ class GenreformInlineForm(forms.Form):
 
     genreform = forms.CharField()
 
+    def clean_genreform(self):
+        item = etree.Element(EAD_NS + 'genreform', nsmap=NS_MAP_2)
+        item.set('source', 'AAT')
+        item.text = self.cleaned_data['genreform']
+        return etree.tostring(item, encoding='unicode', xml_declaration=False)
+
 
 class GeognameInlineForm(forms.Form):
 
-    geogname = forms.CharField()
+    geogname = forms.CharField(label='Place of origin')
+
+    def clean_geogname(self):
+        item = etree.Element(EAD_NS + 'geogname', nsmap=NS_MAP_2)
+        part = etree.SubElement(item, EAD_NS + 'part', nsmap=NS_MAP_2)
+        part.text = self.cleaned_data['geogname']
+        return etree.tostring(item, encoding='unicode', xml_declaration=False)
 
 
 class LabelInlineForm(ContainerModelForm):
@@ -248,6 +266,9 @@ class LabelPhysFacetInlineForm(forms.ModelForm):
     class Meta:
         model = DIdPhysDescStructuredPhysFacet
         fields = ['id', 'physfacet']
+        labels = {
+            'physfacet': 'Label/inscription/caption',
+        }
 
 
 class MaintenanceEventInlineForm(ContainerModelForm):
@@ -301,25 +322,73 @@ class MediumPhysFacetInlineForm(forms.ModelForm):
     class Meta:
         model = DIdPhysDescStructuredPhysFacet
         fields = ['id', 'physfacet']
+        labels = {
+            'physfacet': 'Medium',
+        }
 
 
-class OriginationInlineForm(forms.ModelForm):
+class OriginationInlineForm(ContainerModelForm):
+
+    def _add_formsets(self, *args, **kwargs):
+        formsets = {}
+        data = kwargs.get('data')
+        PersNameFormset = forms.inlineformset_factory(
+            Origination, OriginationPersName,
+            form=OriginationPersNameInlineForm, extra=0)
+        formsets['persnames'] = PersNameFormset(
+            data, instance=self.instance, prefix=self.prefix + '-persname')
+        return formsets
 
     class Meta:
         model = Origination
-        fields = ['id', 'corpnames', 'label', 'persnames']
+        fields = ['id', 'label']
 
 
-class PersNamePartInlineForm(forms.ModelForm):
+class OriginationPersNameInlineForm(ContainerModelForm):
+
+    def _add_formsets(self, *args, **kwargs):
+        formsets = {}
+        data = kwargs.get('data')
+        PartFormset = forms.inlineformset_factory(
+            OriginationPersName, OriginationPersNamePart,
+            form=OriginationPersNamePartInlineForm, extra=0, max_num=1,
+            validate_max=True)
+        formsets['parts'] = PartFormset(
+            data, instance=self.instance, prefix=self.prefix + '-part')
+        return formsets
 
     class Meta:
-        model = PersNamePart
+        model = OriginationPersName
+        fields = ['id']
+
+
+class OriginationPersNamePartInlineForm(forms.ModelForm):
+
+    class Meta:
+        model = OriginationPersNamePart
         fields = ['id', 'part']
 
 
 class PersnameNonModelInlineForm(forms.Form):
 
-    persname = forms.CharField()
+    persname = forms.CharField(label='Name')
+    relator = forms.CharField(label='Association')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        persname = cleaned_data.get('persname')
+        relator = cleaned_data.get('relator')
+        if persname and relator:
+            persname.set('relator', relator)
+        cleaned_data['persname'] = etree.tostring(
+            persname, encoding='unicode', xml_declaration=False)
+        return cleaned_data
+
+    def clean_persname(self):
+        item = etree.Element(EAD_NS + 'persname', nsmap=NS_MAP_2)
+        part = etree.SubElement(item, EAD_NS + 'part', nsmap=NS_MAP_2)
+        part.text = self.cleaned_data['persname']
+        return item
 
 
 class PhyslocInlineForm(forms.ModelForm):
@@ -327,9 +396,32 @@ class PhyslocInlineForm(forms.ModelForm):
     class Meta:
         model = PhysLoc
         fields = ['id', 'physloc']
+        labels = {
+            'physloc': 'Physical location',
+        }
+
+
+class RightsDeclarationInlineForm(forms.ModelForm):
+
+    class Meta:
+        model = RightsDeclaration
+        fields = ['id', 'abbr', 'citation', 'descriptivenote']
+        labels = {
+            'abbr': 'Rights declaration abbreviation',
+            'citation': 'Rights declaration citation',
+            'descriptivenote': 'Rights declaration',
+        }
 
 
 class ScopeContentInlineForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        localtype = self.instance.localtype
+        if localtype == 'publication_details':
+            self.fields['scopecontent'].label = 'Publication details'
+        elif localtype == 'notes':
+            self.fields['scopecontent'].label = 'Notes'
 
     class Meta:
         model = ScopeContent
@@ -341,6 +433,9 @@ class SizeDimensionsInlineForm(forms.ModelForm):
     class Meta:
         model = DIdPhysDescStructuredDimensions
         fields = ['id', 'dimensions']
+        labels = {
+            'dimensions': 'Size',
+        }
 
 
 class SizeInlineForm(ContainerModelForm):
@@ -392,6 +487,21 @@ class SourceInlineForm(ContainerModelForm):
         fields = ['id']
 
 
+class UnitDateInlineForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        datechar = self.instance.datechar
+        if datechar == 'creation':
+            self.fields['unitdate'].label = 'Date of creation notes'
+        elif datechar == 'acquisition':
+            self.fields['unitdate'].label = 'Date of acquisition notes'
+
+    class Meta:
+        model = UnitDate
+        fields = ['unitdate']
+
+
 class UnitDateStructuredDateRangeInlineForm(forms.ModelForm):
 
     class Meta:
@@ -429,115 +539,110 @@ class UnitTitleInlineForm(forms.ModelForm):
         fields = ['id', 'unittitle']
 
 
-class EADContentForm(ContainerModelForm):
+class RecordEditForm(ContainerModelForm):
 
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
-        data = kwargs.get('data')
         BibliographyFormset = forms.inlineformset_factory(
             EAD, Bibliography, form=BibliographyInlineForm, extra=1, max_num=1,
             validate_max=True)
         formsets['bibliographies'] = BibliographyFormset(
-            data, instance=self.instance, prefix='bibliography')
+            *args, instance=self.instance, prefix='bibliography')
         ControlAccessFormset = forms.inlineformset_factory(
             EAD, ControlAccess, form=ControlAccessInlineForm, extra=0,
             max_num=1, validate_max=True)
         formsets['controlaccesses'] = ControlAccessFormset(
-            data, instance=self.instance, prefix='controlaccess')
+            *args, instance=self.instance, prefix='controlaccess')
         CustodHistFormset = forms.inlineformset_factory(
-            EAD, CustodHist, form=CustodHistInlineForm, extra=0)
+            EAD, CustodHist, form=CustodHistInlineForm, extra=1, max_num=1,
+            validate_max=True)
         formsets['custodhists'] = CustodHistFormset(
-            data, instance=self.instance, prefix='custodhist')
+            *args, instance=self.instance, prefix='custodhist')
         LabelFormset = forms.inlineformset_factory(
             EAD, DIdPhysDescStructured, form=LabelInlineForm, extra=0,
             max_num=1, validate_max=True)
         formsets['labels'] = LabelFormset(
-            data, instance=self.instance, prefix='label',
+            *args, instance=self.instance, prefix='label',
             queryset=DIdPhysDescStructured.objects.filter(
                 otherphysdescstructuredtype='label_inscription_caption'))
         MediumFormset = forms.inlineformset_factory(
             EAD, DIdPhysDescStructured, form=MediumInlineForm, extra=0)
         formsets['media'] = MediumFormset(
-            data, instance=self.instance, prefix='medium',
+            *args, instance=self.instance, prefix='medium',
             queryset=DIdPhysDescStructured.objects.filter(
                 physdescstructuredtype=DIdPhysDescStructured.STRUCTURED_TYPE_MATERIAL))
-        ScopeContentFormset = forms.inlineformset_factory(
+        ScopeContentNotesFormset = forms.inlineformset_factory(
             EAD, ScopeContent, form=ScopeContentInlineForm, extra=1, max_num=1,
             validate_max=True)
-        formsets['notes'] = ScopeContentFormset(
-            data, instance=self.instance, prefix='scopecontent_notes',
+        formsets['notes'] = ScopeContentNotesFormset(
+            *args, instance=self.instance, prefix='scopecontent_notes',
             queryset=ScopeContent.objects.filter(localtype='notes'))
         OriginationFormset = forms.inlineformset_factory(
             EAD, Origination, form=OriginationInlineForm, extra=0)
         formsets['originations'] = OriginationFormset(
-            data, instance=self.instance, prefix='origination')
+            *args, instance=self.instance, prefix='origination')
         PhysLocFormset = forms.inlineformset_factory(
-            EAD, PhysLoc, form=PhyslocInlineForm, extra=0)
+            EAD, PhysLoc, form=PhyslocInlineForm, extra=1, max_num=1,
+            validate_max=True)
         formsets['physlocs'] = PhysLocFormset(
-            data, instance=self.instance, prefix='physloc')
-        formsets['publication_details'] = ScopeContentFormset(
-            data, instance=self.instance,
+            *args, instance=self.instance, prefix='physloc')
+        ScopeContentPublicationFormset = forms.inlineformset_factory(
+            EAD, ScopeContent, form=ScopeContentInlineForm, extra=1, max_num=1,
+            validate_max=True)
+        formsets['publication_details'] = ScopeContentPublicationFormset(
+            *args, instance=self.instance,
             prefix='scopecontent_publication_details',
             queryset=ScopeContent.objects.filter(
                 localtype='publication_details'))
         SizeFormset = forms.inlineformset_factory(
             EAD, DIdPhysDescStructured, form=SizeInlineForm, extra=0)
         formsets['sizes'] = SizeFormset(
-            data, instance=self.instance, prefix='size',
+            *args, instance=self.instance, prefix='size',
             queryset=DIdPhysDescStructured.objects.filter(
                 physdescstructuredtype=DIdPhysDescStructured.STRUCTURED_TYPE_SPACE))
         SourceFormset = forms.inlineformset_factory(
             EAD, Source, form=SourceInlineForm, extra=0)
         formsets['sources'] = SourceFormset(
-            data, instance=self.instance, prefix='source')
-        UnitDateStructuredFormset = forms.inlineformset_factory(
+            *args, instance=self.instance, prefix='source')
+        CreationDateFormset = forms.inlineformset_factory(
             EAD, UnitDateStructured, form=UnitDateStructuredInlineForm,
             extra=1, max_num=1, validate_max=True)
-        formsets['unitdatestructureds'] = UnitDateStructuredFormset(
-            data, instance=self.instance, prefix='unitdatestructured',
+        formsets['creation_dates'] = CreationDateFormset(
+            *args, instance=self.instance, prefix='creation_date',
             queryset=UnitDateStructured.objects.filter(datechar='creation'))
+        CreationDateNoteFormset = forms.inlineformset_factory(
+            EAD, UnitDate, form=UnitDateInlineForm, extra=1, max_num=1,
+            validate_max=True)
+        formsets['creation_date_notes'] = CreationDateNoteFormset(
+            *args, instance=self.instance, prefix='creation_date_note',
+            queryset=UnitDate.objects.filter(datechar='creation'))
+        AcquisitionDateFormset = forms.inlineformset_factory(
+            EAD, UnitDateStructured, form=UnitDateStructuredInlineForm,
+            extra=1, max_num=1, validate_max=True)
+        formsets['acquisition_dates'] = AcquisitionDateFormset(
+            *args, instance=self.instance, prefix='acquisition_date',
+            queryset=UnitDateStructured.objects.filter(datechar='acquisition'))
+        AcquisitionDateNoteFormset = forms.inlineformset_factory(
+            EAD, UnitDate, form=UnitDateInlineForm, extra=1, max_num=1,
+            validate_max=True)
+        formsets['acquisition_date_notes'] = AcquisitionDateNoteFormset(
+            *args, instance=self.instance, prefix='acquisition_date_note',
+            queryset=UnitDate.objects.filter(datechar='acquisition'))
         UnitTitleFormset = forms.inlineformset_factory(
             EAD, UnitTitle, form=UnitTitleInlineForm, extra=1, max_num=1,
             min_num=1, validate_max=True, validate_min=True)
         formsets['unittitles'] = UnitTitleFormset(
-            data, instance=self.instance, prefix='unittitle')
+            *args, instance=self.instance, prefix='unittitle')
+        RightsDeclarationFormset = forms.inlineformset_factory(
+            EAD, RightsDeclaration, form=RightsDeclarationInlineForm, extra=1,
+            max_num=1, min_num=1, validate_max=True, validate_min=True)
+        formsets['rightsdeclarations'] = RightsDeclarationFormset(
+            *args, instance=self.instance, prefix='rightsdeclaration')
         return formsets
 
     class Meta:
         model = EAD
         fields = ['recordid']
-
-
-class EADMaintenanceForm(ContainerModelForm):
-
-    def _add_formsets(self, *args, **kwargs):
-        formsets = {}
-        data = kwargs.get('data')
-        MaintenanceEventFormset = forms.inlineformset_factory(
-            EAD, MaintenanceEvent, form=MaintenanceEventInlineForm, extra=0,
-            min_num=1, validate_min=True)
-        formsets['maintenanceevents'] = MaintenanceEventFormset(
-            data, instance=self.instance,
-            prefix='maintenanceevent')
-        return formsets
-
-    class Meta:
-        model = EAD
-        fields = ['maintenancestatus_value', 'publicationstatus_value']
-
-
-class CorpNameEditForm(forms.ModelForm):
-
-    class Meta:
-        model = CorpNamePart
-        fields = ['part']
-
-
-class PersNameEditForm(forms.ModelForm):
-
-    class Meta:
-        model = PersNamePart
-        fields = ['part']
 
 
 class EADEntitySearchForm(forms.Form):

@@ -26,4 +26,4 @@ django-cors-headers==3.5.0 # https://github.com/adamchainz/django-cors-headers
 django-elasticsearch-dsl>=7.1,<7.2  # https://github.com/django-es/django-elasticsearch-dsl
 elasticsearch-dsl>=7.0.0,<8.0.0  # https://github.com/elastic/elasticsearch-dsl-py
 
-django-ead>=0.5.0
+django-ead>=0.6.0

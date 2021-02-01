@@ -1,0 +1,9 @@
+{% load editor_form_tags %}
+<fieldset data-form-type="physloc">
+  {% render_field form.id %}
+  {% with parts=form.formsets.parts %}
+  {% for part in parts.forms %}
+  {% include "./name_part_inline_form.html" with form=part %}
+  {% endfor %}
+  {% endwith %}
+</fieldset>

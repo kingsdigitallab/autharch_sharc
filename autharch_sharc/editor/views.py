@@ -6,18 +6,29 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, TemplateView
 
-from ead.models import CorpName, EAD, FamName, MaintenanceEvent, Name, PersName
+from ead.models import (
+    EAD, MaintenanceEvent, OriginationCorpName, OriginationFamName,
+    OriginationName, OriginationPersName)
 
 from elasticsearch_dsl import FacetedSearch, TermsFacet
-
-from formtools.wizard.views import NamedUrlSessionWizardView
 
 import reversion
 from reversion.models import Revision, Version
 
 from . import forms
-from .documents import EADDocument, EADEntityCorporateBody, EADEntityPerson
+from .documents import EADDocument
 from .generic_views import SearchView
+
+
+def output_error_log(form, indent=0):
+    for field, field_errors in form.errors.items():
+        print('{}{}: {}'.format(' ' * indent, field, field_errors))
+    if hasattr(form, 'formsets'):
+        for formset in form.formsets.values():
+            print('{}{}: {}'.format(' ' * indent, type(formset),
+                                    formset.is_valid()))
+            for form in formset.forms:
+                output_error_log(form, indent+2)
 
 
 class FacetMixin:
@@ -40,10 +51,10 @@ class FacetMixin:
             display_values = None
             if facet_name == 'creators':
                 display_values = {
-                    'corpnames': CorpName,
-                    'famnames': FamName,
-                    'names': Name,
-                    'persnames': PersName,
+                    'corpname': OriginationCorpName,
+                    'famname': OriginationFamName,
+                    'name': OriginationName,
+                    'persname': OriginationPersName,
                 }
             for idx, (value, count, selected) in enumerate(facets[facet_name]):
                 if selected:
@@ -100,22 +111,6 @@ class FacetMixin:
         return split_facets
 
 
-class EntitySearch(FacetedSearch):
-    doc_types = [EADEntityCorporateBody, EADEntityPerson]
-    facets = {
-        'entity_type': TermsFacet(field='entity_type.keyword'),
-    }
-    fields = ['name']
-
-
-class EntityList(LoginRequiredMixin, SearchView, FacetMixin):
-
-    context_object_name = "entities"
-    form_class = forms.EADEntitySearchForm
-    search_class = EntitySearch
-    template_name = "editor/entity_list.html"
-
-
 class HomeView(LoginRequiredMixin, TemplateView):
 
     template_name = "editor/home.html"
@@ -141,7 +136,7 @@ class RecordHistory(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["current_section"] = 'records'
-        context['edit_url'] = reverse('editor:record-wizard',
+        context['edit_url'] = reverse('editor:record-edit',
                                       kwargs={'record_id': self.object.pk})
         context['versions'] = Version.objects.get_for_object(self.object)
         return context
@@ -172,126 +167,33 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
         return context
 
 
-class RecordWizard(LoginRequiredMixin, NamedUrlSessionWizardView):
-    """Wizard for editing EAD records."""
-
-    form_list = [
-        ("contents", forms.EADContentForm),
-        ("maintenance", forms.EADMaintenanceForm),
-    ]
-    TEMPLATES = {
-        "contents": "editor/record_wizard_content.html",
-        "maintenance": "editor/record_wizard_maintenance.html",
-    }
-
-    def get_context_data(self, form, **kwargs):
-        context = super().get_context_data(form=form, **kwargs)
-        context["current_section"] = 'records'
-        context["saved"] = self.request.GET.get('saved', False)
-        context["record"] = form.instance
-        if form.is_bound and not form.is_valid():
-            context["form_errors"] = forms.assemble_form_errors(form)
-        context["post_data"] = self.request.POST
-        context["reverted"] = self.request.GET.get('reverted', False)
-        return context
-
-    def done(self, form_list, **kwargs):
-        # In order to create a single revision while saving the model
-        # instance multiple times, only create a revision when saving
-        # the final form.
-        for form in list(form_list)[:-1]:
-            form.save()
-        with reversion.create_revision():
-            instance = list(form_list)[-1].save()
-            last_maintenance_event = MaintenanceEvent.objects.filter(
-                maintenancehistory=instance).order_by(
-                    '-eventdatetime_standarddatetime')[0]
-            event_description = last_maintenance_event.eventdescription_set.all()[0].eventdescription
-            #reversion.set_user(self.request.user)
-            reversion.set_comment(event_description)
-        kwargs = {"record_id": self.kwargs.get("record_id")}
-        url = reverse("editor:record-wizard", kwargs=kwargs) + "?saved=true"
-        return redirect(url)
-
-    def get_form_instance(self, step):
-        return get_object_or_404(EAD, pk=self.kwargs.get("record_id"))
-
-    def get_prefix(self, request, *args, **kwargs):
-        # Get a prefix that includes the record ID so that data does
-        # not bleed across if a user switches from editing one record
-        # to another without completing the first.
-        prefix = super().get_prefix(request, *args, **kwargs)
-        return "{}-record-{}".format(prefix, self.kwargs.get("record_id"))
-
-    def get_step_url(self, step):
-        record_id = self.kwargs["record_id"]
-        return reverse(self.url_name, kwargs={"record_id": record_id, "step": step})
-
-    def get_template_names(self):
-        return [self.TEMPLATES[self.steps.current]]
-
-
 @login_required
-@require_POST
-def entity_delete(request, entity_type, entity_id):
-    if entity_type == 'corpname':
-        model = CorpName
-    elif entity_type == 'persname':
-        model = PersName
-    else:
-        raise Http404()
-    entity = get_object_or_404(model, pk=entity_id)
-    if request.POST.get('DELETE') == 'DELETE':
-        entity.delete()
-        return redirect('editor:entity-list')
-    return redirect('editory:entity-edit', entity_type=entity_type,
-                    entity_id=entity_id)
-
-
-@login_required
-def entity_edit(request, entity_type, entity_id):
-    if entity_type == 'corpname':
-        entity_type_name = 'Corporate body'
-        form_class = forms.CorpNameEditForm
-        model = CorpName
-    elif entity_type == 'persname':
-        entity_type_name = 'Person'
-        form_class = forms.PersNameEditForm
-        model = PersName
-    else:
-        raise Http404()
-    entity = get_object_or_404(model, pk=entity_id)
-    # Since we are not doing anything with the name, and only editing
-    # its one part, avoid the complexity of container forms and inline
-    # formsets and just have the form built for the part. There's no
-    # way this could cause problems later.
-    part = entity.part_set.all()[0]
+def record_edit(request, record_id):
+    record = get_object_or_404(EAD, pk=record_id)
     form_errors = []
     if request.method == 'POST':
-        form = form_class(request.POST, instance=part)
+        form = forms.RecordEditForm(request.POST, instance=record)
         if form.is_valid():
-            form.save()
-            entity.save()
-            url = reverse('editor:entity-edit', kwargs={
-                'entity_type': entity_type, 'entity_id': entity_id}) + \
-                '?saved=true'
+            with reversion.create_revision():
+                form.save()
+                #reversion.set_user(self.request.user)
+                reversion.set_comment('Edited')
+            url = reverse('editor:record-edit',
+                          kwargs={'record_id': record_id}) + '?saved=true'
             return redirect(url)
         else:
             form_errors = forms.assemble_form_errors(form)
     else:
-        form = form_class(instance=part)
+        form = forms.RecordEditForm(instance=record)
     context = {
-        'current_section': 'entities',
-        'delete_url': reverse('editor:entity-delete', kwargs={
-            'entity_type': entity_type, 'entity_id': entity_id}),
-        'entity': entity,
-        'entity_type': entity_type_name,
+        'current_section': 'records',
         'form': form,
         'form_errors': form_errors,
+        'record': record,
         'reverted': request.GET.get('reverted', False),
         'saved': request.GET.get('saved', False),
     }
-    return render(request, 'editor/entity_edit.html', context)
+    return render(request, 'editor/record_edit.html', context)
 
 
 @login_required

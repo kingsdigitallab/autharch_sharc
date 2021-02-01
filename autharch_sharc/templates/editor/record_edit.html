@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+{% load editor_form_tags %}
+
+{% block main %}
+<main id="record-edit">
+  {% block page_header %}
+  <div class="header-fixed">
+    <div class="status-bar">
+      <input type="checkbox" id="document-status-checkbox" class="none" value="Document status" aria-label="document-status"/>
+      <label class="mobile-only" for="document-status-checkbox">Status</label>
+      <div class="mobile-hide">
+        <ul>
+          <li>Publication status: <span class="highlight{% if is_deleted %} danger-clear{% endif %}">{{ record.publicationstatus_value }}{% if is_deleted %} (deleted){% endif %}</span></li>
+          <li>Maintenance status: <span class="highlight">{{ record.maintenancestatus_value }}</span></li>
+          <li>Updated: <span class="highlight">{{ last_revision.date_created }}</span> by <span class="highlight">{{ last_revision.user }}</span></li>
+          <li>
+            <a href="{% url 'editor:record-history' pk=record.pk %}">
+              <i class="far fa-clock"></i>
+              <span class="dotted-underline">History</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="action-buttons">
+      {% if not is_deleted %}<button aria-label="delete" class="danger-clear" onclick="showModal('delete-modal')"><i class="far fa-trash-alt"></i> Delete</button>{% endif %}
+      <input type="submit" value="{% if is_deleted %}Restore{% else %}Save{% endif %}" form="record-form" class="save"/>
+    </div>
+  </div>
+  {% endblock page_header %}
+
+  {% block content %}
+  <div class="form-header">
+    <div class="breadcrumbs">
+      <ul>
+        <li><a href="{% url 'editor:record-list' %}" class="dotted-underline">Archival records</a></li>
+      </ul>
+    </div>
+    {% if form_errors %}
+    <div class="error-notification">
+      <button class="icon-only" aria-label="close notification" onclick="removeNotification()">&#xf00d;</button>
+      <h4>Errors</h4>
+      {% for errors in form_errors.non_field %}
+      <p>{{ error }}</p>
+      {% endfor %}
+      {% if form_errors.field %}
+      <p>There are field-specific errors; please check the form and correct.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if saved %}
+    <div class="success-notification">
+      <button class="icon-only" aria-label="close notification" onclick="removeNotification()">&#xf00d;</button>
+      <h4>Your edits were successfully saved.</h4>
+    </div>
+    {% elif reverted %}
+    <div class="success-notification">
+      <button class="icon-only" aria-label="close notification" onclick="removeNotification()">&#xf00d;</button>
+      <h4>The version was sucessfully restored, (version id: {{ reverted }}).</h4>
+    </div>
+    {% endif %}
+
+    <h1>{{ record }}</h1>
+  </div>
+
+  <form action="" id="record-form" method="post">
+    {% csrf_token %}
+    <div class="form-section">
+      <h2>SUMMARY</h2>
+      <fieldset id="summary">
+        <div class="fieldset-header">
+          <h4>Short title</h4>
+          <div>
+            <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+          </div>
+        </div>
+        <div class="fieldset-body expand">
+          <div class="two-column-table">
+            <div>
+              {% with unittitles=form.formsets.unittitles %}
+              <div class="formset">
+                <div class="management_form">
+                  {{ unittitles.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for unittitle in unittitles.forms %}
+                  {% render_field unittitle.id %}
+                  {% render_field unittitle.unittitle %}
+                  {% endfor %}
+                </div>
+              </div>
+              {% endwith %}
+              {% with controlaccesses=form.formsets.controlaccesses %}
+              {{ controlaccesses.management_form }}
+              {% for controlaccess in controlaccesses.forms %}
+              {% render_field controlaccess.id %}
+              {% render_field controlaccess.controlaccess %}
+              {% with genreforms=controlaccess.formsets.genreforms %}
+              {{ genreforms.management_form }}
+              {% for genreform in genreforms %}
+              {% render_field genreform.genreform %}
+              {% endfor %}
+              {% endwith %}
+              {% endfor %}
+              {% endwith %}
+            </div>
+            <div>
+              {% render_field form.recordid %}
+            </div>
+          </div>
+          <div class="two-column-table">
+            <div>
+              {% with dates=form.formsets.creation_dates %}
+              <div class="formset">
+                <div class="management_form">
+                  {{ dates.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for date in dates.forms %}
+                  {% include "./includes/unitdatestructured_inline_form.html" with form=date %}
+                  {% endfor %}
+                </div>
+              </div>
+              {% endwith %}
+              {% with date_notes=form.formsets.creation_date_notes %}
+              <div class="formset">
+                <div class="management_form">
+                  {{ date_notes.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for date_note in date_notes.forms %}
+                  {% include "./includes/unitdate_inline_form.html" with form=date_note %}
+                  {% endfor %}
+                </div>
+                {% endwith %}
+              </div>
+            </div>
+            <div>
+              {% with dates=form.formsets.acquisition_dates %}
+              <div class="formset">
+                <div class="management_form">
+                  {{ dates.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for date in dates.forms %}
+                  {% include "./includes/unitdatestructured_inline_form.html" with form=date %}
+                  {% endfor %}
+                </div>
+              </div>
+              {% endwith %}
+              {% with date_notes=form.formsets.acquisition_date_notes %}
+              <div class="formset">
+                <div class="management_form">
+                  {{ date_notes.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for date_note in date_notes.forms %}
+                  {% include "./includes/unitdate_inline_form.html" with form=date_note %}
+                  {% endfor %}
+                </div>
+                {% endwith %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+    </div>-
+
+    <div class="form-section">
+      <h2>DESCRIPTION</h2>
+      <fieldset id="description">
+        <div class="fieldset-header">
+          <h4>Creator(s)</h4>
+          <div>
+            <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+          </div>
+        </div>
+        <div class="fieldset-body expand">
+          <div class="two-column-table">
+            <div>
+              {% with originations=form.formsets.originations %}
+              <div class="formset">
+                <div class="management_form">
+                  {{ originations.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for origination in originations.forms %}
+                  {% render_field origination.id %}
+                  {% with persnames=origination.formsets.persnames %}
+                  {% for persname in persnames.forms %}
+                  {% include "./includes/originationpersname_inline_form.html" with form=persname %}
+                  {% endfor %}
+                  {% endwith %}
+                  {% endfor %}
+                </div>
+              </div>
+              {% endwith %}
+            </div>
+            <div>
+              {% with controlaccesses=form.formsets.controlaccesses %}
+              {% for controlaccess in controlaccesses.forms %}
+              {% with persnames=controlaccess.formsets.persnames %}
+              {{ persnames.management_form }}
+              {% for persname in persnames.forms %}
+              {% render_field persname.persname %}
+              {% render_field persname.relator %}
+              {% endfor %}
+              {% endwith %}
+              {% endfor %}
+              {% endwith %}
+            </div>
+          </div>
+          <div class="two-column-table">
+            <div>
+              {% with controlaccesses=form.formsets.controlaccesses %}
+              {% for controlaccess in controlaccesses.forms %}
+              {% with geognames=controlaccess.formsets.geognames %}
+              {{ geognames.management_form }}
+              {% for geogname in geognames.forms %}
+              {% render_field geogname.geogname %}
+              {% endfor %}
+              {% endwith %}
+              {% endfor %}
+              {% endwith %}
+            </div>
+            <div>
+              {% with physlocs=form.formsets.physlocs %}
+              <div class="management_form">
+                {{ physlocs.management_form }}
+              </div>
+              <div class="fieldsets">
+                {% for physloc in physlocs.forms %}
+                {% include "./includes/physloc_inline_form.html" with form=physloc %}
+                {% endfor %}
+              </div>
+              {% endwith %}
+            </div>
+          </div>
+          {% with custodhists=form.formsets.custodhists %}
+          {{ custodhists.management_form }}
+          {% for custodhist in custodhists %}
+          {% render_field custodhist.id %}
+          {% render_field custodhist.custodhist %}
+          {% endfor %}
+          {% endwith %}
+          <div class="two-column-table">
+            <div>
+              {% with media=form.formsets.media %}
+              <div class="formset">
+                <div class="management_form">
+                  {{ media.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for medium in media.forms %}
+                  {% include "./includes/medium_inline_form.html with form=medium %}
+                  {% endfor %}
+                </div>
+              </div>
+              {% endwith %}
+            </div>
+            <div>
+              {% with sizes=form.formsets.sizes %}
+              <div class="formset">
+                <div class="management_form">
+                  {{ sizes.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for size in sizes.forms %}
+                  {% include "./includes/size_inline_form.html with form=size %}
+                  {% endfor %}
+                </div>
+              </div>
+              {% endwith %}
+            </div>
+          </div>
+          {% with labels=form.formsets.labels %}
+          <div class="formset">
+            <div class="management_form">
+              {{ labels.management_form }}
+            </div>
+            <div class="fieldsets">
+              {% for label in labels.forms %}
+              {% include "./includes/label_inline_form.html with form=label %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endwith %}
+          {% with notes=form.formsets.notes %}
+          <div class="formset">
+            <div class="management_form">
+              {{ notes.management_form }}
+            </div>
+            <div class="fieldsets">
+              {% for note in notes.forms %}
+              {% include "./includes/scopecontent_inline_form.html with form=note %}
+              {% endfor %}
+            </div>
+            {% endwith %}
+            {% with publication_details=form.formsets.publication_details %}
+            <div class="formset">
+              <div class="management_form">
+                {{ publication_details.management_form }}
+              </div>
+              <div class="fieldsets">
+                {% for publication_detail in publication_details.forms %}
+                {% include "./includes/scopecontent_inline_form.html with form=publication_detail %}
+                {% endfor %}
+              </div>
+            </div>
+            {% endwith %}
+            {% with bibliographies=form.formsets.bibliographies %}
+            <div class="formset">
+              <div class="management_form">
+                {{ bibliographies.management_form }}
+              </div>
+              <div class="fieldsets">
+                {% for bibliography in bibliographies.forms %}
+                {% include "./includes/bibliography_inline_form.html" with form=bibliography %}
+                {% endfor %}
+              </div>
+            </div>
+            {% endwith %}
+            {% with sources=form.formsets.sources %}
+            <div class="formset">
+              <div class="management_form">
+                {{ sources.management_form }}
+              </div>
+              <div class="fieldsets">
+                {% for source in sources.forms %}
+                {% include "./includes/source_inline_form.html" with form=source %}
+                {% endfor %}
+              </div>
+            </div>
+            {% endwith %}
+          </div>
+        </div>
+      </fieldset>
+    </div>
+    <div class="form-section">
+      <h2>SHAKESPEARE CONNECTIONS</h2>
+      <fieldset id="connections">
+        <div class="fieldset-header">
+          <h4></h4>
+          <div>
+            <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+    <div class="form-section">
+      <h2>RELATIONS</h2>
+      <fieldset id="relations">
+        <div class="fieldset-header">
+          <h4>Related entries, plays, and themes</h4>
+          <div>
+            <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+    <div class="form-section">
+      <h2>DIGITAL RIGHTS MANAGEMENT</h2>
+      <fieldset id="drm">
+        <div class="fieldset-header">
+          <h4>Record ID: {{ record.pk }}</h4>
+          <div>
+            <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+          </div>
+        </div>
+        <div class="fieldset-body expand">
+          <div class="two-column-table">
+            <div>QAZ record language</div>
+            <div>QAZ record script</div>
+          </div>
+          {% with rightsdecls=form.formsets.rightsdeclarations %}
+          {{ rightsdecls.management_form }}
+          {% for rightsdecl in rightsdecls.forms %}
+          <div>
+            {% render_field rightsdecl.id %}
+            {% render_field rightsdecl.descriptivenote %}
+          </div>
+          <div class="two-column-table">
+            {% render_field rightsdecl.citation %}
+            {% render_field rightsdecl.abbr %}
+          </div>
+          {% endfor %}
+          {% endwith %}
+        </div>
+      </fieldset>
+    </div>
+  </form>
+  <div id="empty_forms" style="display: none;">
+    {% comment %}Include an empty form for each sub-form on the page,
+    to allow for JS creation of new forms, rather than supplying a set
+    number of extra forms server-side.{% endcomment %}
+    {% block empty_forms %}
+    {% with formsets=form.formsets %}
+    {% with bibliography_form=formsets.bibliographies.empty_form %}
+    {% include "./includes/bibliography_inline_form.html" with form=bibliography_form %}
+    {% include "./includes/bibref_inline_form.html" with form=bibliography_form.formsets.bibrefs.empty_form %}
+    {% endwith %}
+    {% with controlaccess_form=formsets.controlaccesses.empty_form %}
+    {% include "./includes/controlaccess_inline_form.html" with form=controlaccess_form %}
+    {% include "./includes/genreform_inline_form.html" with form=controlaccess_form.formsets.genreforms.empty_form %}
+    {% include "./includes/geogname_inline_form.html" with form=controlaccess_form.formsets.geognames.empty_form %}
+    {% include "./includes/persname_non_model_inline_form.html" with form=controlaccess_form.formsets.persnames.empty_form %}
+    {% endwith %}
+    {% include "./includes/custodhist_inline_form.html" with form=formsets.custodhists.empty_form %}
+    {% include "./includes/physloc_inline_form.html" with form=formsets.physlocs.empty_form %}
+    {% with source_form=formsets.sources.empty_form %}
+    {% include "./includes/source_inline_form.html" with form=source_form %}
+    {% include "./includes/sourceentry_inline_form.html" with form=source_form.formsets.sourceentries.empty_form %}
+    {% endwith %}
+    {% endwith %}
+    {% endblock empty_forms %}
+  </div>
+  {% endblock content %}
+</main>
+{% endblock main %}

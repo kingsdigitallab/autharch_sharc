@@ -4,8 +4,7 @@ from django_elasticsearch_dsl.registries import registry
 from lxml import etree
 
 from ead.constants import NS_MAP
-from ead.models import (
-    CorpName, EAD, PersName, RelationEntry, UnitDateStructuredDateRange)
+from ead.models import (EAD, RelationEntry, UnitDateStructuredDateRange)
 
 
 @registry.register_document
@@ -104,8 +103,8 @@ class EADDocument(Document):
         """
         creators = []
         for origination in instance.origination_set.all():
-            for name_type in ("corpnames", "famnames", "names", "persnames"):
-                for name in getattr(origination, name_type).all():
+            for name_type in ("corpname", "famname", "name", "persname"):
+                for name in getattr(origination, name_type + '_set').all():
                     creators.append(
                         {
                             "key": '{}-{}'.format(name_type, name.id),
@@ -126,37 +125,3 @@ class EADDocument(Document):
         except IndexError:
             title = "[No title]"
         return title
-
-
-@registry.register_document
-class EADEntityCorporateBody(Document):
-    pk = fields.IntegerField(attr="id")
-    entity_type = fields.KeywordField()
-    name = fields.TextField(attr='assembled_name')
-
-    class Index:
-        name = "editor"
-
-    class Django:
-        model = CorpName
-        fields = []
-
-    def prepare_entity_type(self, instance):
-        return "corpname"
-
-
-@registry.register_document
-class EADEntityPerson(Document):
-    pk = fields.IntegerField(attr="id")
-    entity_type = fields.KeywordField()
-    name = fields.TextField(attr='assembled_name')
-
-    class Index:
-        name = "editor"
-
-    class Django:
-        model = PersName
-        fields = []
-
-    def prepare_entity_type(self, instance):
-        return "persname"
