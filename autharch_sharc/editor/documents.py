@@ -198,7 +198,6 @@ class EADDocument(Document):
         return data
 
 
-
     def prepare_media(self, instance):
         """
         This is a placeholder for now
