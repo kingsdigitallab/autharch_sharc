@@ -1,31 +1,19 @@
 {% load editor_form_tags %}
 <fieldset data-form-type="bibliography">
-  <div class="fieldset-header">
-    <h4>??</h4>
-    <div class="flex">
-      <div>
-        {% include "./delete_inline_button.html" %}
-      </div>
-      <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+  {% render_field form.id %}
+  {% with bibrefs=form.formsets.bibrefs %}
+  <div class="formset">
+    <div class="management_form">
+      {{ bibrefs.management_form }}
     </div>
-  </div>
-  <div class="fieldset-body expand inline-deletable">
-    {% render_field form.id %}
-    {% render_form_delete_widget form.DELETE %}
-    {% with bibrefs=form.formsets.bibrefs %}
-    <div class="formset">
-      <div class="management_form">
-        {{ bibrefs.management_form }}
-      </div>
-      <div class="fieldsets">
-        {% for bibref in bibrefs.forms %}
-        {% include "./bibref_inline_form.html" with form=bibref %}
-        {% endfor %}
-      </div>
-      <label class="create linked-button">
-        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('bibref', this)">Add published reference
-      </label>
+    <div class="fieldsets">
+      {% for bibref in bibrefs.forms %}
+      {% include "./bibref_inline_form.html" with form=bibref %}
+      {% endfor %}
     </div>
-    {% endwith %}
+    <label class="create linked-button">
+      <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('bibref', this)">Add published reference
+    </label>
   </div>
 </fieldset>
+{% endwith %}

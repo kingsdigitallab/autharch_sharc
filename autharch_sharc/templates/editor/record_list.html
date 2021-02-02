@@ -149,7 +149,7 @@
         {% comment %}Bizarrely, three records are being returned when no query is supplied that are lacking all information! Until that problem is fixed, don't try to display them and run afoul of NoReverseMatch errors.{% endcomment %}
         {% if record.pk %}
         <tr>
-          <td class="description archival-record"><a href="{% url 'editor:record-wizard' record.pk %}">{{ record.unittitle|truncatewords:30 }}</a></td>
+          <td class="description archival-record"><a href="{% url 'editor:record-edit' record.pk %}">{{ record.unittitle|truncatewords:30 }}</a></td>
           <td class="description">
             {% for creator in record.creators %}
             {{ creator.name }}{% if not forloop.last %}; {% endif %}

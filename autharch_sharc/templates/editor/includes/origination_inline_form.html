@@ -1,6 +1,22 @@
 {% load editor_form_tags %}
-<fieldset data-form-type="origination">
-  {% render_field form.id %}
-  {% render_field form.persnames %}
-  {% render_field form.corpnames %}
-</fieldset>
+<div class="flex" data-form-type="origination">
+  <div class="fieldset inline-deletable">
+    {% render_form_delete_widget form.DELETE %}
+    {% render_field form.id %}
+    <div class="formset">
+      {% with persnames=form.formsets.persnames %}
+      <div class="management_form">
+        {{ persnames.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for persname in persnames.forms %}
+        {% include "./originationpersname_inline_form.html" with form=persname %}
+        {% endfor %}
+      </div>
+      {% endwith %}
+    </div>
+  </div>
+  <div class="delete-button-block">
+    {% include "./delete_inline_button.html" %}
+  </div>
+</div>

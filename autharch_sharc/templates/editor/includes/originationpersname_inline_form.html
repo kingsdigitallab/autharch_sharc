@@ -1,0 +1,18 @@
+{% load editor_form_tags %}
+<div data-form-type="originationpersname">
+  <div class="formset">
+    {% render_field form.id %}
+    {% with parts=form.formsets.parts %}
+    <div class="management_form">
+      {{ parts.management_form }}
+    </div>
+    <div class="fieldsets">
+      {% for part in parts.forms %}
+      {% render_field part.id %}
+      {% render_field part.order %}
+      {% render_field part.part %}
+      {% endfor %}
+    </div>
+    {% endwith %}
+  </div>
+</div>

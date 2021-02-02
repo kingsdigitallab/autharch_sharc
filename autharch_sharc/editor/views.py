@@ -1,16 +1,35 @@
-from django.shortcuts import get_object_or_404, redirect
+import reversion
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from ead.models import EAD, CorpName, FamName, Name, PersName
+from django.views.generic import DetailView, TemplateView
+from ead.models import (
+    EAD,
+    OriginationCorpName,
+    OriginationFamName,
+    OriginationName,
+    OriginationPersName,
+)
 from elasticsearch_dsl import FacetedSearch, TermsFacet
-from formtools.wizard.views import NamedUrlSessionWizardView
+from reversion.models import Revision, Version
 
 from . import forms
 from .documents import EADDocument
 from .generic_views import SearchView
 
 
-class FacetMixin:
+def output_error_log(form, indent=0):
+    for field, field_errors in form.errors.items():
+        print("{}{}: {}".format(" " * indent, field, field_errors))
+    if hasattr(form, "formsets"):
+        for formset in form.formsets.values():
+            print("{}{}: {}".format(" " * indent, type(formset), formset.is_valid()))
+            for form in formset.forms:
+                output_error_log(form, indent + 2)
 
+
+class FacetMixin:
     facet_key = "facets"  # GET querystring name for facet name/value pairs
 
     def _annotate_facets(self, facets, query_dict):
@@ -29,10 +48,10 @@ class FacetMixin:
             display_values = None
             if facet_name == "creators":
                 display_values = {
-                    "corpnames": CorpName,
-                    "famnames": FamName,
-                    "names": Name,
-                    "persnames": PersName,
+                    "corpname": OriginationCorpName,
+                    "famname": OriginationFamName,
+                    "name": OriginationName,
+                    "persname": OriginationPersName,
                 }
             for idx, (value, count, selected) in enumerate(facets[facet_name]):
                 if selected:
@@ -91,6 +110,35 @@ class FacetMixin:
         return split_facets
 
 
+class HomeView(LoginRequiredMixin, TemplateView):
+    template_name = "editor/home.html"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["current_section"] = "home"
+        context["modified"] = self._get_modified_records(self.request.user)
+        return context
+
+    def _get_modified_records(self, user):
+        versions = Version.objects.get_for_model(EAD).filter(revision__user=user)
+        record_ids = [version.object_id for version in versions]
+        return EAD.objects.filter(id__in=record_ids)
+
+
+class RecordHistory(LoginRequiredMixin, DetailView):
+    model = EAD
+    template_name = "editor/history.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_section"] = "records"
+        context["edit_url"] = reverse(
+            "editor:record-edit", kwargs={"record_id": self.object.pk}
+        )
+        context["versions"] = Version.objects.get_for_object(self.object)
+        return context
+
+
 class RecordSearch(FacetedSearch):
     doc_types = [EADDocument]
     facets = {
@@ -103,81 +151,54 @@ class RecordSearch(FacetedSearch):
     fields = ["creators.name", "unittitle"]
 
 
-class RecordList(SearchView, FacetMixin):
-
+class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
     context_object_name = "records"
-    form_class = forms.EADSearchForm
+    form_class = forms.EADRecordSearchForm
     search_class = RecordSearch
     template_name = "editor/record_list.html"
 
-    def form_valid(self, form):
-        query = form.cleaned_data.get(self.search_field)
-        requested_facets = self._split_selected_facets(
-            self.request.GET.getlist(self.facet_key)
-        )
-        kwargs = {}
-        if query:
-            kwargs["query"] = query
-        if requested_facets:
-            kwargs["filters"] = requested_facets
-        search = self.search_class(**kwargs)
-        response = search.execute()
-        facets, selected_facets = self._annotate_facets(
-            response.facets, self.request.GET
-        )
-        context = self.get_context_data(
-            **{
-                self.context_object_name: response,
-                self.form_name: form,
-                "facets": facets,
-                "query": query,
-                "results_count": response.hits.total.value,
-                "selected_facets": selected_facets,
-            }
-        )
-        return self.render_to_response(context)
-
-
-class RecordWizard(NamedUrlSessionWizardView):
-    """Wizard for editing EAD records."""
-
-    form_list = [
-        ("contents", forms.EADContentForm),
-        ("maintenance", forms.EADMaintenanceForm),
-    ]
-    TEMPLATES = {
-        "contents": "editor/record_wizard_content.html",
-        "maintenance": "editor/record_wizard_maintenance.html",
-    }
-
-    def get_context_data(self, form, **kwargs):
-        context = super().get_context_data(form=form, **kwargs)
-        context["record"] = form.instance
-        if form.is_bound and not form.is_valid():
-            context["form_errors"] = forms.assemble_form_errors(form)
-        context["post_data"] = self.request.POST
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_section"] = "records"
         return context
 
-    def done(self, form_list, **kwargs):
-        for form in form_list:
-            form.save()
-        kwargs = {"record_id": self.kwargs.get("record_id")}
-        url = reverse("editor:record-wizard", kwargs=kwargs) + "?saved=true"
-        return redirect(url)
 
-    def get_form_instance(self, step):
-        return get_object_or_404(EAD, pk=self.kwargs.get("record_id"))
+@login_required
+def record_edit(request, record_id):
+    record = get_object_or_404(EAD, pk=record_id)
+    form_errors = []
+    if request.method == "POST":
+        form = forms.RecordEditForm(request.POST, instance=record)
+        if form.is_valid():
+            with reversion.create_revision():
+                form.save()
+                # reversion.set_user(self.request.user)
+                reversion.set_comment("Edited")
+            url = (
+                reverse("editor:record-edit", kwargs={"record_id": record_id})
+                + "?saved=true"
+            )
+            return redirect(url)
+        else:
+            form_errors = forms.assemble_form_errors(form)
+    else:
+        form = forms.RecordEditForm(instance=record)
+    context = {
+        "current_section": "records",
+        "form": form,
+        "form_errors": form_errors,
+        "record": record,
+        "reverted": request.GET.get("reverted", False),
+        "saved": request.GET.get("saved", False),
+    }
+    return render(request, "editor/record_edit.html", context)
 
-    def get_prefix(self, request, *args, **kwargs):
-        # Get a prefix that includes the record ID so that data does
-        # not bleed across if a user switches from editing one record
-        # to another without completing the first.
-        prefix = super().get_prefix(request, *args, **kwargs)
-        return "{}-record-{}".format(prefix, self.kwargs.get("record_id"))
 
-    def get_step_url(self, step):
-        record_id = self.kwargs["record_id"]
-        return reverse(self.url_name, kwargs={"record_id": record_id, "step": step})
-
-    def get_template_names(self):
-        return [self.TEMPLATES[self.steps.current]]
+@login_required
+def revert(request):
+    revision_id = request.POST.get("revision_id")
+    revision = get_object_or_404(Revision, pk=revision_id)
+    revision.revert(delete=True)
+    return redirect(
+        request.POST.get("redirect_url") + "?reverted={}".format(revision_id)
+    )

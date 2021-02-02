@@ -1,6 +1,5 @@
-import pytest
+# import ead.models as ead_models
 
-from django.test import RequestFactory, TestCase
 from autharch_sharc.editor.documents import EADDocument
 
 
@@ -21,18 +20,15 @@ class TestEADDocument:
         "Works; Sources; Book",
         "Works; Performance; Scene depiction",
         "Works; Performance; Performance record",
-
     ]
 
     def test_parse_individual_connections(self):
         doc = EADDocument()
         doc.individual_elements = []
-        data = {
-            "individual_connections": list()
-        }
+        data = {"individual_connections": list()}
         for test_connection in self.test_connection_strings:
-            connection = [tag.strip() for tag in test_connection.split(';')]
-            if connection[0].lower() == 'individual':
+            connection = [tag.strip() for tag in test_connection.split(";")]
+            if connection[0].lower() == "individual":
                 data = doc.parse_individual_connections(connection, data)
         assert "individual_connections" in data
         assert len(data["individual_connections"]) == 2
@@ -52,7 +48,8 @@ class TestEADDocument:
 
         for test_connection in self.test_connection_strings:
             data = doc.parse_work_connections(
-                [tag.strip() for tag in test_connection.split(';')], data)
+                [tag.strip() for tag in test_connection.split(";")], data
+            )
 
         assert len(data["work_connections"]) == 7
         assert len(data["text_connections"]) == 2
@@ -73,4 +70,3 @@ class TestEADDocument:
     #
     #
     # def prepare_media(self, instance):
-
