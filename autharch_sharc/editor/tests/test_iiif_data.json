@@ -1,0 +1,175 @@
+{
+    "@context": "http://iiif.io/api/presentation/2/context.json",
+    "@id": "https://rct.resourcespace.com/iiif/1058901/manifest",
+    "@type": "sc:Manifest",
+    "label": "A Complete verbal index to the plays of Shakspeare, adapted to all editions : comprehending every substantive, adjective, verb, participle and adverb used by Shakspeare ; v. 1 / by Francis Twiss",
+    "description": "",
+    "metadata": [
+        {
+            "label": "Title",
+            "value": "A Complete verbal index to the plays of Shakspeare, adapted to all editions : comprehending every substantive, adjective, verb, participle and adverb used by Shakspeare ; v. 1 / by Francis Twiss"
+        },
+        {
+            "label": "Sequence order",
+            "value": "1"
+        },
+        {
+            "label": "Inventory number",
+            "value": "1058901"
+        },
+        {
+            "label": "Credit",
+            "value": "Royal Collection Trust/© Her Majesty Queen Elizabeth II 2021"
+        },
+        {
+            "label": "Group title",
+            "value": "1058901"
+        },
+        {
+            "label": "License",
+            "value": "www.rct.uk/copyright"
+        }
+    ],
+    "license": "www.rct.uk/copyright",
+    "thumbnail": {
+        "@id": "https://rct.resourcespace.com/iiif/image/52741/full/thm/0/default.jpg",
+        "@type": "dctypes:Image",
+        "height": 175,
+        "width": 113,
+        "format": "image/jpeg",
+        "service": {
+            "@context": "http://iiif.io/api/image/2/context.json",
+            "@id": "https://rct.resourcespace.com/iiif/image/52741",
+            "profile": "http://iiif.io/api/image/2/level1.json"
+        }
+    },
+    "sequences": [
+        {
+            "@id": "https://rct.resourcespace.com/iiif/1058901/sequence/normal",
+            "@type": "sc:Sequence",
+            "label": "Default order",
+            "canvases": [
+                {
+                    "@id": "https://rct.resourcespace.com/iiif/1058901/canvas/1",
+                    "@type": "sc:Canvas",
+                    "label": "1",
+                    "height": 3625,
+                    "width": 2346,
+                    "thumbnail": {
+                        "@id": "https://rct.resourcespace.com/iiif/image/52741/full/thm/0/default.jpg",
+                        "@type": "dctypes:Image",
+                        "height": 175,
+                        "width": 113,
+                        "format": "image/jpeg",
+                        "service": {
+                            "@context": "http://iiif.io/api/image/2/context.json",
+                            "@id": "https://rct.resourcespace.com/iiif/image/52741",
+                            "profile": "http://iiif.io/api/image/2/level1.json"
+                        }
+                    },
+                    "images": [
+                        {
+                            "@context": "http://iiif.io/api/presentation/2/context.json",
+                            "@id": "https://rct.resourcespace.com/iiif/1058901/annotation/1",
+                            "@type": "oa:Annotation",
+                            "motivation": "sc:painting",
+                            "resource": {
+                                "@id": "https://rct.resourcespace.com/iiif/image/52741/full/max/0/default.jpg",
+                                "@type": "dctypes:Image",
+                                "format": "image/jpeg",
+                                "height": 3625,
+                                "width": 2346,
+                                "service": {
+                                    "@context": "http://iiif.io/api/image/2/context.json",
+                                    "@id": "https://rct.resourcespace.com/iiif/image/52741",
+                                    "profile": "http://iiif.io/api/image/2/level1.json"
+                                }
+                            },
+                            "on": "https://rct.resourcespace.com/iiif/1058901/canvas/1"
+                        }
+                    ]
+                },
+                {
+                    "@id": "https://rct.resourcespace.com/iiif/1058901/canvas/2",
+                    "@type": "sc:Canvas",
+                    "label": "2",
+                    "height": 3627,
+                    "width": 4556,
+                    "thumbnail": {
+                        "@id": "https://rct.resourcespace.com/iiif/image/52742/full/thm/0/default.jpg",
+                        "@type": "dctypes:Image",
+                        "height": 139,
+                        "width": 175,
+                        "format": "image/jpeg",
+                        "service": {
+                            "@context": "http://iiif.io/api/image/2/context.json",
+                            "@id": "https://rct.resourcespace.com/iiif/image/52742",
+                            "profile": "http://iiif.io/api/image/2/level1.json"
+                        }
+                    },
+                    "images": [
+                        {
+                            "@context": "http://iiif.io/api/presentation/2/context.json",
+                            "@id": "https://rct.resourcespace.com/iiif/1058901/annotation/2",
+                            "@type": "oa:Annotation",
+                            "motivation": "sc:painting",
+                            "resource": {
+                                "@id": "https://rct.resourcespace.com/iiif/image/52742/full/max/0/default.jpg",
+                                "@type": "dctypes:Image",
+                                "format": "image/jpeg",
+                                "height": 3627,
+                                "width": 4556,
+                                "service": {
+                                    "@context": "http://iiif.io/api/image/2/context.json",
+                                    "@id": "https://rct.resourcespace.com/iiif/image/52742",
+                                    "profile": "http://iiif.io/api/image/2/level1.json"
+                                }
+                            },
+                            "on": "https://rct.resourcespace.com/iiif/1058901/canvas/2"
+                        }
+                    ]
+                },
+                {
+                    "@id": "https://rct.resourcespace.com/iiif/1058901/canvas/3",
+                    "@type": "sc:Canvas",
+                    "label": "3",
+                    "height": 3523,
+                    "width": 2563,
+                    "thumbnail": {
+                        "@id": "https://rct.resourcespace.com/iiif/image/52743/full/thm/0/default.jpg",
+                        "@type": "dctypes:Image",
+                        "height": 175,
+                        "width": 127,
+                        "format": "image/jpeg",
+                        "service": {
+                            "@context": "http://iiif.io/api/image/2/context.json",
+                            "@id": "https://rct.resourcespace.com/iiif/image/52743",
+                            "profile": "http://iiif.io/api/image/2/level1.json"
+                        }
+                    },
+                    "images": [
+                        {
+                            "@context": "http://iiif.io/api/presentation/2/context.json",
+                            "@id": "https://rct.resourcespace.com/iiif/1058901/annotation/3",
+                            "@type": "oa:Annotation",
+                            "motivation": "sc:painting",
+                            "resource": {
+                                "@id": "https://rct.resourcespace.com/iiif/image/52743/full/max/0/default.jpg",
+                                "@type": "dctypes:Image",
+                                "format": "image/jpeg",
+                                "height": 3523,
+                                "width": 2563,
+                                "service": {
+                                    "@context": "http://iiif.io/api/image/2/context.json",
+                                    "@id": "https://rct.resourcespace.com/iiif/image/52743",
+                                    "profile": "http://iiif.io/api/image/2/level1.json"
+                                }
+                            },
+                            "on": "https://rct.resourcespace.com/iiif/1058901/canvas/3"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

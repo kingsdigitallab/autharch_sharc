@@ -1,10 +1,4 @@
 from django.db import models
-# from django_elasticsearch_dsl import Document, fields
-# from django_elasticsearch_dsl.registries import registry
-from autharch_sharc.django_kdl_timeline.models import (
-    AbstractTimelineEventSnippet
-)
-from elasticsearch_dsl import normalizer
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.api import APIField
 from wagtail.core import blocks
@@ -17,7 +11,9 @@ from wagtail.images.blocks import ImageChooserBlock
 from wagtail.search import index
 from wagtail.snippets.models import register_snippet
 
-from rest_framework.fields import CharField
+# from django_elasticsearch_dsl import Document, fields
+# from django_elasticsearch_dsl.registries import registry
+from autharch_sharc.django_kdl_timeline.models import AbstractTimelineEventSnippet
 
 
 class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
@@ -62,8 +58,7 @@ class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
         ordering = ["start_date_year"]
 
     def __str__(self):
-        return "{}:{} (RCIN {})".format(
-            self.start_date_year, self.headline, self.RCIN)
+        return "{}:{} (RCIN {})".format(self.start_date_year, self.headline, self.RCIN)
 
 
 register_snippet(SharcTimelineEventSnippet)
@@ -85,7 +80,6 @@ class ResourceBlock(blocks.StructBlock):
             "heading": value.get("heading"),
             "body": body.source,
         }
-
 
     class Meta:
         abstract = True
@@ -129,10 +123,7 @@ class ResourceEmbedBlock(EmbedBlock):
     """ Resource with embed attached"""
 
     def get_api_representation(self, value, context=None):
-        return {
-            "html": value.html,
-            "url": value.url
-        }
+        return {"html": value.html, "url": value.url}
 
 
 class ResourcePageBlock(blocks.PageChooserBlock):
@@ -143,7 +134,7 @@ class StreamFieldPage(Page):
     body = StreamField(
         [
             ("heading", blocks.CharBlock(classname="full title")),
-            ('paragraph', blocks.RichTextBlock()),
+            ("paragraph", blocks.RichTextBlock()),
             ("image", ResourceImageBlock()),
             ("page", ResourcePageBlock()),
             ("document", ResourceDocumentBlock(icon="doc-full-inverse")),
@@ -185,11 +176,7 @@ class RichTextPage(Page):
     def body_html(self):
         return str(RichText(self.body))
 
-    api_fields = [
-        APIField("title"),
-        APIField("body"),
-        APIField("body_html")
-    ]
+    api_fields = [APIField("title"), APIField("body"), APIField("body_html")]
 
     promote_panels = Page.promote_panels
 
@@ -202,23 +189,19 @@ class RichTextPage(Page):
         }
 
 
-
 class EADObjectGroup(models.Model):
     """ Group of ead objects e.g. theme"""
+
     title = models.TextField(null=True, blank=True)
     slug = models.CharField(null=True, blank=True, max_length=128)
     introduction = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
 
-
 class EADObject(models.Model):
-    """ Contains just the RCIN rather than foreign key
+    """Contains just the RCIN rather than foreign key
     to allow rebuilding of documents without deleting data"""
+
     RCIN = models.CharField(null=True, blank=True, max_length=128)
 
-    ead_group = models.ForeignKey(
-        'EADObjectGroup',
-        on_delete=models.CASCADE,
-        null=True
-    )
+    ead_group = models.ForeignKey("EADObjectGroup", on_delete=models.CASCADE, null=True)

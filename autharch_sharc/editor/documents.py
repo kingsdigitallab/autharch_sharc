@@ -38,6 +38,19 @@ eaddocument_search_fields = (
 
 @registry.register_document
 class EADDocument(Document):
+    """ Document model for EAD objects uploaded via xml"""
+
+    """ Used for iiif images while we wait for them"""
+    default_iiif_manifest_url = "/rct/iiif/732115a/"
+    default_full_image_url = (
+        "https://rct.resourcespace.com/iiif/image/34658/full/max/0/default.jpg"
+    )
+    default_iiif_image_url = "/rct/iiif/image/34658"
+    default_thumbnail_url = (
+        "https://rct.resourcespace.com/iiif/image/34658/full/thm/0/default.jpg"
+    )
+    doc_type = "object"
+
     class Index:
         name = "editor"
 
@@ -175,7 +188,7 @@ class EADDocument(Document):
         return []
 
     def prepare_doc_type(self, instance):
-        return "object"
+        return self.doc_type
 
     def prepare_search_content(self, instance):
         """Deliberately empty so we can instantiate this at
@@ -198,28 +211,16 @@ class EADDocument(Document):
 
     def prepare_media(self, instance):
         """
-        This is a placeholder for now
+        This is mostly a placeholder for now
         will add live data when we get it
-
-        "iiif_manifest_url": "https://rct.resourcespace.com/iiif/732115a/",
-            "iiif_image_url":
-            "https://rct.resourcespace.com/iiif/image/34658/info.json",
-            "thumbnail_url": "https://rct.resourcespace.com/iiif/image/34658
-            /full/thm/0/default.jpg"
-
-            https://rct.resourcespace.com/iiif/234/
         """
 
         media = []
-        # Temporary defaults so we have data for the frontend
-        iiif_manifest_url = "/rct/iiif/732115a/"
-        full_image_url = (
-            "https://rct.resourcespace.com/iiif/image/34658/full/max/0/default.jpg"
-        )
-        iiif_image_url = "/rct/iiif/image/34658"
-        thumbnail_url = (
-            "https://rct.resourcespace.com/iiif/image/34658/full/thm/0/default.jpg"
-        )
+
+        iiif_manifest_url = self.default_iiif_manifest_url
+        full_image_url = self.default_full_image_url
+        iiif_image_url = self.default_iiif_image_url
+        thumbnail_url = self.default_thumbnail_url
         image_width = 4015
         image_height = 2980
         thumbnail_width = 175

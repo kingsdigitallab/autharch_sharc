@@ -20,9 +20,9 @@ from rest_framework.views import APIView
 
 from autharch_sharc.django_kdl_timeline.views import ListTimelineEvents
 from autharch_sharc.editor.models import SharcTimelineEventSnippet
+
 from .documents import EADDocument
-from .serializers import (EADDocumentResultSerializer,
-                          EADDocumentThemeResultSerializer)
+from .serializers import EADDocumentResultSerializer, EADDocumentThemeResultSerializer
 
 ES_FACET_OPTIONS = {"order": {"_key": "asc"}, "size": 100}
 
@@ -34,8 +34,7 @@ class SharcListTimelineEvents(ListTimelineEvents):
 
 def simple_proxy(request, path, target_url):
     url = "%s%s" % (target_url, path)
-    if "QUERY_STRING" in request.META and len(
-        request.META["QUERY_STRING"]) > 0:
+    if "QUERY_STRING" in request.META and len(request.META["QUERY_STRING"]) > 0:
         url += "?" + request.META["QUERY_STRING"]
     try:
         http = urllib3.PoolManager()
@@ -44,9 +43,7 @@ def simple_proxy(request, path, target_url):
         if "content-type" in proxied_request.headers:
             mimetype = proxied_request.headers["content-type"]
         else:
-            mimetype = proxied_request.headers.typeheader or \
-                       mimetypes.guess_type(
-                           url)
+            mimetype = proxied_request.headers.typeheader or mimetypes.guess_type(url)
         content = proxied_request.data.decode("utf-8")
     except urllib3.exceptions.HTTPError as e:
         return HttpResponse(e.msg, status=e.code, content_type="text/plain")
@@ -71,7 +68,7 @@ class EADDocumentViewSet(DocumentViewSet):
         SuggesterFilterBackend,
     ]
 
-    search_fields = ('search_content',)
+    search_fields = ("search_content",)
 
     filter_fields = {
         "pk": "pk",
@@ -87,7 +84,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "performance": "related_sources.performances",
         "sources": "related_sources.sources",
         "individual_connections": "related_sources.individuals",
-        "doc_type": "doc_type"
+        "doc_type": "doc_type",
     }
 
     faceted_search_fields = {
@@ -176,9 +173,9 @@ class EADDocumentViewSet(DocumentViewSet):
 
     def get_doc_type_queryset(self):
         # Include only objects in this search
-        return self.filter_queryset(
-            self.get_queryset()).filter("terms", doc_type=['object']
-                                        )
+        return self.filter_queryset(self.get_queryset()).filter(
+            "terms", doc_type=["object"]
+        )
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_doc_type_queryset()
@@ -186,8 +183,7 @@ class EADDocumentViewSet(DocumentViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            response = self.get_paginated_response(
-                self._data_to_list(serializer.data))
+            response = self.get_paginated_response(self._data_to_list(serializer.data))
             # response["Access-Control-Allow-Origin"] = "*"
             return response
 
@@ -197,44 +193,12 @@ class EADDocumentViewSet(DocumentViewSet):
 
     @classmethod
     def _data_to_list(cls, data):
-        """ Repackage the document data for the vue response"""
-        # related_sources = {}
-        # if ('individual_connections' in data and data[
-        #     'individual_connections'
-        # ] is not None):
-        #     related_sources['individual_connections'] = data[
-        #         'individual_connections']
-        # if ('work_connections' in data and data[
-        #     'work_connections'
-        # ] is not None):
-        #     related_sources['works'] = data['work_connections']
-        # if ('text_connections' in data and data[
-        #     'text_connections'
-        # ] is not None):
-        #     related_sources['texts'] = data['text_connections']
-        # if ('performance_connections' in data and data[
-        #     'performance_connections'
-        # ] is not None):
-        #     related_sources['performances'] = data[
-        #         'performance_connections']
-        # if ('source_connections' in data and data[
-        #     'source_connections'
-        # ] is not None):
-        #     related_sources['sources'] = data['source_connections']
-        # data['related_sources'] = related_sources
         if "media" in data and data["media"] is not None:
             if len(data["media"]) > 0:
                 # Only include first item in media
                 # todo look at ordering/priority of items
                 # when we have more data
                 data["media"] = data["media"][0]
-
-        # related_people = {}
-        # if ('donor' in data and data['donor'] is not None):
-        #     related_sources['donors'] = data['donor']
-        # if ('acquirer' in data and data['acquirer'] is not None):
-        #     related_sources['acquirers'] = data['acquirer']
-        # data['related_people'] = related_people
         return data
 
     @classmethod
@@ -283,10 +247,11 @@ class ThemeView(APIView):
     Objects attached to a group e.g. themes
 
     """
+
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def document_search(self, request):
-        """ Get all documents with a theme
+        """Get all documents with a theme
         aggregate them into lists by theme"""
         docviewset = EADDocumentViewSet()
         s = Search(index=docviewset.index, using=docviewset.client)
@@ -298,8 +263,7 @@ class ThemeView(APIView):
             if theme not in themes_results:
                 themes_results[theme] = list()
             result = themes_results[theme]
-            result.append(
-                EADDocumentThemeResultSerializer(h).data)
+            result.append(EADDocumentThemeResultSerializer(h).data)
             themes_results[theme] = result
         themes = []
         # Refactor into expected api results
@@ -307,25 +271,29 @@ class ThemeView(APIView):
         # Will always goes first
         # todo refactor this if we decide to add a theme order
         if "William Shakespeare" in themes_results:
-            themes.append({
-                "id": 1,  # no used, kept for clarity
-                "title": "William Shakespeare",
-                "featuredObjects": themes_results[
-                    "William Shakespeare"]
-            })
+            themes.append(
+                {
+                    "id": 1,  # no used, kept for clarity
+                    "title": "William Shakespeare",
+                    "featuredObjects": themes_results["William Shakespeare"],
+                }
+            )
         # others
         for theme in themes_results.keys():
             if theme != "William Shakespeare":
-                themes.append({
-                    "id": 1,  # no used, kept for clarity
-                    "title": theme,
-                    "featuredObjects": themes_results[theme]
-                })
+                themes.append(
+                    {
+                        "id": 1,  # no used, kept for clarity
+                        "title": theme,
+                        "featuredObjects": themes_results[theme],
+                    }
+                )
         return themes
 
     def get(self, request, *args, **kwargs):
         results = self.document_search(request)
         return Response({"themes": results})
+
 
 # class SharcListSearchResults(APIView):
 #

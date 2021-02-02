@@ -265,7 +265,7 @@ Session.vim
 tags
 
 ### Project template
-
+coverage_annotations/
 autharch_sharc/media/
 
 .pytest_cache/
