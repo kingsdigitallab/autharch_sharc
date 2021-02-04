@@ -16,7 +16,7 @@ django-compressor==2.4    # via -r requirements/base.in, django-libsass
 django-controlled-vocabulary==0.10  # via django-ead
 django-cors-headers==3.5.0  # via -r requirements/base.in
 django-crispy-forms==1.9.2  # via -r requirements/base.in
-django-ead==0.6.0         # via -r requirements/base.in
+django-ead==0.7.0         # via -r requirements/base.in
 django-elasticsearch-dsl==7.1.4  # via -r requirements/base.in
 django-environ==0.4.5     # via -r requirements/base.in
 django-formtools==2.2     # via -r requirements/base.in
