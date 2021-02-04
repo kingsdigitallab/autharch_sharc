@@ -188,6 +188,7 @@ def record_edit(request, record_id):
     context = {
         'current_section': 'records',
         'form': form,
+        'form_media': form.media,
         'form_errors': form_errors,
         'record': record,
         'reverted': request.GET.get('reverted', False),

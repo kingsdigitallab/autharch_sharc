@@ -1,0 +1,48 @@
+{% load editor_form_tags %}
+<fieldset data-form-type="relation">
+  <div class="fieldset-header">
+    <h4>Connection </h4>
+    <div class="flex">
+      <div>
+        {% render_field form.id %}
+        {% include "./delete_inline_button.html" %}
+      </div>
+      <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+    </div>
+  </div>
+  <div class="fieldset-body expand inline-deletable">
+    {% render_form_delete_widget form.DELETE %}
+    <div class="formset">
+      {% with connectiontypes=form.formsets.connectiontypes %}
+      <div class="management_form">
+        {{ connectiontypes.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for connectiontype in connectiontypes.forms %}
+        {% include "./relationentry_inline_form.html" with form=connectiontype form_type='connectiontype' %}
+        {% endfor %}
+      </div>
+      {% endwith %}
+      {% with primaryconnections=form.formsets.primaryconnections %}
+      <div class="management_form">
+        {{ primaryconnections.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for primaryconnection in primaryconnections.forms %}
+        {% include "./relationentry_inline_form.html" with form=primaryconnection form_type='primaryconnection' %}
+        {% endfor %}
+      </div>
+      {% endwith %}
+      {% with secondaryconnections=form.formsets.secondaryconnections %}
+      <div class="management_form">
+        {{ secondaryconnections.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for secondaryconnection in secondaryconnections.forms %}
+        {% include "./relationentry_inline_form.html" with form=secondaryconnection form_type='secondaryconnection' %}
+        {% endfor %}
+      </div>
+      {% endwith %}
+    </div>
+  </div>
+</fieldset>

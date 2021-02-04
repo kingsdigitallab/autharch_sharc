@@ -2,13 +2,15 @@ from django import forms
 
 from lxml import etree
 
+from controlled_vocabulary.models import ControlledTerm
 from ead.constants import EAD_NAMESPACE, EAD_NS, NS_MAP
 from ead.models import (
     Bibliography, ControlAccess, CustodHist, DIdPhysDescStructured,
     DIdPhysDescStructuredDimensions, DIdPhysDescStructuredPhysFacet, EAD,
-    EventDescription, MaintenanceEvent, Origination, OriginationCorpName,
-    OriginationCorpNamePart, OriginationPersName, OriginationPersNamePart,
-    PhysLoc, RightsDeclaration, ScopeContent, Source, SourceEntry, UnitDate,
+    EventDescription, LanguageDeclaration, MaintenanceEvent, Origination,
+    OriginationCorpName, OriginationCorpNamePart, OriginationPersName,
+    OriginationPersNamePart, PhysLoc, RelatedMaterial, Relation, RelationEntry,
+    RightsDeclaration, ScopeContent, Source, SourceEntry, UnitDate,
     UnitDateStructured, UnitDateStructuredDateRange, UnitTitle)
 
 
@@ -34,6 +36,16 @@ RECORD_SEARCH_START_YEAR_INPUT_ATTRS = {
 RECORD_SEARCH_END_YEAR_INPUT_ATTRS = {
     'aria-label': 'End year',
 }
+
+RICHTEXT_ATTRS = {
+    'class': 'richtext',
+    'rows': 8,
+    'aria-label': 'richtext field'
+}
+
+
+def get_text_from_xml(element):
+    return etree.tostring(element, encoding='unicode', method='text')
 
 
 class ContainerModelForm(forms.ModelForm):
@@ -80,6 +92,17 @@ class ContainerModelForm(forms.ModelForm):
             if isinstance(formset, forms.models.BaseModelFormSet):
                 formset.save(commit)
         return result
+
+
+class ArchRefInlineForm(forms.Form):
+
+    archref = forms.CharField(label='Related entry', required=False,
+                              widget=forms.Textarea)
+
+    def clean_archref(self):
+        item = etree.Element(EAD_NS + 'archref', nsmap=NS_MAP_2)
+        item.text = self.cleaned_data['archref']
+        return item
 
 
 class BibliographyInlineForm(ContainerModelForm):
@@ -171,17 +194,14 @@ class ControlAccessInlineForm(ContainerModelForm):
         controlaccess field as initial data for non-model formsets."""
         root = etree.fromstring('<wrapper>{}</wrapper>'.format(
             self.instance.controlaccess))
-        genreforms = [{'genreform': etree.tostring(
-            genreform, encoding='unicode', method='text')}
+        genreforms = [{'genreform': get_text_from_xml(genreform)}
                       for genreform in root.xpath('//e:genreform',
                                                   namespaces=NS_MAP)]
-        geognames = [{'geogname': etree.tostring(
-            geogname, encoding='unicode', method='text')}
+        geognames = [{'geogname': get_text_from_xml(geogname)}
                      for geogname in root.xpath('//e:geogname',
                                                 namespaces=NS_MAP)]
         persnames = [{
-            'persname': etree.tostring(persname, encoding='unicode',
-                                       method='text'),
+            'persname': get_text_from_xml(persname),
             'relator': persname.get('relator', '')}
                      for persname in root.xpath('//e:persname',
                                                 namespaces=NS_MAP)]
@@ -268,6 +288,23 @@ class LabelPhysFacetInlineForm(forms.ModelForm):
         fields = ['id', 'physfacet']
         labels = {
             'physfacet': 'Label/inscription/caption',
+        }
+
+
+class LanguageDeclarationInlineForm(forms.ModelForm):
+
+    def clean(self):
+        # Set the language from the language code.
+        cleaned_data = super().clean()
+        lang_term = cleaned_data.get('language_langcode')
+        cleaned_data['language'] = lang_term.label
+        return cleaned_data
+
+    class Meta:
+        model = LanguageDeclaration
+        fields = ['id', 'language', 'language_langcode', 'script_el_script']
+        widgets = {
+            'language': forms.HiddenInput(),
         }
 
 
@@ -414,7 +451,134 @@ class PhyslocInlineForm(forms.ModelForm):
         }
 
 
+class RelationEntryInlineForm(forms.ModelForm):
+
+    class Meta:
+        model = RelationEntry
+        fields = ['id', 'localtype', 'relationentry']
+        widgets = {
+            'localtype': forms.HiddenInput(),
+            'relationentry': forms.TextInput(),
+        }
+
+
+class ConnectionTypeInlineForm(RelationEntryInlineForm):
+
+    def clean_localtype(self):
+        return 'sh_connection_type'
+
+    class Meta(RelationEntryInlineForm.Meta):
+        labels = {
+            'relationentry': 'Individual or works?',
+        }
+
+
+class PrimaryConnectionInlineForm(RelationEntryInlineForm):
+
+    def clean_localtype(self):
+        return 'work_connection_primary'
+
+    class Meta(RelationEntryInlineForm.Meta):
+        labels = {
+            'relationentry': 'How does it relate to the relevant work?',
+        }
+
+
+class SecondaryConnectionInlineForm(RelationEntryInlineForm):
+
+    def clean_localtype(self):
+        return 'work_connection_secondary'
+
+    class Meta(RelationEntryInlineForm.Meta):
+        labels = {
+            'relationentry': 'Secondary connection to relevant work?',
+        }
+
+
+class RelatedMaterialInlineForm(ContainerModelForm):
+
+    def _add_formsets(self, *args, **kwargs):
+        formsets = {}
+        data = kwargs.get('data')
+        initial_archrefs = self._parse_relatedmaterial()
+        ArchRefFormset = forms.formset_factory(
+            ArchRefInlineForm, can_delete=True, extra=0, min_num=1)
+        formsets['archrefs'] = ArchRefFormset(
+            data, initial=initial_archrefs, prefix=self.prefix + '-archref')
+        return formsets
+
+    def clean_relatedmaterial(self):
+        # Wrap the archrefs in a relatedmaterial, per pcaton's instructions.
+        relatedmaterial = etree.Element('relatedmaterial', nsmap=NS_MAP_2)
+        formset = self.formsets['archrefs']
+        for form in formset:
+            if form not in formset.deleted_forms:
+                archref = form.cleaned_data.get('archref')
+                if archref:
+                    relatedmaterial.append(archref)
+        return etree.tostring(relatedmaterial, encoding='unicode',
+                              xml_declaration=False)
+
+    def _parse_relatedmaterial(self):
+        """Returns the archref descendants in the instance's relatedmaterial
+        field as initial data for non-model formsets."""
+        root = etree.fromstring('<wrapper>{}</wrapper>'.format(
+            self.instance.relatedmaterial))
+        archrefs = [{'archref': get_text_from_xml(archref)}
+                    for archref in root.xpath('//e:archref',
+                                              namespaces=NS_MAP)]
+        return archrefs
+
+    class Meta:
+        model = RelatedMaterial
+        fields = ['id', 'relatedmaterial']
+        widgets = {
+            'relatedmaterial': forms.HiddenInput(),
+        }
+
+
+class RelationInlineForm(ContainerModelForm):
+
+    def _add_formsets(self, *args, **kwargs):
+        formsets = {}
+        data = kwargs.get('data')
+        ConnectionTypeFormset = forms.inlineformset_factory(
+            Relation, RelationEntry, form=ConnectionTypeInlineForm, extra=1,
+            max_num=1, min_num=1, validate_max=True, validate_min=True)
+        formsets['connectiontypes'] = ConnectionTypeFormset(
+            data, instance=self.instance, prefix=self.prefix + '-type',
+            queryset=RelationEntry.objects.filter(
+                localtype='sh_connection_type'))
+        PrimaryConnectionFormset = forms.inlineformset_factory(
+            Relation, RelationEntry, form=PrimaryConnectionInlineForm, extra=1,
+            max_num=1, min_num=1, validate_max=True, validate_min=True)
+        formsets['primaryconnections'] = PrimaryConnectionFormset(
+            data, instance=self.instance, prefix=self.prefix + '-primary',
+            queryset=RelationEntry.objects.filter(
+                localtype='work_connection_primary'))
+        SecondaryConnectionFormset = forms.inlineformset_factory(
+            Relation, RelationEntry, form=SecondaryConnectionInlineForm,
+            extra=1, max_num=1, min_num=1, validate_max=True,
+            validate_min=True)
+        formsets['secondaryconnections'] = SecondaryConnectionFormset(
+            data, instance=self.instance, prefix=self.prefix + '-secondary',
+            queryset=RelationEntry.objects.filter(
+                localtype='work_connection_secondary'))
+        return formsets
+
+    class Meta:
+        model = Relation
+        fields = ['id']
+
+
 class RightsDeclarationInlineForm(forms.ModelForm):
+
+    disabled_fields = ['abbr', 'citation']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.disabled_fields:
+            self.fields[field].disabled = True
 
     class Meta:
         model = RightsDeclaration
@@ -424,21 +588,45 @@ class RightsDeclarationInlineForm(forms.ModelForm):
             'citation': 'Rights declaration citation',
             'descriptivenote': 'Rights declaration',
         }
+        widgets = {
+            'citation': forms.TextInput(),
+        }
 
 
-class ScopeContentInlineForm(forms.ModelForm):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        localtype = self.instance.localtype
-        if localtype == 'publication_details':
-            self.fields['scopecontent'].label = 'Publication details'
-        elif localtype == 'notes':
-            self.fields['scopecontent'].label = 'Notes'
+class ScopeContentNotesInlineForm(forms.ModelForm):
 
     class Meta:
         model = ScopeContent
         fields = ['id', 'scopecontent']
+        labels = {
+            'scopecontent': 'Notes',
+        }
+        widgets = {
+            'scopecontent': forms.Textarea(attrs=RICHTEXT_ATTRS),
+        }
+
+
+class ScopeContentPublicationDetailsInlineForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance', None)
+        if instance is not None:
+            xml = etree.fromstring('<wrapper>{}</wrapper>'.format(
+                instance.scopecontent))
+            kwargs.update(initial={'scopecontent': get_text_from_xml(xml)})
+        super().__init__(*args, **kwargs)
+
+    def clean_scopecontent(self):
+        item = etree.Element(EAD_NS + 'p', nsmap=NS_MAP_2)
+        item.text = self.cleaned_data['scopecontent']
+        return etree.tostring(item, encoding='unicode', xml_declaration=False)
+
+    class Meta:
+        model = ScopeContent
+        fields = ['id', 'scopecontent']
+        labels = {
+            'scopecontent': 'Publication details',
+        }
 
 
 class SizeDimensionsInlineForm(forms.ModelForm):
@@ -482,6 +670,9 @@ class SourceEntryInlineForm(forms.ModelForm):
     class Meta:
         model = SourceEntry
         fields = ['id', 'sourceentry']
+        labels = {
+            'sourceentry': 'Unpublished reference',
+        }
 
 
 class SourceInlineForm(ContainerModelForm):
@@ -585,8 +776,8 @@ class RecordEditForm(ContainerModelForm):
             queryset=DIdPhysDescStructured.objects.filter(
                 physdescstructuredtype=DIdPhysDescStructured.STRUCTURED_TYPE_MATERIAL))
         ScopeContentNotesFormset = forms.inlineformset_factory(
-            EAD, ScopeContent, form=ScopeContentInlineForm, extra=1, max_num=1,
-            validate_max=True)
+            EAD, ScopeContent, form=ScopeContentNotesInlineForm, extra=1,
+            max_num=1, validate_max=True)
         formsets['notes'] = ScopeContentNotesFormset(
             *args, instance=self.instance, prefix='scopecontent_notes',
             queryset=ScopeContent.objects.filter(localtype='notes'))
@@ -600,8 +791,8 @@ class RecordEditForm(ContainerModelForm):
         formsets['physlocs'] = PhysLocFormset(
             *args, instance=self.instance, prefix='physloc')
         ScopeContentPublicationFormset = forms.inlineformset_factory(
-            EAD, ScopeContent, form=ScopeContentInlineForm, extra=1, max_num=1,
-            validate_max=True)
+            EAD, ScopeContent, form=ScopeContentPublicationDetailsInlineForm,
+            extra=1, max_num=1, validate_max=True)
         formsets['publication_details'] = ScopeContentPublicationFormset(
             *args, instance=self.instance,
             prefix='scopecontent_publication_details',
@@ -646,6 +837,23 @@ class RecordEditForm(ContainerModelForm):
             min_num=1, validate_max=True, validate_min=True)
         formsets['unittitles'] = UnitTitleFormset(
             *args, instance=self.instance, prefix='unittitle')
+        RelationFormset = forms.inlineformset_factory(
+            EAD, Relation, form=RelationInlineForm, extra=0)
+        formsets['relations'] = RelationFormset(
+            *args, instance=self.instance, prefix='relation',
+            queryset=Relation.objects.filter(
+                otherrelationtype='sh_connection'))
+        RelatedMaterialFormset = forms.inlineformset_factory(
+            EAD, RelatedMaterial, form=RelatedMaterialInlineForm,
+            extra=1, max_num=1, validate_max=True)
+        formsets['relatedmaterials'] = RelatedMaterialFormset(
+            *args, instance=self.instance, prefix='relatedmaterial')
+        LanguageDeclarationFormset = forms.inlineformset_factory(
+            EAD, LanguageDeclaration, form=LanguageDeclarationInlineForm,
+            extra=1, max_num=1, min_num=1, validate_max=True,
+            validate_min=True)
+        formsets['languagedeclarations'] = LanguageDeclarationFormset(
+            *args, instance=self.instance, prefix='languagedeclaration')
         RightsDeclarationFormset = forms.inlineformset_factory(
             EAD, RightsDeclaration, form=RightsDeclarationInlineForm, extra=1,
             max_num=1, min_num=1, validate_max=True, validate_min=True)
