@@ -168,7 +168,7 @@
           </div>
         </div>
       </fieldset>
-    </div>-
+    </div>
 
     <div class="form-section">
       <h2>DESCRIPTION</h2>
@@ -415,6 +415,7 @@
               <div class="fieldsets">
                 {% for languagedecl in languagedecls.forms %}
                 <div class="two-column-table">
+                  {% render_field languagedecl.id %}
                   <div>{% render_field languagedecl.language_langcode %}</div>
                   <div>{% render_field languagedecl.script_el_script %}</div>
                 </div>

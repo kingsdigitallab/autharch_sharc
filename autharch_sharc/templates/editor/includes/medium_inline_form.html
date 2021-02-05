@@ -1,5 +1,5 @@
 {% load editor_form_tags %}
-<fieldset data-form-type="medium">
+<div data-form-type="medium">
   {% render_field form.id %}
   {% with physfacets=form.formsets.physfacets %}
   <div class="formset">
@@ -13,4 +13,4 @@
     </div>
   </div>
   {% endwith %}
-</fieldset>
+</div>

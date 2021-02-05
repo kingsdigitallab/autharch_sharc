@@ -1,5 +1,5 @@
 {% load editor_form_tags %}
-<fieldset data-form-type="size">
+<div data-form-type="size">
   {% render_field form.id %}
   {% with dimensions=form.formsets.dimensions %}
   <div class="formset">
@@ -13,4 +13,4 @@
     </div>
   </div>
   {% endwith %}
-</fieldset>
+</div>
