@@ -1,19 +1,5 @@
 {% load editor_form_tags %}
 <fieldset data-form-type="bibliography">
   {% render_field form.id %}
-  {% with bibrefs=form.formsets.bibrefs %}
-  <div class="formset">
-    <div class="management_form">
-      {{ bibrefs.management_form }}
-    </div>
-    <div class="fieldsets">
-      {% for bibref in bibrefs.forms %}
-      {% include "./bibref_inline_form.html" with form=bibref %}
-      {% endfor %}
-    </div>
-    <label class="create linked-button">
-      <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('bibref', this)">Add published reference
-    </label>
-  </div>
+  {% render_field form.bibliography %}
 </fieldset>
-{% endwith %}

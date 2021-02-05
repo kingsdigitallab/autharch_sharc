@@ -100,56 +100,46 @@ class ArchRefInlineForm(forms.Form):
         return item
 
 
-class BibliographyInlineForm(ContainerModelForm):
+class BibliographyInlineForm(forms.ModelForm):
 
     # The Bibliography model contains the mixed content in a single
     # textfield, but for this app the contents are constrained to
     # bibref elements, so create have a non-model formset for each of
     # them, and manipulate the data into and out of the model field.
 
-    bibliography = forms.CharField(required=False)
-
-    def _add_formsets(self, *args, **kwargs):
-        formsets = {}
-        data = kwargs.get('data')
-        initial_bibrefs = self._parse_bibliography()
-        BibRefFormset = forms.formset_factory(
-            BibRefForm, can_delete=True, extra=0, min_num=1, validate_min=True)
-        formsets['bibrefs'] = BibRefFormset(
-            data, initial=initial_bibrefs, prefix=self.prefix + '-bibref')
-        return formsets
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance', None)
+        if instance is not None:
+            kwargs.update(initial={'bibliography': self._parse_bibliography(
+                instance)})
+        super().__init__(*args, **kwargs)
 
     def clean_bibliography(self):
-        formset = self.formsets['bibrefs']
-        bibrefs = [
-            form.cleaned_data.get('bibref', '') for form in formset.forms
-            if form not in formset.deleted_forms]
-        bibliography = ''.join(bibrefs)
-        return bibliography
+        bibrefs = []
+        data = self.cleaned_data['bibliography'].replace('\r\n', '\n').replace(
+            '\r', '\n')
+        for text in data.split('\n\n'):
+            bibref = etree.Element(EAD_NS + 'bibref', nsmap=NS_MAP_2)
+            bibref.text = text
+            bibrefs.append(serialise_xml(bibref))
+        return ''.join(bibrefs)
 
-    def _parse_bibliography(self):
+    def _parse_bibliography(self, instance):
         """Returns the bibrefs in the instance's bibliography field as initial
         data for a non-model formset."""
         bibrefs = []
         root = etree.fromstring('<wrapper>{}</wrapper>'.format(
-            self.instance.bibliography))
+            instance.bibliography))
         for bibref in root.xpath('//e:bibref', namespaces=NS_MAP):
-            bibrefs.append({'bibref': serialise_xml(bibref, method='text')})
-        return bibrefs
+            bibrefs.append(serialise_xml(bibref, method='text'))
+        return '\n\n'.join(bibrefs)
 
     class Meta:
         model = Bibliography
-        fields = ['archdesc', 'bibliography', 'id']
-
-
-class BibRefForm(forms.Form):
-    bibref = forms.CharField(label='Published reference',
-                             widget=forms.Textarea)
-
-    def clean_bibref(self):
-        bibref = etree.Element(EAD_NS + 'bibref', nsmap=NS_MAP_2)
-        bibref.text = self.cleaned_data['bibref']
-        return serialise_xml(bibref)
+        fields = ['bibliography', 'id']
+        labels = {
+            'bibliography': 'Published references',
+        }
 
 
 class ControlAccessInlineForm(ContainerModelForm):
