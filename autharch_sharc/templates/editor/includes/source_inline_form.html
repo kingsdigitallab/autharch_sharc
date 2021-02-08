@@ -1,21 +1,13 @@
 {% load editor_form_tags %}
 <fieldset data-form-type="source">
-  <div class="fieldset-header">
-    <div class="flex">
-      <div>
-        {% include "./delete_inline_button.html" %}
-      </div>
-      <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
-    </div>
-  </div>
-  <div class="fieldset-body expand inline-deletable">
+  <div class="formset">
+    {% with sourceentries=form.formsets.sourceentries %}
     {% render_form_delete_widget form.DELETE %}
     {% render_field form.id %}
-    {% with sourceentries=form.formsets.sourceentries %}
     <div class="management_form">
       {{ sourceentries.management_form }}
     </div>
-    <div class="fieldsetes">
+    <div class="fieldsets">
       {% for sourceentry in sourceentries.forms %}
       {% include "./sourceentry_inline_form.html" with form=sourceentry %}
       {% endfor %}
@@ -25,5 +17,4 @@
       <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('sourceentry', this)">Add source entry
     </label>
   </div>
-  <br>
 </fieldset>

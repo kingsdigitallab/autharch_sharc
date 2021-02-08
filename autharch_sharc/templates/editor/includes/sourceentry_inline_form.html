@@ -1,5 +1,15 @@
 {% load editor_form_tags %}
 <fieldset data-form-type="sourceentry">
-  {% render_field form.id %}
-  {% render_field form.sourceentry %}
+  <div class="fieldset-header">
+    <div class="flex">
+      <div>
+        {% include "./delete_inline_button.html" %}
+      </div>
+      <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
+    </div>
+  </div>
+  <div class="fieldset-body expand inline-deletable">
+    {% render_field form.id %}
+    {% render_field form.sourceentry %}
+  </div>
 </fieldset>

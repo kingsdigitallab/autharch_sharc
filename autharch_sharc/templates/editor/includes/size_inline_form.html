@@ -1,5 +1,16 @@
 {% load editor_form_tags %}
-<fieldset data-form-type="size">
+<div data-form-type="size">
   {% render_field form.id %}
-  {% render_field form.dimensions %}
-</fieldset>
+  {% with dimensions=form.formsets.dimensions %}
+  <div class="formset">
+    <div class="management_form">
+      {{ dimensions.management_form }}
+    </div>
+    <div class="fieldsets">
+      {% for dimension in dimensions.forms %}
+      {% include "./dimension_inline_form.html" with form=dimension %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endwith %}
+</div>

@@ -1,7 +1,5 @@
 {% load editor_form_tags %}
-<fieldset data-form-type="scopecontent">
-  <div class="fieldset-body">
-    {% render_field form.id %}
-    {% render_field form.scopecontent %}
-  </div>
-</fieldset>
+<div data-form-type="scopecontent">
+  {% render_field form.id %}
+  {% render_field form.scopecontent %}
+</div>

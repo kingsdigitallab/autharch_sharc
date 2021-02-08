@@ -314,7 +314,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticatedOrReadOnly",),
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 12,
     "ORDERING_PARAM": "ordering",
@@ -326,6 +327,12 @@ CORS_URLS_REGEX = r"^/api/.*$"
 # ------------------------------------------------------------------------------
 # https://github.com/django-es/django-elasticsearch-dsl
 ELASTICSEARCH_DSL = {"default": {"hosts": "elasticsearch:9200"}}
+
+# Controlled Vocabulary
+CONTROLLED_VOCABULARY_VOCABULARIES = [
+    "controlled_vocabulary.vocabularies.iso639_2",
+    "controlled_vocabulary.vocabularies.iso15924",
+]
 
 # Your stuff...
 # ------------------------------------------------------------------------------

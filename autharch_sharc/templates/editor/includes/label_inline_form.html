@@ -1,5 +1,16 @@
 {% load editor_form_tags %}
-<fieldset data-form-type="label">
+<div data-form-type="label">
   {% render_field form.id %}
-  {% render_field form.physfacet %}
-</fieldset>
+  {% with physfacets=form.formsets.physfacets %}
+  <div class="formset">
+    <div class="management_form">
+      {{ physfacets.management_form }}
+    </div>
+    <div class="fieldsets">
+      {% for physfacet in physfacets.forms %}
+      {% include "./physfacet_inline_form.html" with form=physfacet %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endwith %}
+</div>
