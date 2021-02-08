@@ -4,7 +4,7 @@ import unittest.mock as mock
 
 import pytest
 import requests
-from ead.models import EAD, DIdPhysDescStructuredDimensions
+from ead.models import EAD
 
 from autharch_sharc.editor.documents import EADDocument
 
@@ -152,6 +152,7 @@ class TestEADDocument:
         assert len(origins) > 0
         assert test_country in origins
 
+    """
     @pytest.mark.django_db
     def test_prepare_size(self):
         mock_instance = self.create_mock_instance()
@@ -167,7 +168,7 @@ class TestEADDocument:
         size = self.doc.prepare_size(mock_instance)
         assert size == "1 item"
 
-    """
+
 <physdescstructured coverage="whole" physdescstructuredtype="spaceoccupied">
                 <quantity>1</quantity>
                 <unittype>item</unittype>
