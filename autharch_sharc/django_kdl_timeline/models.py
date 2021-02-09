@@ -17,15 +17,17 @@ import json
 from django.db import models
 from modelcluster.fields import ParentalKey
 from wagtail.admin.edit_handlers import (
-    FieldPanel, FieldRowPanel,
+    FieldPanel,
+    FieldRowPanel,
+    InlinePanel,
     MultiFieldPanel,
-    InlinePanel, HelpPanel)
-from wagtail.core.models import (Page, Orderable)
-from wagtail.images.edit_handlers import ImageChooserPanel
-from wagtail.images.api.fields import ImageRenditionField
-from wagtail.images.models import (Image)
-from wagtail.search import index
+)
 from wagtail.api import APIField
+from wagtail.core.models import Orderable, Page
+from wagtail.images.api.fields import ImageRenditionField
+from wagtail.images.edit_handlers import ImageChooserPanel
+from wagtail.images.models import Image
+from wagtail.search import index
 
 
 class AbstractTimelineSlide(models.Model):
@@ -46,36 +48,37 @@ class AbstractTimelineSlide(models.Model):
     end_date_day = models.IntegerField(null=False, blank=False, default=0)
 
     # Text fields to display
-    headline = models.TextField(blank=True, default='')
-    text = models.TextField(blank=True, default='')
+    headline = models.TextField(blank=True, default="")
+    text = models.TextField(blank=True, default="")
 
-    ordering = ['start_date_year']
+    ordering = ["start_date_year"]
 
     def serialise_start_date(self):
         """Get only relevant start dates, return as dict"""
-        dates = {"year": self.start_date_year,
-                 "display_date": self.start_date_year}
+        dates = {"year": self.start_date_year, "display_date": self.start_date_year}
         if self.start_date_month > 0:
-            dates['month'] = self.start_date_month
+            dates["month"] = self.start_date_month
         if self.start_date_day > 0:
-            dates['day'] = self.start_date_day
+            dates["day"] = self.start_date_day
         return dates
 
     def serialise_end_date(self):
         """Get only relevant start dates, return as dict"""
-        dates = {"year": self.end_date_year}
+        dates = {}
+        if self.end_date_year > 0:
+            dates["year"] = self.end_date_year
         if self.end_date_month > 0:
-            dates['month'] = self.end_date_month
+            dates["month"] = self.end_date_month
         if self.end_date_day > 0:
-            dates['day'] = self.end_date_day
+            dates["day"] = self.end_date_day
         return dates
 
     def serialise_text(self):
         text = {}
         if len(self.headline) > 0:
-            text['headline'] = self.headline
+            text["headline"] = self.headline
         if len(self.text) > 0:
-            text['text'] = self.text
+            text["text"] = self.text
         return text
 
     def __str__(self):
@@ -85,15 +88,16 @@ class AbstractTimelineSlide(models.Model):
 
     def get_timeline_data(self):
         """ Serialise object for timelineJS"""
-        data = {'start_date': self.serialise_start_date(),
-                'display_date': "{}".format(self.start_date_year),
-                }
+        data = {
+            "start_date": self.serialise_start_date(),
+            "display_date": "{}".format(self.start_date_year),
+        }
         if len(self.serialise_end_date()) > 0:
-            data['end_date'] = self.serialise_end_date()
+            data["end_date"] = self.serialise_end_date()
         if len(self.serialise_text()) > 0:
-            data['text'] = self.serialise_text()
+            data["text"] = self.serialise_text()
         if len(self.unique_id) > 0:
-            data['unique_id'] = self.unique_id
+            data["unique_id"] = self.unique_id
         return data
 
     def to_timeline_json(self):
@@ -101,8 +105,6 @@ class AbstractTimelineSlide(models.Model):
 
     class Meta:
         abstract = True
-
-
 
 
 """
@@ -116,11 +118,13 @@ Implementation objects.  Current flavours are:
 
 class TimelineSlide(AbstractTimelineSlide):
     """Plain vanilla slide, mostly used for testing """
+
     pass
 
 
 class TimelineSlideWithImage(AbstractTimelineSlide):
     """ 'Pure' django implementation with attached image """
+
     image = models.ImageField(null=True)
 
 
@@ -133,30 +137,30 @@ class AbstractTimelineEventSnippet(index.Indexed, AbstractTimelineSlide):
             [
                 FieldRowPanel(
                     [
-                        FieldPanel('start_date_year'),
-                        FieldPanel('start_date_month'),
-                        FieldPanel('start_date_day'),
+                        FieldPanel("start_date_year"),
+                        FieldPanel("start_date_month"),
+                        FieldPanel("start_date_day"),
                     ]
                 ),
-                FieldRowPanel([
-                    FieldPanel('end_date_year'),
-                    FieldPanel('end_date_month'),
-                    FieldPanel('end_date_day'),
-                ]),
+                FieldRowPanel(
+                    [
+                        FieldPanel("end_date_year"),
+                        FieldPanel("end_date_month"),
+                        FieldPanel("end_date_day"),
+                    ]
+                ),
             ],
             heading="Dates",
-            classname="collapsible"
+            classname="collapsible",
         ),
-        FieldPanel('headline'),
-        FieldPanel('text'),
+        FieldPanel("headline"),
+        FieldPanel("text"),
     ]
 
 
-
-
 search_fields = [
-    index.SearchField('headline', partial_match=True),
-    index.SearchField('text', partial_match=True),
+    index.SearchField("headline", partial_match=True),
+    index.SearchField("text", partial_match=True),
 ]
 
 
@@ -172,55 +176,46 @@ class AbstractTimelinePage(Page):
 
 
 class TimelineEventWithImageSnippet(AbstractTimelineEventSnippet):
-    image_rendition = 'width-400'
-    thumb_rendition = 'width-50'
+    image_rendition = "width-400"
+    thumb_rendition = "width-50"
 
-    image = models.ForeignKey(
-        Image,
-        on_delete=models.CASCADE,
-        blank=True, null=True
-    )
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, blank=True, null=True)
 
-    panels = AbstractTimelineEventSnippet.panels + [
-        ImageChooserPanel('image')
-    ]
+    panels = AbstractTimelineEventSnippet.panels + [ImageChooserPanel("image")]
 
     def get_timeline_data(self):
         data = super().get_timeline_data()
         if self.image:
-            data['media'] = {'url': self.image.get_rendition(self.image_rendition).url,
-                      'thumbnail': self.image.get_rendition(self.thumb_rendition).url, }
+            data["media"] = {
+                "url": self.image.get_rendition(self.image_rendition).url,
+                "thumbnail": self.image.get_rendition(self.thumb_rendition).url,
+            }
         return data
 
 
-
-class TimelineEventWithImageItem(
-    Orderable,
-    TimelineEventWithImageSnippet
-):
+class TimelineEventWithImageItem(Orderable, TimelineEventWithImageSnippet):
     page = ParentalKey(
-        'django_kdl_timeline.TimelinePage',
+        "django_kdl_timeline.TimelinePage",
         on_delete=models.CASCADE,
-        related_name='related_events')
+        related_name="related_events",
+    )
 
     api_fields = [
-        APIField('headline'),
-        APIField('text'),
+        APIField("headline"),
+        APIField("text"),
         # Adds information about the source image (eg, title) into the API
-        APIField('image'),
+        APIField("image"),
         # Adds a URL to a rendered thumbnail of the image to the API
-        APIField('image_thumbnail',
-                 serializer=ImageRenditionField('fill-100x100',
-                                                source='image')),
+        APIField(
+            "image_thumbnail",
+            serializer=ImageRenditionField("fill-100x100", source="image"),
+        ),
     ]
 
 
 class TimelinePage(Page):
     content_panels = Page.content_panels + [
-        InlinePanel('related_events', label="Timeline Events"),
+        InlinePanel("related_events", label="Timeline Events"),
     ]
 
-    api_fields = [
-        APIField("related_events")
-    ]
-
+    api_fields = [APIField("related_events")]
