@@ -348,6 +348,10 @@ class LanguageDeclarationInlineForm(forms.ModelForm):
     class Meta:
         model = LanguageDeclaration
         fields = ["id", "language", "language_langcode", "script_el_script"]
+        labels = {
+            "language_langcode": "Record language",
+            "script_el_script": "Record script",
+        }
         widgets = {
             "language": forms.HiddenInput(),
         }
