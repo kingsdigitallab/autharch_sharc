@@ -200,44 +200,7 @@ $(document).ready(function() {
     });
   });
 
-  // TRANSCRIPTIONS - if expanded by default (WILL BE REMOVED ONCE THE RTE DEVELOPMENT IS COMPLETED)
-  if ($('#transcription-div').hasClass('expand') && $( 'textarea.richtext-transcription' ).length == 0) {
-    fetchTranscriptions();
-  }
-
-  // TRANSCRIPTIONS - if collapsed by default
-  $('.transcription-toggle').on('click', function() {
-    // fetch transcriptions when the transcription section is expanded and there are no transcriptions yet 
-    if ($('#transcription-div').hasClass('expand') && $( 'textarea.richtext-transcription' ).length == 0) {
-      fetchTranscriptions();
-    }
-  });
-
 });
-
-// TRANSCRIPTIONS
-// fetch transcriptions
-async function fetchTranscriptions() {
-  await fetch(window.location.pathname + 'transcriptions').then(
-    function(response) {
-      response.json().then(function(data) {
-        let orderedData = data.sort(function(a, b) {return parseInt(a.fields.order) - parseInt(b.fields.order)});
-        let transcriptions = '';
-        orderedData.forEach(function(t, i) {
-          transcriptions += `<input type="hidden" name="transcription-`+i+`-id" value="`+t.pk+`" id="id_transcription-`+i+`-id" aria-label="input field">
-                            <textarea name="transcription-`+i+`-transcription" class="richtext-transcription" rows="8" id="id_transcription-`+i+`-transcription" cols="40" aria-label="richtext field">`+t.fields.transcription+`</textarea>`;
-        });
-        $('#transcription').append(transcriptions);
-        document.addEventListener("fullscreenchange", exitHandler);
-        addCKEditor();
-        addPagination();
-      });
-    }
-  )
-  .catch(function(err) {
-    console.log(err);
-  });
-}
 
 function exitHandler() {
   if (!document.fullscreenElement && !document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
@@ -246,68 +209,6 @@ function exitHandler() {
   }
 }
 
-/**
-  hide all transcriptions and generate ckeditor for the first transcription on the list
-*/
-function addCKEditor() {
-  $('textarea.richtext-transcription').hide();
-  $('textarea#id_transcription-0-transcription').ckeditor();
-}
-
-function addPagination() {
-  $('#rte-pagination').pagination({
-    items: $("textarea.richtext-transcription").length,
-    itemsOnPage: 1,
-    useAnchors: false,
-    displayedPages: 3,
-    prevText: ' ',
-    nextText: ' ',
-    onPageClick: function(pageNumber, event) {
-      goToTranscription(pageNumber-1);
-      viewer.goToPage(pageNumber-1);
-    }
-  });
-}
-
-function goToTranscription(i) {
-  $('div[id^="cke_id_transcription"]').hide();
-  $('textarea#id_transcription-'+i+'-transcription').ckeditor();
-  $('div[id="cke_id_transcription-'+i+'-transcription"]').css('display', 'block');
-}
-
-function addDuplicate() {
-  event.preventDefault();
-  if ($('#duplicates-search-field').val() != '') {
-    let record = {'id': 156, 'entity_title': '[entity_title]', 'entity_type': '[entity_type]', 'publication_status': '[publication_status]', 'updated_date': '[date_updated]', 'updated_by': '[username]'};
-    $('#duplicates-table tbody').append(`
-      <tr>
-        <td class="button-cell primary-cell">
-            <label>
-                <input type="radio" value="`+record['id']+`" name="primary_record"/>Primary record
-            </label>
-        </td>
-        <td class="duplicate-cell">
-            <input type="radio" id="duplicate_`+record['id']+`" name="duplicate_`+record['id']+`" value="true"/>
-            <label for="duplicate_`+record['id']+`" class="disabled">Merge with primary</label>
-            <input type="radio" id="not_duplicate_`+record['id']+`" name="duplicate_`+record['id']+`" value="false"/>
-            <label for="not_duplicate_`+record['id']+`" class="disabled">Not related to primary</label>
-        </td>
-        <td>Record ID: <span class="highlight">`+record['id']+`</span></td>
-        <td class="description">
-            <a href="/editor/entities/`+record['id']+`" target="_blank">`+record['entity_title']+`</a><br>
-            Type: `+record['entity_type']+` | Publication status: `+record['publication_status']+` | Updated: `+record['updated_date']+` by `+record['updated_by']+`
-        </td>
-      </tr>
-    `)
-  }
-
-
-}
-
-// when the pagination button in full screen mode is clicked,
-// get index of an image
-// update pagination
-// update transcription in RTE
 
 // expand/collapse entity/archival record sections and individual sections on the hierarchy page
 function toggleTab(el) {
