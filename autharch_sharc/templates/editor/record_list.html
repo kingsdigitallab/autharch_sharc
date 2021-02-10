@@ -27,37 +27,6 @@
               <a href="" class="checkbox-anchor" id="year-range-anchor">Filter</a>
             </fieldset>
             {% endif %}
-            {% with facets=records.facets.date_of_creation %}
-            {% if facets %}
-            <fieldset>
-              <legend>Date of Creation</legend>
-              {% for facet in facets %}
-              {% render_facet facet %}
-              {% endfor %}
-            </fieldset>
-            {% endif %}
-            {% endwith %}
-            {% if facets.fields.archival_level|length > 0 %}
-            <fieldset class="filter-list" id="document-level-filter">
-              <legend>Document level</legend>
-              {% if facets.fields.archival_level|length > 7 %}
-              <input type="text" name="search-archivalLevel" aria-label="search archival level" class="instant-search" placeholder="Search archival level" onfocus="this.placeholder=''" onblur="this.placeholder='Search archival level'"/>
-              {% endif %}
-              {% for archival_level in facets.fields.archival_level %}
-              {% render_facet archival_level %}
-              {% endfor %}
-            </fieldset>
-            {% endif %}
-            {% with facets=records.facets.creators %}
-            {% if facets %}
-            <fieldset class="filter-list" id="creators-filter">
-              <legend>Creators</legend>
-              {% for facet in facets %}
-              {% render_facet facet %}
-              {% endfor %}
-            </fieldset>
-            {% endif %}
-            {% endwith %}
             {% with facets=records.facets.categories %}
             {% if facets %}
             <fieldset class="filter-list" id="categories-filter">
@@ -68,44 +37,6 @@
             </fieldset>
             {% endif %}
             {% endwith %}
-            {% with facets=records.facets.connection_types %}
-            {% if facets %}
-            <fieldset class="filter-list" id="connection-types-filter">
-              <legend>Connection Types</legend>
-              {% for facet in facets %}
-              {% render_facet facet %}
-              {% endfor %}
-            </fieldset>
-            {% endif %}
-            {% endwith %}
-            {% with facets=records.facets.connections_primary %}
-            {% if facets %}
-            <fieldset class="filter-list" id="connections-primary-filter">
-              <legend>Primary Connections</legend>
-              {% for facet in facets %}
-              {% render_facet facet %}
-              {% endfor %}
-            </fieldset>
-            {% endif %}
-            {% endwith %}
-            {% with facets=records.facets.connections_secondary %}
-            {% if facets %}
-            <fieldset class="filter-list" id="connections-secondary-filter">
-              <legend>Secondary Connections</legend>
-              {% for facet in facets %}
-              {% render_facet facet %}
-              {% endfor %}
-            </fieldset>
-            {% endif %}
-            {% endwith %}
-            {% if facets.fields.transcription_text|length > 0 %}
-            <fieldset class="filter-list" id="has-transcriptions-filter">
-              <legend>Transcriptions</legend>
-              {% for transcription_text in facets.fields.transcription_text %}
-              {% render_facet transcription_text %}
-              {% endfor %}
-            </fieldset>
-            {% endif %}
           </div>
         </div>
       </div>
@@ -138,9 +69,7 @@
       <thead>
         <tr>
           <th class="description" data-label="Title" data-placeholder="Filter by title" scope="col">Title <button class="button-link dotted-underline mgn-left" onclick="toggleAllMoreInformation()">Expand all</button></th>
-          <th scope="col" data-label="Writer" data-placeholder="Filter by writer">Writer</th>
-          <th class="filter-select" scope="col" data-label="Level" data-placeholder="Select">Level</th>
-          <th class="filter-select" scope="col" data-label="Publication status" data-placeholder="Publication status">Publication status</th>
+          <th class="filter-select" scope="col" data-label="Category" data-placeholder="Category">Category</th>
           <th class="sorter-sugar" scope="col" data-label="Updated" data-placeholder="Filter by date">Updated</th>
         </tr>
       </thead>
@@ -150,13 +79,7 @@
         {% if record.pk %}
         <tr>
           <td class="description archival-record"><a href="{% url 'editor:record-edit' record.pk %}">{{ record.unittitle|truncatewords:30 }}</a></td>
-          <td class="description">
-            {% for creator in record.creators %}
-            {{ creator.name }}{% if not forloop.last %}; {% endif %}
-            {% endfor %}
-          </td>
-          <td>{{ record.archdesc_level }}</td>
-          <td>{{ record.publicationstatus_value }}</td>
+          <td>{{ record.category }}</td>
           <td data-text="{{ result.modified.isoformat }}">{{ result.modified }}</td>
         </tr>
         {% endif %}

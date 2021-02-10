@@ -1,32 +1,23 @@
-import reversion
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import DetailView, TemplateView
+
+from elasticsearch_dsl import FacetedSearch, TermsFacet
+import reversion
+from reversion.models import Revision, Version
+
 from ead.models import (
     EAD,
     OriginationCorpName,
     OriginationFamName,
     OriginationName,
-    OriginationPersName,
-)
-from elasticsearch_dsl import FacetedSearch, TermsFacet
-from reversion.models import Revision, Version
+    OriginationPersName)
 
 from . import forms
 from .documents import EADDocument
 from .generic_views import SearchView
-
-
-def output_error_log(form, indent=0):
-    for field, field_errors in form.errors.items():
-        print("{}{}: {}".format(" " * indent, field, field_errors))
-    if hasattr(form, "formsets"):
-        for formset in form.formsets.values():
-            print("{}{}: {}".format(" " * indent, type(formset), formset.is_valid()))
-            for form in formset.forms:
-                output_error_log(form, indent + 2)
 
 
 class FacetMixin:
@@ -55,9 +46,11 @@ class FacetMixin:
                 }
             for idx, (value, count, selected) in enumerate(facets[facet_name]):
                 if selected:
-                    link = self._create_unapply_link(facet_name, value, query_dict)
+                    link = self._create_unapply_link(
+                        facet_name, value, query_dict)
                 else:
-                    link = self._create_apply_link(facet_name, value, query_dict)
+                    link = self._create_apply_link(
+                        facet_name, value, query_dict)
                 if display_values is None:
                     display_value = value
                 else:
@@ -120,7 +113,8 @@ class HomeView(LoginRequiredMixin, TemplateView):
         return context
 
     def _get_modified_records(self, user):
-        versions = Version.objects.get_for_model(EAD).filter(revision__user=user)
+        versions = Version.objects.get_for_model(EAD).filter(
+            revision__user=user)
         record_ids = [version.object_id for version in versions]
         return EAD.objects.filter(id__in=record_ids)
 
@@ -142,11 +136,7 @@ class RecordHistory(LoginRequiredMixin, DetailView):
 class RecordSearch(FacetedSearch):
     doc_types = [EADDocument]
     facets = {
-        "categories": TermsFacet(field="category"),
-        "connections_primary": TermsFacet(field="connection_primary"),
-        "connections_secondary": TermsFacet(field="connection_secondary"),
-        "connection_types": TermsFacet(field="connection_type"),
-        "creators": TermsFacet(field="creators.key", size=10),
+        "categories": TermsFacet(field="category.raw"),
     }
     fields = ["creators.name", "unittitle"]
 

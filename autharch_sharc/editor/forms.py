@@ -1153,14 +1153,24 @@ class EADRecordSearchForm(forms.Form):
         label="Search",
         widget=forms.TextInput(attrs=RECORD_SEARCH_INPUT_ATTRS),
     )
-    start_year = forms.IntegerField(
+    creation_start_year = forms.IntegerField(
         required=False,
         label="Creation start year",
         widget=forms.NumberInput(attrs=RECORD_SEARCH_START_YEAR_INPUT_ATTRS),
     )
-    end_year = forms.IntegerField(
+    creation_end_year = forms.IntegerField(
         required=False,
         label="Creation end year",
+        widget=forms.NumberInput(attrs=RECORD_SEARCH_END_YEAR_INPUT_ATTRS),
+    )
+    acquisition_start_year = forms.IntegerField(
+        required=False,
+        label="Acquisition start year",
+        widget=forms.NumberInput(attrs=RECORD_SEARCH_START_YEAR_INPUT_ATTRS),
+    )
+    acquisition_end_year = forms.IntegerField(
+        required=False,
+        label="Acquisition end year",
         widget=forms.NumberInput(attrs=RECORD_SEARCH_END_YEAR_INPUT_ATTRS),
     )
 
