@@ -1,8 +1,9 @@
 from typing import Tuple
 
 from django.core.management.base import BaseCommand
-from autharch_sharc.editor import models
 from ead.models import EAD
+
+from autharch_sharc.editor import models
 
 
 def add_themes() -> Tuple[int, int, int]:
