@@ -1,5 +1,5 @@
-from ead.models import EAD
 from django.db import models
+from ead.models import EAD
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.api import APIField
 from wagtail.core import blocks
@@ -196,4 +196,4 @@ class Theme(models.Model):
     title = models.TextField(null=True, blank=True)
     slug = models.CharField(null=True, blank=True, max_length=128)
     description = models.TextField(null=True, blank=True)
-    ead_objects = models.ManyToManyField(EAD, related_name='themes')
+    ead_objects = models.ManyToManyField(EAD, related_name="themes")

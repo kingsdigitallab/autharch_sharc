@@ -4,11 +4,33 @@ import unittest.mock as mock
 
 import pytest
 import requests
-from ead.models import EAD
+from django.test import TestCase
+from ead.models import EAD, DIdPhysDescStructuredDimensions
 
 from autharch_sharc.editor.documents import EADDocument
 
 from .factories import EADObjectFactory, EADObjectGroupFactory
+
+
+class TestDjangoEADDocument(TestCase):
+
+    fixtures = ["autharch_test_6_2_2021.json"]
+
+    def test_prepare_size(self):
+        import pdb
+
+        pdb.set_trace()
+        mock_instance = self.create_mock_instance()
+        mock_physdescstructured = mock.MagicMock(spec=DIdPhysDescStructuredDimensions)
+        mock_physdescstructured.id = 1
+        mock_physdescstructured.physdescstructuredtype = "spaceoccupied"
+        mock_physdescstructured.quantity = "1"
+        mock_physdescstructured.unittype = "item"
+        mock_instance.physdescstructured_set.all = mock.Mock(
+            return_value=[mock_physdescstructured]
+        )
+        size = self.doc.prepare_size(mock_instance)
+        self.assertEqual(size, "1 item")
 
 
 class TestEADDocument:
@@ -154,19 +176,7 @@ class TestEADDocument:
 
     """
     @pytest.mark.django_db
-    def test_prepare_size(self):
-        mock_instance = self.create_mock_instance()
-        mock_physdescstructured = mock.MagicMock(spec=DIdPhysDescStructuredDimensions)
-        mock_physdescstructured.id = 1
-        mock_physdescstructured.physdescstructuredtype = "spaceoccupied"
-        mock_physdescstructured.quantity = "1"
-        mock_physdescstructured.unittype = "item"
-        mock_instance.physdescstructured_set.all = mock.Mock(
-            return_value=[mock_physdescstructured]
-        )
 
-        size = self.doc.prepare_size(mock_instance)
-        assert size == "1 item"
 
 
 <physdescstructured coverage="whole" physdescstructuredtype="spaceoccupied">

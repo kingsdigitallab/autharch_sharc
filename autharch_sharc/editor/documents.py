@@ -11,7 +11,7 @@ from ead.models import (
 from elasticsearch_dsl import normalizer
 from lxml import etree
 
-from autharch_sharc.editor.models import EADObject, RichTextPage, StreamFieldPage
+from autharch_sharc.editor.models import RichTextPage, StreamFieldPage
 
 lowercase_sort_normalizer = normalizer(
     "lowercase_sort", filter=["lowercase", "asciifolding"]
@@ -180,12 +180,7 @@ class EADDocument(Document):
 
     def prepare_themes(self, instance):
         """ EAD Group Objects"""
-        RCIN = self.prepare_reference(instance)
-        for ead_object in EADObject.objects.filter(RCIN=RCIN):
-            return [
-                ead_object.ead_group.title,
-            ]
-        return []
+        return [theme.title for theme in instance.themes.all()]
 
     def prepare_doc_type(self, instance):
         return self.doc_type
