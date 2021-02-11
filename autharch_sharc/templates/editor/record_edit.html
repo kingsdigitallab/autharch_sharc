@@ -12,9 +12,9 @@
     <div class="status-bar">
       <input type="checkbox" id="document-status-checkbox" class="none" value="Document status" aria-label="document-status"/>
       <label class="mobile-only" for="document-status-checkbox">Status</label>
+      {% if record %}
       <div class="mobile-hide">
         <ul>
-          <li>Publication status: <span class="highlight{% if is_deleted %} danger-clear{% endif %}">{{ record.publicationstatus_value }}{% if is_deleted %} (deleted){% endif %}</span></li>
           <li>Updated: <span class="highlight">{{ last_revision.date_created }}</span> by <span class="highlight">{{ last_revision.user }}</span></li>
           <li>
             <a href="{% url 'editor:record-history' pk=record.pk %}">
@@ -24,6 +24,7 @@
           </li>
         </ul>
       </div>
+      {% endif %}
     </div>
     <div class="action-buttons">
       {% if not is_deleted %}<button aria-label="delete" class="danger-clear" onclick="showModal('delete-modal')"><i class="far fa-trash-alt"></i> Delete</button>{% endif %}
@@ -64,7 +65,7 @@
     </div>
     {% endif %}
 
-    <h1>{{ record }}</h1>
+    <h1>{% if record %}{{ record }}{% else %}New record{% endif %}</h1>
   </div>
 
   <form action="" id="record-form" method="post">

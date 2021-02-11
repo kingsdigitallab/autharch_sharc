@@ -908,7 +908,7 @@ class RecordEditForm(ContainerModelForm):
             EAD,
             ControlAccess,
             form=ControlAccessInlineForm,
-            extra=0,
+            extra=1,
             max_num=1,
             validate_max=True,
         )

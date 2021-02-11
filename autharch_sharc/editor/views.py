@@ -154,6 +154,35 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
 
 
 @login_required
+def record_create(request):
+    form_errors = []
+    if request.method == 'POST':
+        form = forms.RecordEditForm(request.POST)
+        if form.is_valid():
+            with reversion.create_revision():
+                form.save()
+                reversion.set_comment('Created')
+            url = (
+                reverse("editor:record-edit", kwargs={"record_id": record_id})
+                + "?saved=true"
+            )
+            return redirect(url)
+        else:
+            form_errors = forms.assemble_form_errors(form)
+    else:
+        form = forms.RecordEditForm()
+    context = {
+        "current_section": "records",
+        "form": form,
+        "form_media": form.media,
+        "form_errors": form_errors,
+        "reverted": request.GET.get("reverted", False),
+        "saved": request.GET.get("saved", False),
+    }
+    return render(request, "editor/record_edit.html", context)
+
+
+@login_required
 def record_edit(request, record_id):
     record = get_object_or_404(EAD, pk=record_id)
     form_errors = []
