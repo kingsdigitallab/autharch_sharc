@@ -2,6 +2,7 @@
 
 from django.db import migrations
 
+
 def add_ead_objectgroups(apps, schema_editor):
     """ Default Themes from partner spreadsheet """
     EADObjectGroup = apps.get_model('editor', 'EADObjectGroup')
@@ -65,6 +66,7 @@ def add_ead_objectgroups(apps, schema_editor):
             RCIN=rcin,
             ead_group=on_the_page
         )
+
 
 class Migration(migrations.Migration):
 
