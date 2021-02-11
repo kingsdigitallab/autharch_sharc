@@ -27,6 +27,57 @@
               <a href="" class="checkbox-anchor" id="year-range-anchor">Filter</a>
             </fieldset>
             {% endif %}
+            {% with facets=records.facets.works %}
+            {% if facets %}
+            <fieldset class="filter-list" id="works-filter">
+              <legend>Works</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
+            {% with facets=records.facets.texts %}
+            {% if facets %}
+            <fieldset class="filter-list" id="texts-filter">
+              <legend>Texts</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
+            {% with facets=records.facets.performances %}
+            {% if facets %}
+            <fieldset class="filter-list" id="performances-filter">
+              <legend>Performances</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
+            {% with facets=records.facets.sources %}
+            {% if facets %}
+            <fieldset class="filter-list" id="sources-filter">
+              <legend>Sources</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
+            <!-- Acquisition year -->
+            {% with facets=records.facets.acquirers %}
+            {% if facets %}
+            <fieldset class="filter-list" id="acquirers-filter">
+              <legend>Acquirers</legend>
+              {% for facet in facets %}
+              {% render_facet facet %}
+              {% endfor %}
+            </fieldset>
+            {% endif %}
+            {% endwith %}
             {% with facets=records.facets.categories %}
             {% if facets %}
             <fieldset class="filter-list" id="categories-filter">

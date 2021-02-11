@@ -136,7 +136,12 @@ class RecordHistory(LoginRequiredMixin, DetailView):
 class RecordSearch(FacetedSearch):
     doc_types = [EADDocument]
     facets = {
+        "acquirers": TermsFacet(field="related_people.acquirers"),
         "categories": TermsFacet(field="category.raw"),
+        "performances": TermsFacet(field="related_sources.performances"),
+        "sources": TermsFacet(field="related_sources.sources"),
+        "texts": TermsFacet(field="related_sources.texts"),
+        "works": TermsFacet(field="related_sources.works"),
     }
     fields = ["creators.name", "unittitle"]
 
