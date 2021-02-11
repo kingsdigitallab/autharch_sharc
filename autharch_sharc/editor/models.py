@@ -1,3 +1,4 @@
+from ead.models import EAD
 from django.db import models
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.api import APIField
@@ -189,19 +190,10 @@ class RichTextPage(Page):
         }
 
 
-class EADObjectGroup(models.Model):
+class Theme(models.Model):
     """ Group of ead objects e.g. theme"""
 
     title = models.TextField(null=True, blank=True)
     slug = models.CharField(null=True, blank=True, max_length=128)
-    introduction = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-
-
-class EADObject(models.Model):
-    """Contains just the RCIN rather than foreign key
-    to allow rebuilding of documents without deleting data"""
-
-    RCIN = models.CharField(null=True, blank=True, max_length=128)
-
-    ead_group = models.ForeignKey("EADObjectGroup", on_delete=models.CASCADE, null=True)
+    ead_objects = models.ManyToManyField(EAD, related_name='themes')
