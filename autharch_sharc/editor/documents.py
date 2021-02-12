@@ -49,7 +49,7 @@ class EADDocument(Document):
     default_thumbnail_url = (
         "https://rct.resourcespace.com/iiif/image/34658/full/thm/0/default.jpg"
     )
-    doc_type = "object"
+    default_doc_type = "object"
 
     class Index:
         name = "editor"
@@ -183,7 +183,7 @@ class EADDocument(Document):
         return [theme.title for theme in instance.themes.all()]
 
     def prepare_doc_type(self, instance):
-        return self.doc_type
+        return self.default_doc_type
 
     def prepare_search_content(self, instance):
         """Deliberately empty so we can instantiate this at
