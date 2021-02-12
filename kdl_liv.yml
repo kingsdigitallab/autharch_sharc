@@ -64,10 +64,11 @@ services:
     image: redis:5.0
     restart: unless-stopped
 
-  
+
 
   elasticsearch:
-    image: elasticsearch:7.5.1
+    image: elasticsearch:7.10.1
+    container_name: elasticsearch
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data:z
     env_file:

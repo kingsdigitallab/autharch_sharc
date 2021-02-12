@@ -54,7 +54,8 @@ services:
       - "7000:7000"
 
   elasticsearch:
-    image: elasticsearch:7.5.1
+    image: elasticsearch:7.10.1
+    container_name: elasticsearch
     volumes:
       - local_elasticsearch_data:/usr/share/elasticsearch/data
     env_file:
