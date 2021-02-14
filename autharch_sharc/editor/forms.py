@@ -1,4 +1,9 @@
+import calendar
+from datetime import date
+import re
+
 from django import forms
+from django.core.exceptions import ValidationError
 from ead.constants import EAD_NAMESPACE, EAD_NS, NS_MAP
 from ead.models import (
     EAD,
@@ -123,8 +128,8 @@ class BibliographyInlineForm(forms.ModelForm):
 
     # The Bibliography model contains the mixed content in a single
     # textfield, but for this app the contents are constrained to
-    # bibref elements, so create have a non-model formset for each of
-    # them, and manipulate the data into and out of the model field.
+    # bibref elements, so create a non-model formset for each of them,
+    # and manipulate the data into and out of the model field.
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get("instance", None)
@@ -851,10 +856,137 @@ class UnitDateInlineForm(forms.ModelForm):
         fields = ["unitdate"]
 
 
-class UnitDateStructuredDateRangeInlineForm(forms.ModelForm):
+class UDSDateRangeInlineForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get("instance", None)
+        if instance is not None:
+            kwargs.update(initial={
+                "display_date": self._assemble_display_date(instance)})
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def _assemble_display_date(cls, instance):
+        from_date_iso = instance.fromdate_standarddate
+        to_date_iso = instance.todate_standarddate
+        if not from_date_iso:
+            return ''
+        date_format = "%d %B %Y"
+        try:
+            from_date = date.fromisoformat(from_date_iso).strftime(date_format)
+        except ValueError:
+            return ''
+        if not to_date_iso or to_date_iso == from_date_iso:
+            return from_date
+        to_date = date.fromisoformat(to_date_iso).strftime(date_format)
+        return "{}-{}".format(from_date, to_date)
+
+    def _assemble_range_date(self, from_day=None, from_month=None,
+                             from_year=None, to_day=None, to_month=None,
+                             to_year=None):
+        if from_day is None:
+            from_day = 1
+            changed_day = True
+        else:
+            changed_day = False
+        if from_month is None:
+            from_month = 1
+            changed_month = True
+        else:
+            from_month = self._convert_month(from_month)
+            changed_month = False
+        if to_year is None:
+            to_year = from_year
+        else:
+            changed = 4 - len(to_year)
+            to_year = from_year[:changed] + to_year
+        if to_month is None:
+            if changed_month:
+                to_month = 12
+            else:
+                to_month = from_month
+        else:
+            to_month = self._convert_month(to_month)
+        if to_day is None:
+            if changed_day:
+                to_day = self._get_last_day_for_month(to_month, to_year)
+            else:
+                to_day = from_day
+        return (date(int(from_year), from_month, int(from_day)),
+                date(int(to_year), to_month, int(to_day)))
+
+    @classmethod
+    def _convert_month(cls, month):
+        months = ("January", "February", "March", "April", "May", "June",
+                  "July", "August", "September", "October", "November",
+                  "December")
+        return months.index(month) + 1
+
+    @classmethod
+    def _get_last_day_for_month(cls, month, year):
+        if month in (4, 6, 9, 11):
+            day = 30
+        elif month == 2:
+            if calendar.isleap(year):
+                day = 29
+            else:
+                day = 28
+        else:
+            day = 31
+        return day
+
+    def clean(self):
+        # Validate the display date and populate the from and to model
+        # fields from its value.
+        cleaned_data = super().clean()
+        display_date = cleaned_data.get('display_date')
+        if display_date is None:
+            return cleaned_data
+        pattern = r"""
+(?:                     # start optional from elements day and month
+(?:                     # start optional from element day
+(?P<from_day>\d{1,2})   # from day
+\s+)?                   # end optional from day element
+(?P<from_month>January|February|March|April|May|June|July|August|September|October|November|December)   # from month
+\s+)?                   # end optional from elements day and month
+(?P<from_year>\d{4})    # from year
+(?:                     # start optional to elements day, month, and year
+\s*-\s*                 # hyphen and optional surrounding whitespace
+(?:                     # start optional to elements day and month
+(?:                     # start optional to elements day
+(?P<to_day>\d{1,2})     # to day
+\s+)?                   # end optional to day element
+(?P<to_month>January|February|March|April|May|June|July|August|September|October|November|December)     # to month
+\s+)?                   # end optional to elements day and month
+(?P<to_year>\d{1,4})    # to year
+)?                      # end optional to elements day, month, and year
+"""
+        match = re.fullmatch(pattern, display_date, re.VERBOSE)
+        if match is None:
+            self.add_error('display_date', ValidationError(
+                'Invalid date format: %(value)s', code='invalid',
+                params={'value': display_date}))
+        else:
+            from_date, to_date = self._assemble_range_date(**match.groupdict())
+            cleaned_data['fromdate_standarddate'] = from_date.isoformat()
+            cleaned_data['todate_standarddate'] = to_date.isoformat()
+        return cleaned_data
+
     class Meta:
         model = UnitDateStructuredDateRange
         fields = ["id", "fromdate_standarddate", "todate_standarddate"]
+        widgets = {
+            'fromdate_standarddate': forms.HiddenInput(),
+            'todate_standarddate': forms.HiddenInput(),
+        }
+
+
+class AcquisitionUDSDateRangeInlineForm(UDSDateRangeInlineForm):
+    display_date = forms.CharField(label='Date of acquisition')
+
+
+class CreationUDSDateRangeInlineForm(UDSDateRangeInlineForm):
+    display_date = forms.CharField(label='Date of creation')
 
 
 class UnitDateStructuredInlineForm(ContainerModelForm):
@@ -864,7 +996,7 @@ class UnitDateStructuredInlineForm(ContainerModelForm):
         DateRangeFormset = forms.inlineformset_factory(
             UnitDateStructured,
             UnitDateStructuredDateRange,
-            form=UnitDateStructuredDateRangeInlineForm,
+            form=self.date_range_form,
             extra=1,
             max_num=1,
             validate_max=True,
@@ -875,13 +1007,23 @@ class UnitDateStructuredInlineForm(ContainerModelForm):
         return formsets
 
     def save(self, commit=True):
-        if not self.errors:
-            self.instance.datechar = "creation"
+        if not self.instance:
+            self.instance.datechar = self.datechar
         super().save(commit)
 
     class Meta:
         model = UnitDateStructured
         fields = ["id"]
+
+
+class AcquisitionUnitDateStructuredInlineForm(UnitDateStructuredInlineForm):
+    date_range_form = AcquisitionUDSDateRangeInlineForm
+    datechar = "acquisition"
+
+
+class CreationUnitDateStructuredInlineForm(UnitDateStructuredInlineForm):
+    date_range_form = CreationUDSDateRangeInlineForm
+    datechar = "creation"
 
 
 class UnitTitleInlineForm(forms.ModelForm):
@@ -1018,7 +1160,7 @@ class RecordEditForm(ContainerModelForm):
         CreationDateFormset = forms.inlineformset_factory(
             EAD,
             UnitDateStructured,
-            form=UnitDateStructuredInlineForm,
+            form=CreationUnitDateStructuredInlineForm,
             extra=1,
             max_num=1,
             validate_max=True,
@@ -1046,7 +1188,7 @@ class RecordEditForm(ContainerModelForm):
         AcquisitionDateFormset = forms.inlineformset_factory(
             EAD,
             UnitDateStructured,
-            form=UnitDateStructuredInlineForm,
+            form=AcquisitionUnitDateStructuredInlineForm,
             extra=1,
             max_num=1,
             validate_max=True,
@@ -1191,7 +1333,6 @@ def assemble_form_errors(form):
             if field == "__all__":
                 errors["non_field"].extend(field_errors)
             else:
-                print("{}: {}: {}".format(type(form), field, field_errors))
                 errors["field"] = True
         if hasattr(form, "formsets"):
             for formset in form.formsets.values():
