@@ -890,8 +890,8 @@ main {
                         display: inline-block;
                         margin-left: 10px;
                     }
-                    &#year-range-filter {
-                        #year-range {
+                    &.year-range-filter {
+                        .year-range {
                             margin: 0px 10px 12px 10px;
                         }
                         .checkbox-anchor {

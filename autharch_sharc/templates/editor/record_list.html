@@ -19,12 +19,12 @@
         <div class="filters-hidden">
           <a href="." class="dotted-underline clear-filters aoctive">Clear all filters</a>
           <div class="filters">
-            {% if min_year != None and max_year != None %}
-            <fieldset class="filter-list" id="year-range-filter">
+            {% if creation_min_year != None and creation_max_year != None %}
+            <fieldset class="filter-list year-range-filter">
               <legend>Creation year</legend>
-              <div id="year-range"></div>
-              {{ form.start_year }} – {{ form.end_year }}
-              <a href="" class="checkbox-anchor" id="year-range-anchor">Filter</a>
+              <div id="creation-year-range" class="year-range"></div>
+              {{ form.creation_start_year }} – {{ form.creation_end_year }}
+              <a href="" class="checkbox-anchor" id="creation-year-range-anchor">Filter</a>
             </fieldset>
             {% endif %}
             {% with facets=records.facets.works %}
@@ -67,7 +67,14 @@
             </fieldset>
             {% endif %}
             {% endwith %}
-            <!-- Acquisition year -->
+            {% if acquisition_min_year != None and acquisition_max_year != None %}
+            <fieldset class="filter-list year-range-filter">
+              <legend>Acquisition year</legend>
+              <div id="acquisition-year-range" class="year-range"></div>
+              {{ form.acquisition_start_year }} – {{ form.acquisition_end_year }}
+              <a href="" class="checkbox-anchor" id="acquisition-year-range-anchor">Filter</a>
+            </fieldset>
+            {% endif %}
             {% with facets=records.facets.acquirers %}
             {% if facets %}
             <fieldset class="filter-list" id="acquirers-filter">

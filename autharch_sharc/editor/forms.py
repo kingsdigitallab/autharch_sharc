@@ -1316,6 +1316,30 @@ class EADRecordSearchForm(forms.Form):
         widget=forms.NumberInput(attrs=RECORD_SEARCH_END_YEAR_INPUT_ATTRS),
     )
 
+    def __init__(self, *args, creation_min_year=0, creation_max_year=2040,
+                 acquisition_min_year=0, acquisition_max_year=2040, **kwargs):
+        super().__init__(*args, **kwargs)
+        acquisition_start_widget = self.fields['acquisition_start_year'].widget
+        acquisition_start_widget.attrs['min'] = acquisition_min_year
+        acquisition_start_widget.attrs['max'] = acquisition_max_year
+        acquisition_start_widget.attrs['placeholder'] = acquisition_min_year
+        acquisition_end_widget = self.fields['acquisition_end_year'].widget
+        acquisition_end_widget.attrs['min'] = acquisition_min_year
+        acquisition_end_widget.attrs['max'] = acquisition_max_year
+        acquisition_end_widget.attrs['placeholder'] = acquisition_max_year
+        creation_start_widget = self.fields['creation_start_year'].widget
+        creation_start_widget.attrs['min'] = creation_min_year
+        creation_start_widget.attrs['max'] = creation_max_year
+        creation_start_widget.attrs['placeholder'] = creation_min_year
+        creation_end_widget = self.fields['creation_end_year'].widget
+        creation_end_widget.attrs['min'] = creation_min_year
+        creation_end_widget.attrs['max'] = creation_max_year
+        creation_end_widget.attrs['placeholder'] = creation_max_year
+        self._acquisition_min_year = acquisition_min_year
+        self._acquisition_max_year = acquisition_max_year
+        self._creation_min_year = creation_min_year
+        self._creation_max_year = creation_max_year
+
 
 def assemble_form_errors(form):
     """Return a dictionary of errors for `form` and any formset
