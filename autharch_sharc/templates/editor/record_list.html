@@ -111,9 +111,14 @@
       {% for selected_facet in selected_facets %}
       {% render_facet selected_facet %}
       {% endfor %}
-      {% if start_year or end_year %}
-      <a href="{{ year_remove_link }}" class="checkbox-anchor">
-        <input type="checkbox" aria-label="" checked="checked" onclick='window.location.assign("{{ year_remove_link }}")'/>Year range: {{ start_year }}–{{ end_year }}
+      {% if creation_start_year or creation_end_year %}
+      <a href="{{ creation_year_remove_link }}" class="checkbox-anchor">
+        <input type="checkbox" aria-label="" checked="checked" onclick='window.location.assign("{{ creation_year_remove_link }}")'/>Creation year range: {{ creation_start_year }}–{{ creation_end_year }}
+      </a>
+      {% endif %}
+      {% if acquisition_start_year or acquisition_end_year %}
+      <a href="{{ acquisition_year_remove_link }}" class="checkbox-anchor">
+        <input type="checkbox" aria-label="" checked="checked" onclick='window.location.assign("{{ acquisition_year_remove_link }}")'/>Acquisition year range: {{ acquisition_start_year }}–{{ acquisition_end_year }}
       </a>
       {% endif %}
       <a href="." class="dotted-underline clear-filters">Clear all filters</a>

@@ -20,6 +20,9 @@ from ead.models import (
 from . import forms
 from .documents import EADDocument
 from .generic_views import SearchView
+# Signal import must match the form used when importing to handle it
+# (ie, editor... in settings).
+from editor.signals import view_post_save
 
 
 def _print_error_log(form, indent=0):
@@ -199,6 +202,21 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
     search_class = RecordSearch
     template_name = "editor/record_list.html"
 
+    def _create_unapply_year_link(self, query_dict, prefix):
+        """Return a query string to unapply the start and end year 'facet' for
+        the `prefix` range."""
+        qd = query_dict.copy()
+        start = prefix + "_start_year"
+        end = prefix + "_end_year"
+        qd.pop(start, None)
+        qd.pop(end, None)
+        link = qd.urlencode()
+        if link:
+            link = "?{}".format(link)
+        else:
+            link = "."
+        return link
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["acquisition_max_year"] = context["form"]._acquisition_max_year
@@ -207,12 +225,16 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
             "acquisition_end_year")
         context["acquisition_start_year"] = self.request.GET.get(
             "acquisition_start_year")
+        context["acquisition_year_remove_link"] = self._create_unapply_year_link(
+            self.request.GET, "acquisition")
         context["creation_max_year"] = context["form"]._creation_max_year
         context["creation_min_year"] = context["form"]._creation_min_year
         context["creation_end_year"] = self.request.GET.get(
             "creation_end_year")
         context["creation_start_year"] = self.request.GET.get(
             "creation_start_year")
+        context["creation_year_remove_link"] = self._create_unapply_year_link(
+            self.request.GET, "creation")
         context["current_section"] = "records"
         return context
 
@@ -278,6 +300,7 @@ def record_create(request):
             with reversion.create_revision():
                 record = form.save()
                 reversion.set_comment('Created')
+            view_post_save.send(sender=EAD, instance=record)
             url = (
                 reverse("editor:record-edit", kwargs={"record_id": record.pk})
                 + "?saved=true"
@@ -309,6 +332,7 @@ def record_edit(request, record_id):
                 form.save()
                 # reversion.set_user(self.request.user)
                 reversion.set_comment("Edited")
+            view_post_save.send(sender=EAD, instance=record)
             url = (
                 reverse("editor:record-edit", kwargs={"record_id": record_id})
                 + "?saved=true"
