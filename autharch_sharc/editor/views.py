@@ -13,11 +13,34 @@ from ead.models import (
     OriginationCorpName,
     OriginationFamName,
     OriginationName,
-    OriginationPersName)
+    OriginationPersName,
+    UnitDateStructuredDateRange,
+)
 
 from . import forms
 from .documents import EADDocument
 from .generic_views import SearchView
+# Signal import must match the form used when importing to handle it
+# (ie, editor... in settings).
+from editor.signals import view_post_save
+
+
+def _print_error_log(form, indent=0):
+    """Print debugging information about a failed form and all of its
+    descendants.
+
+    Useful when there are no error messages (as, for example,
+    validate_max or validate_min on a formset fails).
+
+    """
+    for field, field_errors in form.errors.items():
+        print("{}{}: {}".format(" " * indent, field, field_errors))
+    if hasattr(form, "formsets"):
+        for formset in form.formsets.values():
+            print("{}{}: {}".format(" " * indent, type(formset),
+                                    formset.is_valid()))
+            for form in formset.forms:
+                _print_error_log(form, indent + 2)
 
 
 class FacetMixin:
@@ -145,6 +168,33 @@ class RecordSearch(FacetedSearch):
     }
     fields = ["creators.name", "unittitle"]
 
+    def __init__(self, query=None, filters={}, sort=(), creation_start=None,
+                 creation_end=None, acquisition_start=None,
+                 acquisition_end=None):
+        self._creation_start = creation_start
+        self._creation_end = creation_end
+        self._acquisition_start = acquisition_start
+        self._acquisition_end = acquisition_end
+        super().__init__(query, filters, sort)
+
+    def search(self):
+        s = super().search()
+        creation = {}
+        if self._creation_start:
+            creation['gte'] = self._creation_start
+        if self._creation_end:
+            creation['lte'] = self._creation_end
+        if creation:
+            s = s.filter('range', date_of_creation=creation)
+        acquisition = {}
+        if self._acquisition_start:
+            acquisition['gte'] = self._acquisition_start
+        if self._acquisition_end:
+            acquisition['lte'] = self._acquisition_end
+        if acquisition:
+            s = s.filter('range', date_of_acquisition=acquisition)
+        return s
+
 
 class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
     context_object_name = "records"
@@ -152,10 +202,93 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
     search_class = RecordSearch
     template_name = "editor/record_list.html"
 
+    def _create_unapply_year_link(self, query_dict, prefix):
+        """Return a query string to unapply the start and end year 'facet' for
+        the `prefix` range."""
+        qd = query_dict.copy()
+        start = prefix + "_start_year"
+        end = prefix + "_end_year"
+        qd.pop(start, None)
+        qd.pop(end, None)
+        link = qd.urlencode()
+        if link:
+            link = "?{}".format(link)
+        else:
+            link = "."
+        return link
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["acquisition_max_year"] = context["form"]._acquisition_max_year
+        context["acquisition_min_year"] = context["form"]._acquisition_min_year
+        context["acquisition_end_year"] = self.request.GET.get(
+            "acquisition_end_year")
+        context["acquisition_start_year"] = self.request.GET.get(
+            "acquisition_start_year")
+        context["acquisition_year_remove_link"] = self._create_unapply_year_link(
+            self.request.GET, "acquisition")
+        context["creation_max_year"] = context["form"]._creation_max_year
+        context["creation_min_year"] = context["form"]._creation_min_year
+        context["creation_end_year"] = self.request.GET.get(
+            "creation_end_year")
+        context["creation_start_year"] = self.request.GET.get(
+            "creation_start_year")
+        context["creation_year_remove_link"] = self._create_unapply_year_link(
+            self.request.GET, "creation")
         context["current_section"] = "records"
         return context
+
+    def _get_date_range(self, datechar):
+        dates = UnitDateStructuredDateRange.objects.exclude(
+            fromdate_standarddate='').filter(
+                parent__datechar=datechar).values_list(
+                    'fromdate_standarddate', 'todate_standarddate')
+        if len(dates) == 0:
+            return None, None
+        start_dates = []
+        end_dates = []
+        for date in dates:
+            start_dates.append(date[0][:4])
+            end_dates.append(date[1][:4])
+        if not end_dates:
+            end_dates = start_dates
+        min_year = sorted(start_dates)[0]
+        max_year = sorted(end_dates, reverse=True)[0]
+        return min_year, max_year
+
+    def _get_filters(self):
+        """Return a dictionary containing any filters to apply to the search
+        results before facetting.
+
+        These extra filters must be explicitly accommodated by the
+        search_class implementation.
+
+        """
+        qs = self.request.GET
+        filters = {
+            'acquisition_start': qs.get('acquisition_start_year'),
+            'acquisition_end': qs.get('acquisition_end_year'),
+            'creation_start': qs.get('creation_start_year'),
+            'creation_end': qs.get('creation_end_year'),
+        }
+        for key in list(filters.keys()):
+            if filters[key] is None:
+                del filters[key]
+        return filters
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        acquisition_min_year, acquisition_max_year = self._get_date_range(
+            "acquisition")
+        creation_min_year, creation_max_year = self._get_date_range(
+            "creation")
+        kwargs.update({
+            "acquisition_max_year": acquisition_max_year,
+            "acquisition_min_year": acquisition_min_year,
+            "creation_max_year": creation_max_year,
+            "creation_min_year": creation_min_year,
+        })
+        return kwargs
 
 
 @login_required
@@ -165,10 +298,11 @@ def record_create(request):
         form = forms.RecordEditForm(request.POST)
         if form.is_valid():
             with reversion.create_revision():
-                form.save()
+                record = form.save()
                 reversion.set_comment('Created')
+            view_post_save.send(sender=EAD, instance=record)
             url = (
-                reverse("editor:record-edit", kwargs={"record_id": record_id})
+                reverse("editor:record-edit", kwargs={"record_id": record.pk})
                 + "?saved=true"
             )
             return redirect(url)
@@ -198,6 +332,7 @@ def record_edit(request, record_id):
                 form.save()
                 # reversion.set_user(self.request.user)
                 reversion.set_comment("Edited")
+            view_post_save.send(sender=EAD, instance=record)
             url = (
                 reverse("editor:record-edit", kwargs={"record_id": record_id})
                 + "?saved=true"

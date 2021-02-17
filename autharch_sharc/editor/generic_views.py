@@ -26,6 +26,7 @@ class SearchView(MultipleObjectMixin, FormView):
             kwargs['query'] = query
         if requested_facets:
             kwargs['filters'] = requested_facets
+        kwargs.update(self._get_filters())
         search = self.search_class(**kwargs)
         response = search.execute()
         facets, selected_facets = self._annotate_facets(
