@@ -408,40 +408,55 @@
           </div>
         </div>
         <div class="fieldset-body expand">
-            <div class="formset">
-              {% with languagedecls=form.formsets.languagedeclarations %}
-              <div class="management_form">
-                {{ languagedecls.management_form }}
-              </div>
-              <div class="fieldsets">
-                {% for languagedecl in languagedecls.forms %}
-                <div class="two-column-table">
-                  {% render_field languagedecl.id %}
-                  <div>{% render_field languagedecl.language_langcode %}</div>
-                  <div>{% render_field languagedecl.script_el_script %}</div>
-                </div>
-                {% endfor %}
-              </div>
-              {% endwith %}
+          <div class="formset">
+            {% with languagedecls=form.formsets.languagedeclarations %}
+            <div class="management_form">
+              {{ languagedecls.management_form }}
             </div>
+            <div class="fieldsets">
+              {% for languagedecl in languagedecls.forms %}
+              <div class="two-column-table">
+                {% render_field languagedecl.id %}
+                <div>{% render_field languagedecl.language_langcode %}</div>
+                <div>{% render_field languagedecl.script_el_script %}</div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endwith %}
           </div>
-          {% with rightsdecls=form.formsets.rightsdeclarations %}
-          {{ rightsdecls.management_form }}
-          {% for rightsdecl in rightsdecls.forms %}
-          <div>
-            {% render_field rightsdecl.id %}
-            {% render_field rightsdecl.descriptivenote %}
-          </div>
-          <div class="two-column-table">
-            {% render_field rightsdecl.citation %}
-            {% render_field rightsdecl.abbr %}
-          </div>
-          {% endfor %}
-          {% endwith %}
         </div>
+        {% with rightsdecls=form.formsets.rightsdeclarations %}
+        {{ rightsdecls.management_form }}
+        {% for rightsdecl in rightsdecls.forms %}
+        <div>
+          {% render_field rightsdecl.id %}
+          {% render_field rightsdecl.descriptivenote %}
+        </div>
+        <div class="two-column-table">
+          {% render_field rightsdecl.citation %}
+          {% render_field rightsdecl.abbr %}
+        </div>
+        {% endfor %}
+        {% endwith %}
       </fieldset>
     </div>
   </form>
+  <div class="modal" id="delete-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Delete this record?</h2>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <form action="{{ delete_url }}" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="DELETE" value="DELETE"/>
+          <input type="button" value="Cancel" class="default modal-cancel" onclick="hideModal()"/>
+          <input type="submit" value="Delete" class="danger"/>
+        </form>
+      </div>
+    </div>
+  </div>
   <div id="empty_forms" style="display: none;">
     {% comment %}Include an empty form for each sub-form on the page,
     to allow for JS creation of new forms, rather than supplying a set

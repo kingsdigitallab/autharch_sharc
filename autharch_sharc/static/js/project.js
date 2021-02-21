@@ -210,6 +210,17 @@ function exitHandler() {
   }
 }
 
+function showModal(modalName) {
+  $('#'+modalName).addClass('active');
+}
+
+function hideModal() {
+  $(event.target).parents('.modal').first().removeClass('active');
+}
+
+function removeNotification() {
+  $(event.target).parent().remove();
+}
 
 // expand/collapse entity/archival record sections and individual sections on the hierarchy page
 function toggleTab(el) {

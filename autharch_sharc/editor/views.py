@@ -2,11 +2,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.generic import DetailView, TemplateView
+from django.views.decorators.http import require_POST
+from django.views.generic import DetailView, ListView, TemplateView
 
 from elasticsearch_dsl import FacetedSearch, TermsFacet
 import reversion
 from reversion.models import Revision, Version
+from reversion.views import create_revision
 
 from ead.models import (
     EAD,
@@ -142,9 +144,16 @@ class HomeView(LoginRequiredMixin, TemplateView):
         return EAD.objects.filter(id__in=record_ids)
 
 
+class RecordDeletedListView(LoginRequiredMixin, ListView):
+    template_name = "editor/record_deleted_list.html"
+
+    def get_queryset(self):
+        return EAD.objects.filter(maintenancestatus_value="deleted")
+
+
 class RecordHistory(LoginRequiredMixin, DetailView):
     model = EAD
-    template_name = "editor/history.html"
+    template_name = "editor/record_history.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -322,15 +331,41 @@ def record_create(request):
 
 
 @login_required
+@create_revision()
+@require_POST
+def record_delete(request, record_id):
+    record = get_object_or_404(EAD, pk=record_id)
+    if is_deleted_record(record):
+        return redirect("editor:record-history", record_id=record_id)
+    if request.POST.get("DELETE") == "DELETE":
+        reversion.set_comment("Deleted")
+        reversion.set_user(request.user)
+        record.maintenancestatus_value = 'deleted'
+        record.save()
+        view_post_save.send(sender=EAD, instance=record)
+        return redirect("editor:record-list")
+    return redirect("editor:record-edit", record_id=record_id)
+
+
+@login_required
 def record_edit(request, record_id):
     record = get_object_or_404(EAD, pk=record_id)
     form_errors = []
+    is_deleted = is_deleted_record(record)
+    if is_deleted:
+        current_section = "deleted"
+    else:
+        current_section = "records"
     if request.method == "POST":
         form = forms.RecordEditForm(request.POST, instance=record)
         if form.is_valid():
+            # The maintenance status is always revised after an edit;
+            # this resets it if the record is being restored after
+            # deletion.
+            record.maintenancestatus_value = "revised"
             with reversion.create_revision():
                 form.save()
-                # reversion.set_user(self.request.user)
+                reversion.set_user(request.user)
                 reversion.set_comment("Edited")
             view_post_save.send(sender=EAD, instance=record)
             url = (
@@ -343,10 +378,13 @@ def record_edit(request, record_id):
     else:
         form = forms.RecordEditForm(instance=record)
     context = {
-        "current_section": "records",
+        "current_section": current_section,
+        "delete_url": reverse("editor:record-delete",
+                              kwargs={"record_id": record_id}),
         "form": form,
         "form_media": form.media,
         "form_errors": form_errors,
+        "is_deleted": is_deleted,
         "record": record,
         "reverted": request.GET.get("reverted", False),
         "saved": request.GET.get("saved", False),
@@ -362,3 +400,7 @@ def revert(request):
     return redirect(
         request.POST.get("redirect_url") + "?reverted={}".format(revision_id)
     )
+
+
+def is_deleted_record(record):
+    return record.maintenancestatus_value == "deleted"

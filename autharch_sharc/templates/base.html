@@ -44,27 +44,13 @@
             <h4>Archival records</h4>
           </a>
         </div>
-        {% comment %}<div class="link{% if current_section == 'deleted' %} active{% endif %}">
-          <a href="{% url 'editor:deleted-list' %}">
+        <div class="link{% if current_section == 'deleted' %} active{% endif %}">
+          <a href="{% url 'editor:record-deleted-list' %}">
             <i class="far fa-trash-alt"></i>
             <h4>Deleted</h4>
           </a>
-        </div>{% endcomment %}
+        </div>
       </nav>
-      {% comment %}<div id="menu-account">
-        <div class="link{% if current_section == 'account' %} active{% endif %}">
-          <a href="{% url 'editor:account-control' %}">
-            <i class="fal fa-user"></i>
-            <h4>Account control</h4>
-          </a>
-        </div>
-        <div class="link">
-          <a href="{% url 'editor:logout' %}" id="logout">
-            <i class="far fa-sign-out-alt"></i>
-            <h4>Logout</h4>
-          </a>
-        </div>
-      </div>{% endcomment %}
     </header>
     {% endblock %}
     {% block main %}

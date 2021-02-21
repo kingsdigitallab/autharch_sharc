@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load editor_form_tags %}
+{% block main %}
+<main>
+  {% block page_header %}
+  <div class="page-header">
+    <h1>Deleted objects ({{ object_list|length }})</h1>
+  </div>
+  {% endblock page_header %}
+
+  {% block content %}
+  <div class="table-container">
+    <table id="records-list-table" class="tablesorter">
+      <thead>
+        <tr>
+          <th class="description" data-label="Title" data-placeholder="Filter by title" scope="col">Title</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in object_list %}
+        <tr>
+          <td class="description archival-record"><a href="{% url 'editor:record-edit' record.pk %}">{{ record|truncatewords:30 }}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div id="records-list-table_pager_info" class="pager">
+    {% if results_count > 10 %}
+    <div class="page-size">
+      <p>
+        rows per page: <a href="#" data-label="10">10</a>
+        {% if results_count > 25 %}
+          | <a href="#" data-label="25">25</a>
+          {% if results_count > 50 %}
+          | <a href="#" data-label="50">50</a>
+            {% if results_count > 100 %}
+            |  <a href="#" data-label="100">100</a>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </p>
+    </div>
+    <div class="page-list">
+      <button class="first"><i class="fal fa-step-backward"></i></button>
+      <button class="prev"><i class="fal fa-caret-left"></i></button>
+      <span class="pagecount"></span>
+      <button class="next"><i class="fal fa-caret-right"></i></button>
+      <button class="last"><i class="fal fa-step-forward"></i></button>
+    </div>
+    {% endif %}
+  </div>
+  {% endblock content %}
+</main>
+{% endblock main %}
