@@ -12,6 +12,9 @@ from wagtail.search import index
 from wagtail.snippets.models import register_snippet
 
 from autharch_sharc.django_kdl_timeline.models import AbstractTimelineEventSnippet
+from autharch_sharc.editor.serializers import EADDocumentResultSerializer
+
+from .documents import EADDocument
 
 
 class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
@@ -88,7 +91,6 @@ class ResourceDocumentBlock(DocumentChooserBlock):
     """ Block with a document e.g. pdf attached """
 
     def get_api_representation(self, value, context=None):
-
         doc = value
         api_values = {
             "title": doc.title,
@@ -105,7 +107,6 @@ class ResourceImageBlock(kdl_blocks.ImageBlock):
     full_rendition = "width-1000"
 
     def get_api_representation(self, value, context=None):
-
         image = value
         api_values = {
             "id": value.pk,
@@ -204,12 +205,25 @@ class ObjectCollection(models.Model):
 
 
 class ThemeObjectCollection(StreamFieldPage, ObjectCollection):
-    """ A collection of objects """
+    """ A collection of objects based on theme """
 
-    pass
+    def get_related_documents(self):
+        s = EADDocument.search().filter("term", themes__raw=self.title)
+        related_documents = list()
+        for hit in s:
+            related_documents.append(EADDocumentResultSerializer(hit).data)
+        return related_documents
+
+    api_fields = [
+        APIField("title"),
+        APIField("body"),
+        APIField(
+            "get_related_documents",
+        ),
+    ]
 
 
 class StoryObjectCollection(StreamFieldPage, ObjectCollection):
-    """ A collection of objects """
+    """ A collection of objects for a story """
 
     pass

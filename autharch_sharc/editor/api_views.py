@@ -22,7 +22,8 @@ from autharch_sharc.django_kdl_timeline.views import ListTimelineEvents
 from autharch_sharc.editor.models import SharcTimelineEventSnippet
 
 from .documents import EADDocument
-from .serializers import EADDocumentResultSerializer, EADDocumentThemeResultSerializer
+from .models import EADDocumentResultSerializer
+from .serializers import EADDocumentThemeResultSerializer
 
 ES_FACET_OPTIONS = {"order": {"_key": "asc"}, "size": 100}
 

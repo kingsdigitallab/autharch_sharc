@@ -332,6 +332,7 @@ ELASTICSEARCH_DSL = {"default": {"hosts": "elasticsearch:9200"}}
 ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = (
     "editor.signals.ElasticsearchSemiRealTimeSignalProcessor"
 )
+ELASTICSEARCH_INDEX = "editor"
 
 # Controlled Vocabulary
 CONTROLLED_VOCABULARY_VOCABULARIES = [
@@ -353,7 +354,7 @@ WAGTAILSEARCH_BACKENDS = {
     "default": {
         "BACKEND": "wagtail.search.backends.elasticsearch7",
         "URLS": ["http://elasticsearch:9200"],
-        "INDEX": "editor",
+        "INDEX": ELASTICSEARCH_INDEX,
     }
 }
 
