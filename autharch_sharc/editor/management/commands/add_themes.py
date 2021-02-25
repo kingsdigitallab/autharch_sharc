@@ -9,19 +9,19 @@ from autharch_sharc.editor import models
 def add_themes() -> Tuple[int, int, int]:
     """ Default Themes from partner spreadsheet """
 
-    shakespeare, created = models.Theme.objects.get_or_create(
+    shakespeare, created = models.ThemeObjectCollection.objects.get_or_create(
         title="William Shakespeare",
         slug="group_william_shakespeare",
         description="",
     )
 
-    on_the_stage, created = models.Theme.objects.get_or_create(
+    on_the_stage, created = models.ThemeObjectCollection.objects.get_or_create(
         title="On the Stage",
         slug="group_stage",
         description="",
     )
 
-    on_the_page, created = models.Theme.objects.get_or_create(
+    on_the_page, created = models.ThemeObjectCollection.objects.get_or_create(
         title="On the Page",
         slug="group_page",
         description="",

@@ -192,10 +192,24 @@ class SharcRichTextPage(Page):
         }
 
 
-class Theme(models.Model):
-    """ Group of ead objects e.g. theme"""
+class ObjectCollection(models.Model):
+    ead_objects = models.ManyToManyField(
+        EAD,
+        related_name="%(app_label)s_%(class)s_related",
+        related_query_name="%(app_label)s_%(class)ss",
+    )
 
-    title = models.TextField(null=True, blank=True)
-    slug = models.CharField(null=True, blank=True, max_length=128)
-    description = models.TextField(null=True, blank=True)
-    ead_objects = models.ManyToManyField(EAD, related_name="themes")
+    class Meta:
+        abstract = True
+
+
+class ThemeObjectCollection(StreamFieldPage, ObjectCollection):
+    """ A collection of objects """
+
+    pass
+
+
+class StoryObjectCollection(StreamFieldPage, ObjectCollection):
+    """ A collection of objects """
+
+    pass
