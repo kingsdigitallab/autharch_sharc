@@ -180,7 +180,9 @@ class EADDocument(Document):
 
     def prepare_themes(self, instance):
         """ EAD Group Objects"""
-        return [theme.title for theme in instance.themes.all()]
+        return [
+            theme.title for theme in instance.editor_themeobjectcollection_related.all()
+        ]
 
     def prepare_doc_type(self, instance):
         return self.default_doc_type
