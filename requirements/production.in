@@ -12,3 +12,5 @@ django-anymail==8.0  # https://github.com/anymail/django-anymail
 
 # KDL
 # ------------------------------------------------------------------------------
+django-auth-ldap==2.2.0  # https://github.com/django-auth-ldap/django-auth-ldap
+django-kdl-ldap==1.2

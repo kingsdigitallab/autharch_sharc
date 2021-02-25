@@ -87,8 +87,10 @@ THIRD_PARTY_APPS = [
     "wagtail.admin",
     "wagtail.core",
     "wagtail.api.v2",
+    "wagtail.contrib.settings",
     "modelcluster",
     "taggit",
+    "kdl_wagtail.core",
 ]
 
 LOCAL_APPS = [
@@ -327,7 +329,9 @@ CORS_URLS_REGEX = r"^/api/.*$"
 # ------------------------------------------------------------------------------
 # https://github.com/django-es/django-elasticsearch-dsl
 ELASTICSEARCH_DSL = {"default": {"hosts": "elasticsearch:9200"}}
-ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = 'editor.signals.ElasticsearchSemiRealTimeSignalProcessor'
+ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = (
+    "editor.signals.ElasticsearchSemiRealTimeSignalProcessor"
+)
 
 # Controlled Vocabulary
 CONTROLLED_VOCABULARY_VOCABULARIES = [

@@ -1,3 +1,4 @@
+import kdl_wagtail.core.blocks as kdl_blocks
 from django.db import models
 from ead.models import EAD
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
@@ -7,13 +8,9 @@ from wagtail.core.fields import RichTextField, StreamField
 from wagtail.core.models import Page
 from wagtail.core.templatetags.wagtailcore_tags import RichText
 from wagtail.documents.blocks import DocumentChooserBlock
-from wagtail.embeds.blocks import EmbedBlock
-from wagtail.images.blocks import ImageChooserBlock
 from wagtail.search import index
 from wagtail.snippets.models import register_snippet
 
-# from django_elasticsearch_dsl import Document, fields
-# from django_elasticsearch_dsl.registries import registry
 from autharch_sharc.django_kdl_timeline.models import AbstractTimelineEventSnippet
 
 
@@ -101,7 +98,7 @@ class ResourceDocumentBlock(DocumentChooserBlock):
         return api_values
 
 
-class ResourceImageBlock(ImageChooserBlock):
+class ResourceImageBlock(kdl_blocks.ImageBlock):
     """ Resource with image attached"""
 
     # todo rendition width?
@@ -120,7 +117,11 @@ class ResourceImageBlock(ImageChooserBlock):
         return api_values
 
 
-class ResourceEmbedBlock(EmbedBlock):
+class SharcImageGalleryBlock(kdl_blocks.GalleryBlock):
+    pass
+
+
+class ResourceEmbedBlock(kdl_blocks.EmbedBlock):
     """ Resource with embed attached"""
 
     def get_api_representation(self, value, context=None):
@@ -137,6 +138,7 @@ class StreamFieldPage(Page):
             ("heading", blocks.CharBlock(classname="full title")),
             ("paragraph", blocks.RichTextBlock()),
             ("image", ResourceImageBlock()),
+            ("gallery", SharcImageGalleryBlock()),
             ("page", ResourcePageBlock()),
             ("document", ResourceDocumentBlock(icon="doc-full-inverse")),
             ("embed", ResourceEmbedBlock(icon="media")),
@@ -159,14 +161,14 @@ class StreamFieldPage(Page):
     promote_panels = Page.promote_panels
 
 
-class RichTextPage(Page):
+class SharcRichTextPage(Page):
     body = RichTextField(blank=True, null=True)
 
     search_fields = Page.search_fields + [
         index.SearchField("body"),
     ]
 
-    subpage_types = ["RichTextPage", "StreamFieldPage"]
+    subpage_types = ["SharcRichTextPage", "StreamFieldPage"]
 
     content_panels = [
         FieldPanel("title", classname="full title"),

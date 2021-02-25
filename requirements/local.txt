@@ -88,6 +88,8 @@ django-filter==2.4.0
     # via wagtail
 django-formtools==2.2
     # via -r requirements/./base.in
+django-kdl-wagtail==0.9.7
+    # via -r requirements/./base.in
 django-libsass==0.8
     # via -r requirements/./base.in
 django-model-utils==4.0.0
@@ -394,7 +396,9 @@ urllib3==1.26.3
 virtualenv==20.4.2
     # via pre-commit
 wagtail==2.12
-    # via -r requirements/./base.in
+    # via
+    #   -r requirements/./base.in
+    #   django-kdl-wagtail
 watchdog==1.0.2
     # via -r requirements/local.in
 wcwidth==0.2.5

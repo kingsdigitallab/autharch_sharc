@@ -38,20 +38,20 @@ services:
       - ./.envs/.local/.postgres
     restart: unless-stopped
 
-  docs:
-    image: autharch_sharc_local_docs
-    container_name: docs
-    build:
-      context: .
-      dockerfile: ./compose/local/docs/Dockerfile
-    env_file:
-      - ./.envs/.local/.django
-    volumes:
-      - ./docs:/docs:z
-      - ./config:/app/config:z
-      - ./autharch_sharc:/app/autharch_sharc:z
-    ports:
-      - "7000:7000"
+#  docs:
+#    image: autharch_sharc_local_docs
+#    container_name: docs
+#    build:
+#      context: .
+#      dockerfile: ./compose/local/docs/Dockerfile
+#    env_file:
+#      - ./.envs/.local/.django
+#    volumes:
+#      - ./docs:/docs:z
+#      - ./config:/app/config:z
+#      - ./autharch_sharc:/app/autharch_sharc:z
+#    ports:
+#      - "7000:7000"
 
   elasticsearch:
     image: elasticsearch:7.10.1

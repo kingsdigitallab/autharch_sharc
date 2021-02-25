@@ -11,7 +11,7 @@ from ead.models import (
 from elasticsearch_dsl import normalizer
 from lxml import etree
 
-from autharch_sharc.editor.models import RichTextPage, StreamFieldPage
+from autharch_sharc.editor.models import SharcRichTextPage, StreamFieldPage
 
 lowercase_sort_normalizer = normalizer(
     "lowercase_sort", filter=["lowercase", "asciifolding"]
@@ -616,12 +616,12 @@ class EADDocument(Document):
 
 
 @registry.register_document
-class WagtailRichTextPageDocument(EADDocument):
+class WagtailSharcRichTextPageDocument(EADDocument):
     """Document to merge wagtail pages into other documents for
     site search"""
 
     class Django:
-        model = RichTextPage
+        model = SharcRichTextPage
         fields = ["id", "title", "slug"]
 
     @classmethod
