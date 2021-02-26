@@ -193,19 +193,79 @@ class SharcRichTextPage(Page):
         }
 
 
-class ObjectCollection(models.Model):
-    ead_objects = models.ManyToManyField(
-        EAD,
-        related_name="%(app_label)s_%(class)s_related",
-        related_query_name="%(app_label)s_%(class)ss",
+class StoryObjectCollectionType(models.Model):
+    type = models.CharField(blank=True, null=True, max_length=512)
+
+    class Meta:
+        verbose_name = "Story Connection Type"
+        verbose_name_plural = "Story Connection Types"
+
+    def __str__(self):
+        return str(self.type)
+
+
+class StoryObject(models.Model):
+    """Intersection set for collections
+    now including type"""
+
+    ead_object = (
+        models.ForeignKey(
+            EAD, null=True, on_delete=models.CASCADE, related_name="story_objects"
+        ),
+    )
+    connection_type = models.ForeignKey(
+        StoryObjectCollectionType, null=True, on_delete=models.CASCADE
     )
 
     class Meta:
-        abstract = True
+        verbose_name = "Story object"
+        verbose_name_plural = "Story objects"
 
 
-class ThemeObjectCollection(StreamFieldPage, ObjectCollection):
+register_snippet(StoryObject)
+register_snippet(StoryObjectCollectionType)
+
+
+class StoryObjectCollection(StreamFieldPage):
+    story_objects = models.ForeignKey(
+        StoryObject,
+        related_name="story",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    def related_documents(self):
+        """NOTE: This arrangement is slightly round the houses
+        because we
+        A) need to preserve the fundamental relationships in the editor
+        and
+        B) need to return the elastic document, not the EAD object itself
+        So the editor assigned the relationship, we build it into the index
+        and then retrieve it as a doc as necessary
+        """
+
+        s = EADDocument.search().filter("term", stories__story=self.title)
+        related_documents = list()
+        for hit in s:
+            related_documents.append(EADDocumentResultSerializer(hit).data)
+        return related_documents
+
+    api_fields = [
+        APIField("title"),
+        APIField("body"),
+        APIField(
+            "related_documents",
+        ),
+    ]
+
+
+class ThemeObjectCollection(StreamFieldPage):
     """ A collection of objects based on theme """
+
+    theme_objects = models.ForeignKey(
+        EAD, related_name="themes", null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     def get_related_documents(self):
         s = EADDocument.search().filter("term", themes__raw=self.title)
@@ -221,9 +281,3 @@ class ThemeObjectCollection(StreamFieldPage, ObjectCollection):
             "get_related_documents",
         ),
     ]
-
-
-class StoryObjectCollection(StreamFieldPage, ObjectCollection):
-    """ A collection of objects for a story """
-
-    pass

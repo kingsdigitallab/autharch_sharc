@@ -75,6 +75,12 @@ class EADDocument(Document):
             "suggest": fields.CompletionField(),
         }
     )
+    stories = fields.ObjectField(
+        properties={
+            "story": fields.KeywordField(),
+            "connection_type": fields.KeywordField(),
+        }
+    )
     themes = fields.TextField(
         fields={
             "raw": fields.KeywordField(),
@@ -177,10 +183,20 @@ class EADDocument(Document):
     )
 
     def prepare_themes(self, instance):
+
+        return [theme.title for theme in instance.themes]
+
+    def prepare_stories(self, instance):
         """ EAD Group Objects"""
-        return [
-            theme.title for theme in instance.editor_themeobjectcollection_related.all()
-        ]
+        stories = []
+        for story_object in instance.story_objects:
+            stories.append(
+                {
+                    "story": story_object.story.title,
+                    "connection_type": story_object.connection_type.type,
+                }
+            )
+        return stories
 
     def prepare_doc_type(self, instance):
         return self.default_doc_type
