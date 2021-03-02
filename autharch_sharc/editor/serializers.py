@@ -1,5 +1,6 @@
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
+
 from .documents import EADDocument
 
 
@@ -30,7 +31,7 @@ class EADDocumentThemeResultSerializer(DocumentSerializer):
                 return m.thumbnail_url
         return ""
 
-    def get_creators(self,obj):
+    def get_creators(self, obj):
         if obj.creators:
             creators = list()
             for c in obj.creators:
@@ -39,7 +40,7 @@ class EADDocumentThemeResultSerializer(DocumentSerializer):
         else:
             return []
 
-    def get_creation_date(self,obj):
+    def get_creation_date(self, obj):
         if obj.date_of_creation:
             return obj.date_of_creation[0]
         else:
@@ -69,5 +70,7 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "related_people",
             "media",
             "search_content",
-            "doc_type"
+            "doc_type",
+            "themes",
+            "stories",
         )

@@ -184,12 +184,12 @@ class EADDocument(Document):
 
     def prepare_themes(self, instance):
 
-        return [theme.title for theme in instance.themes]
+        return [theme.title for theme in instance.themes.all()]
 
     def prepare_stories(self, instance):
         """ EAD Group Objects"""
         stories = []
-        for story_object in instance.story_objects:
+        for story_object in instance.story_objects.all():
             stories.append(
                 {
                     "story": story_object.story.title,

@@ -86,6 +86,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "sources": "related_sources.sources",
         "individual_connections": "related_sources.individuals",
         "doc_type": "doc_type",
+        "stories": "stories.story",
     }
 
     faceted_search_fields = {

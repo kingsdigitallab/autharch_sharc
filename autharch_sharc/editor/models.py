@@ -107,14 +107,13 @@ class ResourceImageBlock(kdl_blocks.ImageBlock):
     full_rendition = "width-1000"
 
     def get_api_representation(self, value, context=None):
-        image = value
-        api_values = {
-            "id": value.pk,
-            "filename": image.filename,
-            "full_url": image.get_rendition(self.full_rendition).url,
-            "full_width": image.get_rendition(self.full_rendition).width,
-            "full_height": image.get_rendition(self.full_rendition).height,
-        }
+        api_values = super().get_api_representation(value, context)
+        image = value["image"]
+        api_values["filename"] = image.filename
+        api_values["full_url"] = image.get_rendition(self.full_rendition).url
+        api_values["full_width"] = image.get_rendition(self.full_rendition).width
+        api_values["full_height"] = image.get_rendition(self.full_rendition).height
+        # "id": value.pk,
         return api_values
 
 
@@ -204,37 +203,10 @@ class StoryObjectCollectionType(models.Model):
         return str(self.type)
 
 
-class StoryObject(models.Model):
-    """Intersection set for collections
-    now including type"""
-
-    ead_object = (
-        models.ForeignKey(
-            EAD, null=True, on_delete=models.CASCADE, related_name="story_objects"
-        ),
-    )
-    connection_type = models.ForeignKey(
-        StoryObjectCollectionType, null=True, on_delete=models.CASCADE
-    )
-
-    class Meta:
-        verbose_name = "Story object"
-        verbose_name_plural = "Story objects"
-
-
-register_snippet(StoryObject)
 register_snippet(StoryObjectCollectionType)
 
 
 class StoryObjectCollection(StreamFieldPage):
-    story_objects = models.ForeignKey(
-        StoryObject,
-        related_name="story",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
-
     def related_documents(self):
         """NOTE: This arrangement is slightly round the houses
         because we
@@ -260,14 +232,45 @@ class StoryObjectCollection(StreamFieldPage):
     ]
 
 
+class StoryObject(models.Model):
+    """Intersection set for collections
+    now including type
+    """
+
+    ead = models.ForeignKey(
+        EAD, null=True, on_delete=models.CASCADE, related_name="story_objects"
+    )
+
+    connection_type = models.ForeignKey(
+        StoryObjectCollectionType, null=True, on_delete=models.CASCADE
+    )
+
+    story = models.ForeignKey(
+        StoryObjectCollection,
+        related_name="story_objects",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    class Meta:
+        verbose_name = "Story object"
+        verbose_name_plural = "Story objects"
+
+    def __str__(self):
+        label = str(self.story) + ":" + str(self.ead)
+        return (label[0:75] + "...") if len(label) > 75 else label
+
+
+register_snippet(StoryObject)
+
+
 class ThemeObjectCollection(StreamFieldPage):
     """ A collection of objects based on theme """
 
-    theme_objects = models.ForeignKey(
-        EAD, related_name="themes", null=True, blank=True, on_delete=models.SET_NULL
-    )
+    ead_objects = models.ManyToManyField(EAD, related_name="themes")
 
-    def get_related_documents(self):
+    def related_documents(self):
         s = EADDocument.search().filter("term", themes__raw=self.title)
         related_documents = list()
         for hit in s:
@@ -278,6 +281,6 @@ class ThemeObjectCollection(StreamFieldPage):
         APIField("title"),
         APIField("body"),
         APIField(
-            "get_related_documents",
+            "related_documents",
         ),
     ]

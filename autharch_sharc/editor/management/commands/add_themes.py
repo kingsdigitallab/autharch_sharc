@@ -57,11 +57,9 @@ def add_themes() -> Tuple[int, int, int]:
                 page_attached += 1
 
     if shakespeare:
-        for rcin in shakespeare_rcin:
-
-            for ead_object in EAD.objects.filter(unitid__unitid=rcin):
-                shakespeare.ead_objects.add(ead_object)
-                shakespeare_attached += 1
+        for ead_object in EAD.objects.filter(unitid__unitid__in=shakespeare_rcin):
+            shakespeare.ead_objects.add(ead_object)
+            shakespeare_attached += 1
 
     if on_the_stage:
         for rcin in stage_rcin:
