@@ -183,8 +183,9 @@ class EADDocument(Document):
     )
 
     def prepare_themes(self, instance):
-
-        return [theme.title for theme in instance.themes.all()]
+        if instance.themes.count() > 0:
+            return [theme.title for theme in instance.themes.all()]
+        return []
 
     def prepare_stories(self, instance):
         """ EAD Group Objects"""

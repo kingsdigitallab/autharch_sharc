@@ -206,7 +206,7 @@ class EADDocumentViewSet(DocumentViewSet):
     @classmethod
     def _data_to_retrieve(cls, data):
         """ Extra data transformations for single record view"""
-        if "creators" in data:
+        if "creators" in data and data["creators"] is not None:
             # Remove keys as they're not needed for display
             filtered_creators = []
             for creator in data["creators"]:
