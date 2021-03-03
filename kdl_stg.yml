@@ -68,7 +68,7 @@ services:
 
   elasticsearch:
     image: elasticsearch:7.10.1
-    container_name: elasticsearch
+    container_name: elasticsearch_stg
     volumes:
         - elasticsearch_data:/usr/share/elasticsearch/data:z
     env_file:
