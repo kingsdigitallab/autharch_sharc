@@ -9,7 +9,7 @@ entryPoints:
 http:
   routers:
     web-router:
-      rule: "Host(`autharch_sharc-stg.kdl.kcl.ac.uk`)"
+      rule: "Host(`sharc2-stg.kdl.kcl.ac.uk`)"
       entryPoints:
         - web
       middlewares:
@@ -17,7 +17,7 @@ http:
       service: django
 
     web-media-router:
-      rule: "Host(`autharch_sharc-stg.kdl.kcl.ac.uk`) && PathPrefix(`/media/`)"
+      rule: "Host(`sharc2-stg.kdl.kcl.ac.uk`) && PathPrefix(`/media/`)"
       entryPoints:
         - web
       middlewares:
