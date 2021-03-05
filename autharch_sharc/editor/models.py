@@ -1,5 +1,7 @@
 import kdl_wagtail.core.blocks as kdl_blocks
 from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from ead.models import EAD
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.api import APIField
@@ -284,3 +286,29 @@ class ThemeObjectCollection(StreamFieldPage):
             "related_documents",
         ),
     ]
+
+
+@receiver(post_save, sender=StoryObject)
+@receiver(post_delete, sender=StoryObject)
+@receiver(post_save, sender=ThemeObjectCollection)
+@receiver(post_delete, sender=ThemeObjectCollection)
+def update_ead_index(sender, instance, **kwargs):
+    """Updates the related documents if one of the object stories/themes
+    have changed"""
+    ead_objects = []
+    if isinstance(instance, ThemeObjectCollection):
+        ead_objects = instance.ead_objects
+    elif isinstance(instance, StoryObject):
+        ead_objects = [instance.ead]
+
+    for ead_object in ead_objects:
+        # Find related documents by unitid
+        for unitid in ead_object.unitid_set.all():
+            s = EADDocument.search().filter("term", reference=unitid.unitid).execute()
+            for hit in s:
+                # update index entry
+                if isinstance(instance, ThemeObjectCollection):
+                    hit.themes = hit.prepare_themes(ead_object)
+                elif isinstance(instance, StoryObject):
+                    hit.stories = hit.prepare_stories(ead_object)
+                hit.save()
