@@ -146,6 +146,18 @@ class StreamFieldPage(Page):
             ("document", ResourceDocumentBlock(icon="doc-full-inverse")),
             ("embed", ResourceEmbedBlock(icon="media")),
             ("table", TableBlock()),
+            (
+                "two_column_section",
+                blocks.ListBlock(
+                    blocks.StructBlock(
+                        [
+                            ("heading", blocks.CharBlock(classname="column-heading")),
+                            ("body", blocks.RichTextBlock(classname="column-body")),
+                        ]
+                    ),
+                    classname="two-column-50-50",
+                ),
+            ),
         ]
     )
 
