@@ -77,6 +77,7 @@ THIRD_PARTY_APPS = [
     "django_elasticsearch_dsl_drf",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
+    "wagtail.contrib.table_block",
     "wagtail.embeds",
     "wagtail.sites",
     "wagtail.users",

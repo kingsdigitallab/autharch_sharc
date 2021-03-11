@@ -26,7 +26,8 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             # Mimicing memcache behavior.
-            # https://github.com/jazzband/django-redis#memcached-exceptions-behavior
+            # https://github.com/jazzband/django-redis#memcached-exceptions
+            # -behavior
             "IGNORE_EXCEPTIONS": True,
         },
     }
@@ -44,15 +45,18 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # https://docs.djangoproject.com/en/dev/topics/security/#ssl-https
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-seconds
-# TODO: set this to 60 seconds first and then to 518400 once you prove the former works
+# TODO: set this to 60 seconds first and then to 518400 once you prove the
+#  former works
 SECURE_HSTS_SECONDS = 60
-# https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
+# https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include
+# -subdomains
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
     "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-preload
 SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=True)
-# https://docs.djangoproject.com/en/dev/ref/middleware/#x-content-type-options-nosniff
+# https://docs.djangoproject.com/en/dev/ref/middleware/#x-content-type
+# -options-nosniff
 SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
     "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True
 )
@@ -97,22 +101,26 @@ ADMIN_URL = env("DJANGO_ADMIN_URL")
 # https://anymail.readthedocs.io/en/stable/installation/#installing-anymail
 INSTALLED_APPS += ["anymail"]  # noqa F405
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
-# https://anymail.readthedocs.io/en/stable/installation/#anymail-settings-reference
+# https://anymail.readthedocs.io/en/stable/installation/#anymail-settings
+# -reference
 # https://anymail.readthedocs.io/en/stable/esps
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 ANYMAIL = {}
 
-
 # django-compressor
 # ------------------------------------------------------------------------------
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_ENABLED
+# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf
+# .settings.COMPRESS_ENABLED
 # COMPRESS_ENABLED = env.bool("COMPRESS_ENABLED", default=True)
 COMPRESS_OFFLINE = True
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_STORAGE
+# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf
+# .settings.COMPRESS_STORAGE
 COMPRESS_STORAGE = "compressor.storage.GzipCompressorFileStorage"
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_URL
+# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf
+# .settings.COMPRESS_URL
 COMPRESS_URL = STATIC_URL  # noqa F405
-# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf.settings.COMPRESS_FILTERS
+# https://django-compressor.readthedocs.io/en/latest/settings/#django.conf
+# .settings.COMPRESS_FILTERS
 COMPRESS_FILTERS = {
     "css": [
         "compressor.filters.css_default.CssAbsoluteFilter",

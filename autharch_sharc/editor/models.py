@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from ead.models import EAD
 from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.api import APIField
+from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.core import blocks
 from wagtail.core.fields import RichTextField, StreamField
 from wagtail.core.models import Page
@@ -144,6 +145,7 @@ class StreamFieldPage(Page):
             ("page", ResourcePageBlock()),
             ("document", ResourceDocumentBlock(icon="doc-full-inverse")),
             ("embed", ResourceEmbedBlock(icon="media")),
+            ("table", TableBlock()),
         ]
     )
 
