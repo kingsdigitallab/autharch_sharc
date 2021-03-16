@@ -181,7 +181,9 @@ class StreamFieldPage(Page):
                             ("heading", blocks.CharBlock(classname="column-heading")),
                             (
                                 "subheading",
-                                blocks.CharBlock(classname="column-subheading"),
+                                blocks.CharBlock(
+                                    required=False, classname="column-subheading"
+                                ),
                             ),
                             ("body", blocks.RichTextBlock(classname="column-body")),
                         ]
