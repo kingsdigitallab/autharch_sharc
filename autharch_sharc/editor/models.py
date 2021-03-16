@@ -119,9 +119,36 @@ class ResourceImageBlock(kdl_blocks.ImageBlock):
         # "id": value.pk,
         return api_values
 
+    @classmethod
+    def image_to_api(cls, value: dict, api_values: dict):
+        if "image" in value:
+            image = value["image"]
+            api_values["filename"] = image.filename
+            api_values["full_url"] = image.get_rendition(cls.full_rendition).url
+            api_values["full_width"] = image.get_rendition(cls.full_rendition).width
+            api_values["full_height"] = image.get_rendition(cls.full_rendition).height
+        return api_values
+
 
 class SharcImageGalleryBlock(kdl_blocks.GalleryBlock):
-    pass
+    def get_api_representation(self, value, context=None):
+        api_values = []
+        if "images_block" in value:
+            for image_block in value["images_block"]:
+                api_value = {
+                    "transcription": str(image_block["transcription"]),
+                    "description": str(image_block["description"]),
+                    "caption": image_block["caption"],
+                    "attribution": image_block["attribution"],
+                    "page": image_block["page"],
+                    "url": image_block["url"],
+                    "alignment": image_block["alignment"],
+                }
+
+                api_value = ResourceImageBlock.image_to_api(image_block, api_value)
+                api_values.append(api_value)
+
+        return api_values
 
 
 class ResourceEmbedBlock(kdl_blocks.EmbedBlock):
