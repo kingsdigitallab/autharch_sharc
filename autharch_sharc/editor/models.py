@@ -178,10 +178,13 @@ class StreamFieldPage(Page):
                 blocks.ListBlock(
                     blocks.StructBlock(
                         [
-                            ("heading", blocks.CharBlock(classname="column-heading")),
+                            (
+                                "heading",
+                                blocks.RichTextBlock(classname="column-heading"),
+                            ),
                             (
                                 "subheading",
-                                blocks.CharBlock(
+                                blocks.RichTextBlock(
                                     required=False, classname="column-subheading"
                                 ),
                             ),
