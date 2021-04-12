@@ -2,7 +2,8 @@ import argparse
 import csv
 
 from django.core.management.base import BaseCommand
-from editor.models import SharcTimelineEventSnippet
+
+from autharch_sharc.editor.models import SharcTimelineEventSnippet
 
 
 class Command(BaseCommand):
