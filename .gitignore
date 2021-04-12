@@ -275,3 +275,4 @@ autharch_sharc/media/
 .env
 .envs/*
 !.envs/.local/
+data/*
