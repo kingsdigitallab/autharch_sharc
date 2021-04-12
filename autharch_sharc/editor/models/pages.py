@@ -15,9 +15,8 @@ from wagtail.search import index
 from wagtail.snippets.models import register_snippet
 
 from autharch_sharc.django_kdl_timeline.models import AbstractTimelineEventSnippet
+from autharch_sharc.editor.documents import EADDocument
 from autharch_sharc.editor.serializers import EADDocumentResultSerializer
-
-from .documents import EADDocument
 
 
 class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
@@ -362,14 +361,3 @@ def update_ead_index(sender, instance, **kwargs):
                 elif isinstance(instance, StoryObject):
                     hit.stories = hit.prepare_stories(ead_object)
                 hit.save()
-
-
-class SharcIIIF(models.Model):
-    """
-    IIIF image records from the RCT spreadsheet
-    """
-
-    iiif_uri = models.CharField(blank=True, null=True, max_length=512)
-    rcin = models.CharField(blank=True, null=True, max_length=256)
-    images_available = models.TextField(blank=True, null=True)
-    department = models.CharField(blank=True, null=True, max_length=256)
