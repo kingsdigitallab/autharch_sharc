@@ -245,52 +245,61 @@ class EADDocument(Document):
         if SharcIIIF.objects.filter(rcin=RCIN).count() > 0:
             for iiif_record in SharcIIIF.objects.filter(rcin=RCIN):
                 manifest_url = iiif_record.iiif_uri
-                r = requests.get(manifest_url)
-                # todo change this if excel format changes
-                label = iiif_record.images_available
-                if r.status_code == 200 and len(r.text) > 0:
-                    # It's there, parse it
-                    response = r.json()
-                    # print(manifest_url)
+                try:
+                    r = requests.get(manifest_url)
+                    # todo change this if excel format changes
+                    label = iiif_record.images_available
+                    if r.status_code == 200 and len(r.text) > 0:
+                        # It's there, parse it
+                        response = r.json()
+                        # print(manifest_url)
 
-                    try:
-                        if "sequences" in response and len(response["sequences"]) > 0:
-                            iiif_manifest_url = manifest_url
-                            for canvas in response["sequences"][0]["canvases"]:
-                                image = canvas["images"][0]
-                                # Full size image
-                                full_image_url = image["resource"]["@id"]
-                                iiif_image_url = image["resource"]["service"]["@id"]
-                                iiif_image_url = iiif_image_url.replace(
-                                    "https://rct.resourcespace.com/", "/rct/"
-                                )
-                                if "width" in image["resource"]:
-                                    image_width = image["resource"]["width"]
-                                if "height" in image["resource"]:
-                                    image_height = image["resource"]["height"]
-                                # Thumbnail
-                                if "thumbnail" in canvas:
-                                    thumbnail = canvas["thumbnail"]
-                                    thumbnail_url = thumbnail["@id"]
-                                    if "width" in thumbnail:
-                                        thumbnail_width = thumbnail["width"]
-                                    if "height" in thumbnail:
-                                        thumbnail_height = thumbnail["height"]
-                    except IndexError:
-                        pass
-                    media.append(
-                        {
-                            "label": label,
-                            "iiif_manifest_url": iiif_manifest_url,
-                            "iiif_image_url": iiif_image_url,
-                            "full_image_url": full_image_url,
-                            "thumbnail_url": thumbnail_url,
-                            "image_width": image_width,
-                            "image_height": image_height,
-                            "thumbnail_width": thumbnail_width,
-                            "thumbnail_height": thumbnail_height,
-                        }
-                    )
+                        try:
+                            if (
+                                "sequences" in response
+                                and len(response["sequences"]) > 0
+                            ):
+                                iiif_manifest_url = manifest_url
+                                for canvas in response["sequences"][0]["canvases"]:
+                                    image = canvas["images"][0]
+                                    # Full size image
+                                    full_image_url = image["resource"]["@id"]
+                                    iiif_image_url = image["resource"]["service"]["@id"]
+                                    iiif_image_url = iiif_image_url.replace(
+                                        "https://rct.resourcespace.com/", "/rct/"
+                                    )
+                                    if "width" in image["resource"]:
+                                        image_width = image["resource"]["width"]
+                                    if "height" in image["resource"]:
+                                        image_height = image["resource"]["height"]
+                                    # Thumbnail
+                                    if "thumbnail" in canvas:
+                                        thumbnail = canvas["thumbnail"]
+                                        thumbnail_url = thumbnail["@id"]
+                                        if "width" in thumbnail:
+                                            thumbnail_width = thumbnail["width"]
+                                        if "height" in thumbnail:
+                                            thumbnail_height = thumbnail["height"]
+                        except IndexError:
+                            pass
+                except (
+                    requests.exceptions.ConnectionError,
+                    requests.exceptions.MissingSchema,
+                ):
+                    print("BaD url! {}\n".format(manifest_url))
+                media.append(
+                    {
+                        "label": label,
+                        "iiif_manifest_url": iiif_manifest_url,
+                        "iiif_image_url": iiif_image_url,
+                        "full_image_url": full_image_url,
+                        "thumbnail_url": thumbnail_url,
+                        "image_width": image_width,
+                        "image_height": image_height,
+                        "thumbnail_width": thumbnail_width,
+                        "thumbnail_height": thumbnail_height,
+                    }
+                )
         # if 'metadata' in response:
         #     for data in response['metadata']:
         #         if data['label'] == 'Title':

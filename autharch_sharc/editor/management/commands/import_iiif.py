@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 for uri_column in column_format["iiif_uri"]:
                     iiif_uri = csv_line[uri_column]
                     # pdb.set_trace()
-                    if len(iiif_uri) > 0:
+                    if len(iiif_uri) > 0 and "http" in iiif_uri:
                         if len(rcin) == 0:
                             # get the end of the uri
                             # use first column as the rcin
@@ -55,7 +55,7 @@ class Command(BaseCommand):
 
                                 rcin = result.group(1)
 
-                        if len(iiif_uri) > 0 and len(rcin) > 0:
+                        if len(iiif_uri) > 0 and "https" in iiif_uri and len(rcin) > 0:
                             try:
                                 event, created = SharcIIIF.objects.get_or_create(
                                     rcin=rcin,
@@ -87,7 +87,18 @@ class Command(BaseCommand):
             "Library",
         )
 
-        # Add event links
+        self.parse_iiif_sheet(
+            "data/ShaRC_manifests_March2021_paintings.csv",
+            {"images_available": 2, "iiif_uri": [3, 4, 5]},
+            "Paintings",
+        )
+
+        self.parse_iiif_sheet(
+            "data/ShaRC_manifests_March2021_printroom.csv",
+            {"images_available": 2, "iiif_uri": [3, 4, 5]},
+            "Print Room",
+        )
+
         self.stdout.write(
             "{} URIs created, {} updated".format(
                 self.events_created, self.events_updated
