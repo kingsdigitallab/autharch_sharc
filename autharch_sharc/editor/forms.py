@@ -57,6 +57,8 @@ RECORD_SEARCH_END_YEAR_INPUT_ATTRS = {
     "aria-label": "End year",
 }
 
+AUDIENCE_HELP = 'Indicates whether the record is for public consumption ("external") or not ("internal").'
+
 
 def serialise_xml(element, method="xml"):
     return etree.tostring(
@@ -1276,7 +1278,10 @@ class RecordEditForm(ContainerModelForm):
 
     class Meta:
         model = EAD
-        fields = ["recordid"]
+        fields = ["audience", "recordid"]
+        help_texts = {
+            'audience': AUDIENCE_HELP,
+        }
 
 
 class EADEntitySearchForm(forms.Form):
