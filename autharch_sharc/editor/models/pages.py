@@ -275,6 +275,11 @@ class StoryObjectCollection(StreamFieldPage):
             related_documents.append(EADDocumentResultSerializer(hit).data)
         return related_documents
 
+    content_panels = [
+        FieldPanel("title", classname="full title"),
+        FieldPanel("body"),
+    ]
+
     api_fields = [
         APIField("title"),
         APIField("body"),
