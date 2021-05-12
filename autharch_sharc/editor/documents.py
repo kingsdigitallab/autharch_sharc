@@ -176,6 +176,7 @@ class EADDocument(Document):
     medium = fields.KeywordField()
     label = fields.KeywordField()
     doc_type = fields.KeywordField()
+    is_visible = fields.BooleanField()
 
     search_content = fields.TextField(
         fields={
@@ -183,6 +184,9 @@ class EADDocument(Document):
             "sort": fields.KeywordField(normalizer=lowercase_sort_normalizer),
         }
     )
+
+    def prepare_is_visible(self, instance):
+        return True
 
     def prepare_themes(self, instance):
         if instance.themes.count() > 0:

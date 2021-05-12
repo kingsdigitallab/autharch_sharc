@@ -110,17 +110,18 @@ class ResourceImageBlock(kdl_blocks.ImageBlock):
 
     def get_api_representation(self, value, context=None):
         api_values = super().get_api_representation(value, context)
-        image = value["image"]
-        api_values["filename"] = image.filename
-        api_values["full_url"] = image.get_rendition(self.full_rendition).url
-        api_values["full_width"] = image.get_rendition(self.full_rendition).width
-        api_values["full_height"] = image.get_rendition(self.full_rendition).height
+        if "image" in value and value["image"] is not None:
+            image = value["image"]
+            api_values["filename"] = image.filename
+            api_values["full_url"] = image.get_rendition(self.full_rendition).url
+            api_values["full_width"] = image.get_rendition(self.full_rendition).width
+            api_values["full_height"] = image.get_rendition(self.full_rendition).height
         # "id": value.pk,
         return api_values
 
     @classmethod
     def image_to_api(cls, value: dict, api_values: dict):
-        if "image" in value:
+        if "image" in value and value["image"] is not None:
             image = value["image"]
             api_values["filename"] = image.filename
             api_values["full_url"] = image.get_rendition(cls.full_rendition).url
