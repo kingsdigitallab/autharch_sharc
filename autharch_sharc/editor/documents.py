@@ -186,6 +186,8 @@ class EADDocument(Document):
     )
 
     def prepare_is_visible(self, instance):
+        if instance.audience == "internal":
+            return False
         return True
 
     def prepare_themes(self, instance):
