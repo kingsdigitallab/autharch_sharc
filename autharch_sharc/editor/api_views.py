@@ -175,8 +175,13 @@ class EADDocumentViewSet(DocumentViewSet):
 
     def get_doc_type_queryset(self):
         # Include only objects in this search
-        return self.filter_queryset(self.get_queryset()).filter(
-            "terms", doc_type=["object"]
+        return (
+            self.filter_queryset(self.get_queryset())
+            .filter(
+                "terms",
+                doc_type=["object"],
+            )
+            .filter("match", is_visible=True)
         )
 
     def list(self, request, *args, **kwargs):
