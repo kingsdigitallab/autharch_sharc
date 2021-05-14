@@ -24,15 +24,15 @@ def add_themes() -> Tuple[int, int, int]:
     else:
         print("No Shakespeare Theme\n")
 
-    if models.ThemeObjectCollection.objects.filter(title="On the Stage").count() > 0:
+    if models.ThemeObjectCollection.objects.filter(title="On the stage").count() > 0:
         on_the_stage = models.ThemeObjectCollection.objects.filter(
-            title="On the Stage"
+            title="On the stage"
         )[0]
     else:
-        print("No On the Stage Theme\n")
+        print("No On the stage Theme\n")
 
-    if models.ThemeObjectCollection.objects.filter(title="On the Page").count() > 0:
-        on_the_page = models.ThemeObjectCollection.objects.filter(title="On the Page")[
+    if models.ThemeObjectCollection.objects.filter(title="On the page").count() > 0:
+        on_the_page = models.ThemeObjectCollection.objects.filter(title="On the page")[
             0
         ]
     else:
