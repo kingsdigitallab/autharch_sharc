@@ -259,6 +259,7 @@ register_snippet(StoryObjectCollectionType)
 
 
 class StoryObjectCollection(StreamFieldPage):
+    @property
     def related_documents(self):
         """NOTE: This arrangement is slightly round the houses
         because we
@@ -274,11 +275,6 @@ class StoryObjectCollection(StreamFieldPage):
         for hit in s:
             related_documents.append(EADDocumentResultSerializer(hit).data)
         return related_documents
-
-    content_panels = [
-        FieldPanel("title", classname="full title"),
-        FieldPanel("body"),
-    ]
 
     api_fields = [
         APIField("title"),
@@ -356,14 +352,19 @@ def update_ead_index(sender, instance, **kwargs):
     elif isinstance(instance, StoryObject):
         ead_objects = [instance.ead]
 
-    for ead_object in ead_objects:
-        # Find related documents by unitid
-        for unitid in ead_object.unitid_set.all():
-            s = EADDocument.search().filter("term", reference=unitid.unitid).execute()
-            for hit in s:
-                # update index entry
-                if isinstance(instance, ThemeObjectCollection):
-                    hit.themes = hit.prepare_themes(ead_object)
-                elif isinstance(instance, StoryObject):
-                    hit.stories = hit.prepare_stories(ead_object)
-                hit.save()
+    if ead_objects is not None and ead_objects.count() > 0:
+        for ead_object in ead_objects:
+            # Find related documents by unitid
+            for unitid in ead_object.unitid_set.all():
+                s = (
+                    EADDocument.search()
+                    .filter("term", reference=unitid.unitid)
+                    .execute()
+                )
+                for hit in s:
+                    # update index entry
+                    if isinstance(instance, ThemeObjectCollection):
+                        hit.themes = hit.prepare_themes(ead_object)
+                    elif isinstance(instance, StoryObject):
+                        hit.stories = hit.prepare_stories(ead_object)
+                    hit.save()
