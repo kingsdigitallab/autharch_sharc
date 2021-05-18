@@ -72,7 +72,7 @@ django-crispy-forms==1.9.2
     # via -r requirements/./base.in
 django-debug-toolbar==3.1
     # via -r requirements/local.in
-django-ead==0.7.0
+django-ead==0.8.0
     # via -r requirements/./base.in
 django-elasticsearch-dsl-drf==0.21
     # via -r requirements/./base.in
