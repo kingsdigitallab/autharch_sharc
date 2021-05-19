@@ -175,7 +175,9 @@ class RecordSearch(FacetedSearch):
         "texts": TermsFacet(field="related_sources.texts"),
         "works": TermsFacet(field="related_sources.works"),
     }
-    fields = ["creators.name", "unittitle"]
+    fields = ["creators.name", "unittitle", "provenance.raw", "notes.raw",
+              "references_published.raw", "references_unpublished.raw",
+              "medium", "label"]
 
     def __init__(self, query=None, filters={}, sort=(), creation_start=None,
                  creation_end=None, acquisition_start=None,

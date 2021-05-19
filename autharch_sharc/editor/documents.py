@@ -6,12 +6,18 @@ from ead.models import (
     EAD,
     DIdPhysDescStructuredDimensions,
     RelationEntry,
+    SourceEntry,
     UnitDateStructuredDateRange,
 )
-from elasticsearch_dsl import normalizer
+from elasticsearch_dsl import analyzer, normalizer
 from lxml import etree
 
 from autharch_sharc.editor.models import SharcIIIF
+
+
+html_strip_analyzer = analyzer(
+    'html_strip', tokenizer="standard", char_filter=["html_strip"]
+)
 
 lowercase_sort_normalizer = normalizer(
     "lowercase_sort", filter=["lowercase", "asciifolding"]
@@ -70,6 +76,30 @@ class EADDocument(Document):
     pk = fields.IntegerField(attr="id")
     reference = fields.KeywordField()
     archdesc_level = fields.KeywordField(attr="archdesc_level")
+    provenance = fields.ObjectField(
+        properties={
+            "raw": fields.TextField(),
+            "html": fields.TextField(analyzer=html_strip_analyzer),
+        }
+    )
+    notes = fields.ObjectField(
+        properties={
+            "raw": fields.TextField(),
+            "html": fields.TextField(analyzer=html_strip_analyzer),
+        }
+    )
+    references_published = fields.ObjectField(
+        properties={
+            "raw": fields.TextField(),
+            "html": fields.TextField(analyzer=html_strip_analyzer),
+        }
+    )
+    references_unpublished = fields.ObjectField(
+        properties={
+            "raw": fields.TextField(),
+            "html": fields.TextField(analyzer=html_strip_analyzer),
+        }
+    )
     category = fields.TextField(
         fields={
             "raw": fields.KeywordField(),
@@ -642,6 +672,30 @@ class EADDocument(Document):
 
     def prepare_date_of_creation(self, instance):
         return self._get_year_range(instance, "creation")
+
+    def prepare_notes(self, instance):
+        # From ScopeContent.scopecontent with localtype="notes".
+        scope_contents = instance.scopecontent_set.filter(localtype="notes")
+        notes = ' '.join(scope_contents.values_list('scopecontent', flat=True))
+        return {"raw": notes, "html": notes}
+
+    def prepare_provenance(self, instance):
+        # From CustodHist.custodhist
+        provenance = ' '.join(instance.custodhist_set.values_list(
+            'custodhist', flat=True))
+        return {"raw": provenance, "html": provenance}
+
+    def prepare_references_published(self, instance):
+        # From Bibliography.bibliography
+        refs = ' '.join(instance.bibliography_set.values_list(
+            'bibliography', flat=True))
+        return {"raw": refs, "html": refs}
+
+    def prepare_references_unpublished(self, instance):
+        # From SourceEntry.sourceentry
+        entries = SourceEntry.objects.filter(source__sources=instance)
+        refs = ' '.join(entries.values_list('sourceentry', flat=True))
+        return {"raw": refs, "html": refs}
 
     def prepare_unittitle(self, instance):
         try:
