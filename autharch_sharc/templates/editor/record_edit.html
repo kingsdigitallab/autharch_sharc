@@ -110,7 +110,13 @@
               {% endwith %}
             </div>
             <div>
-              {% render_field form.recordid %}
+              {% with unitids=form.formsets.unitids %}
+              {{ unitids.management_form }}
+              {% for unitid in unitids.forms %}
+              {% render_field unitid.id %}
+              {% render_field unitid.unitid %}
+              {% endfor %}
+              {% endwith %}
               {% render_field form.audience %}
             </div>
           </div>

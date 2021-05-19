@@ -30,6 +30,7 @@ from ead.models import (
     UnitDate,
     UnitDateStructured,
     UnitDateStructuredDateRange,
+    UnitId,
     UnitTitle,
 )
 from lxml import etree
@@ -1028,6 +1029,12 @@ class CreationUnitDateStructuredInlineForm(UnitDateStructuredInlineForm):
     datechar = "creation"
 
 
+class UnitIdInlineForm(forms.ModelForm):
+    class Meta:
+        model = UnitId
+        fields = ["id", "unitid"]
+
+
 class UnitTitleInlineForm(forms.ModelForm):
     class Meta:
         model = UnitTitle
@@ -1215,6 +1222,15 @@ class RecordEditForm(ContainerModelForm):
             prefix="acquisition_date_note",
             queryset=UnitDate.objects.filter(datechar="acquisition")
         )
+        UnitIdFormset = forms.inlineformset_factory(
+            EAD,
+            UnitId,
+            form=UnitIdInlineForm,
+            extra=1
+        )
+        formsets["unitids"] = UnitIdFormset(
+            *args, instance=self.instance, prefix="unitid"
+        )
         UnitTitleFormset = forms.inlineformset_factory(
             EAD,
             UnitTitle,
@@ -1278,7 +1294,7 @@ class RecordEditForm(ContainerModelForm):
 
     class Meta:
         model = EAD
-        fields = ["audience", "recordid"]
+        fields = ["audience"]
         help_texts = {
             'audience': AUDIENCE_HELP,
         }
