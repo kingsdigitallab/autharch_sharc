@@ -1226,7 +1226,9 @@ class RecordEditForm(ContainerModelForm):
             EAD,
             UnitId,
             form=UnitIdInlineForm,
-            extra=1
+            extra=1,
+            min_num=1,
+            validate_min=True,
         )
         formsets["unitids"] = UnitIdFormset(
             *args, instance=self.instance, prefix="unitid"
