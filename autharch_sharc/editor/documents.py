@@ -14,9 +14,8 @@ from lxml import etree
 
 from autharch_sharc.editor.models import SharcIIIF
 
-
 html_strip_analyzer = analyzer(
-    'html_strip', tokenizer="standard", char_filter=["html_strip"]
+    "html_strip", tokenizer="standard", char_filter=["html_strip"]
 )
 
 lowercase_sort_normalizer = normalizer(
@@ -533,7 +532,8 @@ class EADDocument(Document):
                 if len(sh_connection) > 2:
                     label = sh_connection[2]
                 for split_label in label.split(","):
-                    data["work_connections"].append(split_label.strip())
+                    if len(split_label) > 0:
+                        data["work_connections"].append(split_label.strip())
 
             elif sh_connection[1].lower() == "attributed to shakespeare":
                 # create type using type of attributed work
@@ -555,7 +555,8 @@ class EADDocument(Document):
                     label = sh_connection[2]
                 else:
                     label = sh_connection[1]
-                data["text_connections"].append(label)
+                if len(label) > 0:
+                    data["text_connections"].append(label)
 
             elif sh_connection[1].lower() == "performance":
                 if len(sh_connection) > 3:
@@ -573,7 +574,8 @@ class EADDocument(Document):
                     label = sh_connection[2]
                 else:
                     label = sh_connection[1]
-                data["performance_connections"].append(label)
+                if len(label) > 0:
+                    data["performance_connections"].append(label)
 
             # Sources
             elif sh_connection[1].lower() == "sources":
@@ -581,7 +583,8 @@ class EADDocument(Document):
                     label = sh_connection[2]
                 else:
                     label = sh_connection[1]
-                data["source_connections"].append(label)
+                if len(label) > 0:
+                    data["source_connections"].append(label)
         return data
 
     def prepare_related_material(self, instance):
@@ -676,25 +679,27 @@ class EADDocument(Document):
     def prepare_notes(self, instance):
         # From ScopeContent.scopecontent with localtype="notes".
         scope_contents = instance.scopecontent_set.filter(localtype="notes")
-        notes = ' '.join(scope_contents.values_list('scopecontent', flat=True))
+        notes = " ".join(scope_contents.values_list("scopecontent", flat=True))
         return {"raw": notes, "html": notes}
 
     def prepare_provenance(self, instance):
         # From CustodHist.custodhist
-        provenance = ' '.join(instance.custodhist_set.values_list(
-            'custodhist', flat=True))
+        provenance = " ".join(
+            instance.custodhist_set.values_list("custodhist", flat=True)
+        )
         return {"raw": provenance, "html": provenance}
 
     def prepare_references_published(self, instance):
         # From Bibliography.bibliography
-        refs = ' '.join(instance.bibliography_set.values_list(
-            'bibliography', flat=True))
+        refs = " ".join(
+            instance.bibliography_set.values_list("bibliography", flat=True)
+        )
         return {"raw": refs, "html": refs}
 
     def prepare_references_unpublished(self, instance):
         # From SourceEntry.sourceentry
         entries = SourceEntry.objects.filter(source__sources=instance)
-        refs = ' '.join(entries.values_list('sourceentry', flat=True))
+        refs = " ".join(entries.values_list("sourceentry", flat=True))
         return {"raw": refs, "html": refs}
 
     def prepare_unittitle(self, instance):
