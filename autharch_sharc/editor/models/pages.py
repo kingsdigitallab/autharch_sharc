@@ -352,7 +352,7 @@ def update_ead_index(sender, instance, **kwargs):
     elif isinstance(instance, StoryObject):
         ead_objects = [instance.ead]
 
-    if ead_objects is not None and ead_objects.count() > 0:
+    if ead_objects is not None and len(ead_objects) > 0:
         for ead_object in ead_objects:
             # Find related documents by unitid
             for unitid in ead_object.unitid_set.all():
