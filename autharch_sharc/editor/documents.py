@@ -99,9 +99,8 @@ class EADDocument(Document):
             "html": fields.TextField(analyzer=html_strip_analyzer),
         }
     )
-    category = fields.TextField(
+    category = fields.KeywordField(
         fields={
-            "raw": fields.KeywordField(),
             "lowercase": fields.KeywordField(normalizer=lowercase_sort_normalizer),
             "suggest": fields.CompletionField(),
         }
@@ -448,14 +447,14 @@ class EADDocument(Document):
             )
             categories.extend(
                 [
-                    str(category)
+                    str(category).strip()
                     for category in root.xpath(
                         "e:genreform/e:part/text()", namespaces=NS_MAP
                     )
                 ]
             )
         if len(categories) > 0:
-            return categories[0]
+            return categories
         return ""
 
     def _prepare_connection(self, instance, localtype):

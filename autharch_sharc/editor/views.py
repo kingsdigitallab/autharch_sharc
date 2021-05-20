@@ -1,15 +1,10 @@
+import reversion
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView, TemplateView
-
-from elasticsearch_dsl import FacetedSearch, TermsFacet
-import reversion
-from reversion.models import Revision, Version
-from reversion.views import create_revision
-
 from ead.models import (
     EAD,
     OriginationCorpName,
@@ -18,13 +13,14 @@ from ead.models import (
     OriginationPersName,
     UnitDateStructuredDateRange,
 )
+from elasticsearch_dsl import FacetedSearch, TermsFacet
+from reversion.models import Revision, Version
+from reversion.views import create_revision
 
 from . import forms
 from .documents import EADDocument
 from .generic_views import SearchView
-# Signal import must match the form used when importing to handle it
-# (ie, editor... in settings).
-from editor.signals import view_post_save
+from .signals import view_post_save
 
 
 def _print_error_log(form, indent=0):
@@ -39,8 +35,7 @@ def _print_error_log(form, indent=0):
         print("{}{}: {}".format(" " * indent, field, field_errors))
     if hasattr(form, "formsets"):
         for formset in form.formsets.values():
-            print("{}{}: {}".format(" " * indent, type(formset),
-                                    formset.is_valid()))
+            print("{}{}: {}".format(" " * indent, type(formset), formset.is_valid()))
             for form in formset.forms:
                 _print_error_log(form, indent + 2)
 
@@ -71,11 +66,9 @@ class FacetMixin:
                 }
             for idx, (value, count, selected) in enumerate(facets[facet_name]):
                 if selected:
-                    link = self._create_unapply_link(
-                        facet_name, value, query_dict)
+                    link = self._create_unapply_link(facet_name, value, query_dict)
                 else:
-                    link = self._create_apply_link(
-                        facet_name, value, query_dict)
+                    link = self._create_apply_link(facet_name, value, query_dict)
                 if display_values is None:
                     display_value = value
                 else:
@@ -138,8 +131,7 @@ class HomeView(LoginRequiredMixin, TemplateView):
         return context
 
     def _get_modified_records(self, user):
-        versions = Version.objects.get_for_model(EAD).filter(
-            revision__user=user)
+        versions = Version.objects.get_for_model(EAD).filter(revision__user=user)
         record_ids = [version.object_id for version in versions]
         return EAD.objects.filter(id__in=record_ids)
 
@@ -169,19 +161,33 @@ class RecordSearch(FacetedSearch):
     doc_types = [EADDocument]
     facets = {
         "acquirers": TermsFacet(field="related_people.acquirers"),
-        "categories": TermsFacet(field="category.raw"),
+        "categories": TermsFacet(field="category"),
         "performances": TermsFacet(field="related_sources.performances"),
         "sources": TermsFacet(field="related_sources.sources"),
         "texts": TermsFacet(field="related_sources.texts"),
         "works": TermsFacet(field="related_sources.works"),
     }
-    fields = ["creators.name", "unittitle", "provenance.raw", "notes.raw",
-              "references_published.raw", "references_unpublished.raw",
-              "medium", "label"]
+    fields = [
+        "creators.name",
+        "unittitle",
+        "provenance.raw",
+        "notes.raw",
+        "references_published.raw",
+        "references_unpublished.raw",
+        "medium",
+        "label",
+    ]
 
-    def __init__(self, query=None, filters={}, sort=(), creation_start=None,
-                 creation_end=None, acquisition_start=None,
-                 acquisition_end=None):
+    def __init__(
+        self,
+        query=None,
+        filters={},
+        sort=(),
+        creation_start=None,
+        creation_end=None,
+        acquisition_start=None,
+        acquisition_end=None,
+    ):
         self._creation_start = creation_start
         self._creation_end = creation_end
         self._acquisition_start = acquisition_start
@@ -192,18 +198,18 @@ class RecordSearch(FacetedSearch):
         s = super().search()
         creation = {}
         if self._creation_start:
-            creation['gte'] = self._creation_start
+            creation["gte"] = self._creation_start
         if self._creation_end:
-            creation['lte'] = self._creation_end
+            creation["lte"] = self._creation_end
         if creation:
-            s = s.filter('range', date_of_creation=creation)
+            s = s.filter("range", date_of_creation=creation)
         acquisition = {}
         if self._acquisition_start:
-            acquisition['gte'] = self._acquisition_start
+            acquisition["gte"] = self._acquisition_start
         if self._acquisition_end:
-            acquisition['lte'] = self._acquisition_end
+            acquisition["lte"] = self._acquisition_end
         if acquisition:
-            s = s.filter('range', date_of_acquisition=acquisition)
+            s = s.filter("range", date_of_acquisition=acquisition)
         return s
 
 
@@ -232,28 +238,29 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
         context = super().get_context_data(**kwargs)
         context["acquisition_max_year"] = context["form"]._acquisition_max_year
         context["acquisition_min_year"] = context["form"]._acquisition_min_year
-        context["acquisition_end_year"] = self.request.GET.get(
-            "acquisition_end_year")
+        context["acquisition_end_year"] = self.request.GET.get("acquisition_end_year")
         context["acquisition_start_year"] = self.request.GET.get(
-            "acquisition_start_year")
+            "acquisition_start_year"
+        )
         context["acquisition_year_remove_link"] = self._create_unapply_year_link(
-            self.request.GET, "acquisition")
+            self.request.GET, "acquisition"
+        )
         context["creation_max_year"] = context["form"]._creation_max_year
         context["creation_min_year"] = context["form"]._creation_min_year
-        context["creation_end_year"] = self.request.GET.get(
-            "creation_end_year")
-        context["creation_start_year"] = self.request.GET.get(
-            "creation_start_year")
+        context["creation_end_year"] = self.request.GET.get("creation_end_year")
+        context["creation_start_year"] = self.request.GET.get("creation_start_year")
         context["creation_year_remove_link"] = self._create_unapply_year_link(
-            self.request.GET, "creation")
+            self.request.GET, "creation"
+        )
         context["current_section"] = "records"
         return context
 
     def _get_date_range(self, datechar):
-        dates = UnitDateStructuredDateRange.objects.exclude(
-            fromdate_standarddate='').filter(
-                parent__datechar=datechar).values_list(
-                    'fromdate_standarddate', 'todate_standarddate')
+        dates = (
+            UnitDateStructuredDateRange.objects.exclude(fromdate_standarddate="")
+            .filter(parent__datechar=datechar)
+            .values_list("fromdate_standarddate", "todate_standarddate")
+        )
         if len(dates) == 0:
             return None, None
         start_dates = []
@@ -277,10 +284,10 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
         """
         qs = self.request.GET
         filters = {
-            'acquisition_start': qs.get('acquisition_start_year'),
-            'acquisition_end': qs.get('acquisition_end_year'),
-            'creation_start': qs.get('creation_start_year'),
-            'creation_end': qs.get('creation_end_year'),
+            "acquisition_start": qs.get("acquisition_start_year"),
+            "acquisition_end": qs.get("acquisition_end_year"),
+            "creation_start": qs.get("creation_start_year"),
+            "creation_end": qs.get("creation_end_year"),
         }
         for key in list(filters.keys()):
             if filters[key] is None:
@@ -289,28 +296,28 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        acquisition_min_year, acquisition_max_year = self._get_date_range(
-            "acquisition")
-        creation_min_year, creation_max_year = self._get_date_range(
-            "creation")
-        kwargs.update({
-            "acquisition_max_year": acquisition_max_year,
-            "acquisition_min_year": acquisition_min_year,
-            "creation_max_year": creation_max_year,
-            "creation_min_year": creation_min_year,
-        })
+        acquisition_min_year, acquisition_max_year = self._get_date_range("acquisition")
+        creation_min_year, creation_max_year = self._get_date_range("creation")
+        kwargs.update(
+            {
+                "acquisition_max_year": acquisition_max_year,
+                "acquisition_min_year": acquisition_min_year,
+                "creation_max_year": creation_max_year,
+                "creation_min_year": creation_min_year,
+            }
+        )
         return kwargs
 
 
 @login_required
 def record_create(request):
     form_errors = []
-    if request.method == 'POST':
+    if request.method == "POST":
         form = forms.RecordEditForm(request.POST)
         if form.is_valid():
             with reversion.create_revision():
                 record = form.save()
-                reversion.set_comment('Created')
+                reversion.set_comment("Created")
             view_post_save.send(sender=EAD, instance=record)
             url = (
                 reverse("editor:record-edit", kwargs={"record_id": record.pk})
@@ -342,7 +349,7 @@ def record_delete(request, record_id):
     if request.POST.get("DELETE") == "DELETE":
         reversion.set_comment("Deleted")
         reversion.set_user(request.user)
-        record.maintenancestatus_value = 'deleted'
+        record.maintenancestatus_value = "deleted"
         record.save()
         view_post_save.send(sender=EAD, instance=record)
         return redirect("editor:record-list")
@@ -381,8 +388,7 @@ def record_edit(request, record_id):
         form = forms.RecordEditForm(instance=record)
     context = {
         "current_section": current_section,
-        "delete_url": reverse("editor:record-delete",
-                              kwargs={"record_id": record_id}),
+        "delete_url": reverse("editor:record-delete", kwargs={"record_id": record_id}),
         "form": form,
         "form_media": form.media,
         "form_errors": form_errors,

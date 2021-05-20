@@ -92,7 +92,7 @@ class EADDocumentViewSet(DocumentViewSet):
     faceted_search_fields = {
         "category": {
             "facet": TermsFacet,
-            "field": "category.raw",
+            "field": "category",
             "enabled": True,
             "options": ES_FACET_OPTIONS,
         },
