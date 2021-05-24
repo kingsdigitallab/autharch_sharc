@@ -27,7 +27,7 @@
       {% endif %}
     </div>
     <div class="action-buttons">
-      {% if not is_deleted %}<button aria-label="delete" class="danger-clear" onclick="showModal('delete-modal')"><i class="far fa-trash-alt"></i> Delete</button>{% endif %}
+      {% if not is_deleted %}<button aria-label="delete" class="danger-clear" onclick="showModal('delete-modal')"> Delete</button>{% endif %}
       <input type="submit" value="{% if is_deleted %}Restore{% else %}Save{% endif %}" form="record-form" class="save"/>
     </div>
   </div>
