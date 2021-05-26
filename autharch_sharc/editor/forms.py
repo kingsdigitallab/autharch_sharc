@@ -848,7 +848,7 @@ class SourceInlineForm(ContainerModelForm):
 class UnitDateInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        datechar = self.instance.datechar
+        datechar = self.instance.datechar or self.datechar
         if datechar == "creation":
             self.fields["unitdate"].label = "Date of creation notes"
         elif datechar == "acquisition":
@@ -857,6 +857,14 @@ class UnitDateInlineForm(forms.ModelForm):
     class Meta:
         model = UnitDate
         fields = ["unitdate"]
+
+
+class AcquisitionUnitDateInlineForm(UnitDateInlineForm):
+    datechar = "acquisition"
+
+
+class CreationUnitDateInlineForm(UnitDateInlineForm):
+    datechar = "creation"
 
 
 class UDSDateRangeInlineForm(forms.ModelForm):
@@ -1097,9 +1105,9 @@ class RecordEditForm(ContainerModelForm):
             EAD,
             DIdPhysDescStructured,
             form=MediumInlineForm,
-            extra=0,
+            extra=1,
             max_num=1,
-            min_num=1,
+            validate_max=True,
         )
         formsets["media"] = MediumFormset(
             *args,
@@ -1150,7 +1158,8 @@ class RecordEditForm(ContainerModelForm):
             queryset=ScopeContent.objects.filter(localtype="publication_details")
         )
         SizeFormset = forms.inlineformset_factory(
-            EAD, DIdPhysDescStructured, form=SizeInlineForm, extra=0
+            EAD, DIdPhysDescStructured, form=SizeInlineForm, extra=1, max_num=1,
+            validate_max=True
         )
         formsets["sizes"] = SizeFormset(
             *args,
@@ -1183,7 +1192,7 @@ class RecordEditForm(ContainerModelForm):
         CreationDateNoteFormset = forms.inlineformset_factory(
             EAD,
             UnitDate,
-            form=UnitDateInlineForm,
+            form=CreationUnitDateInlineForm,
             extra=1,
             max_num=1,
             validate_max=True,
@@ -1211,7 +1220,7 @@ class RecordEditForm(ContainerModelForm):
         AcquisitionDateNoteFormset = forms.inlineformset_factory(
             EAD,
             UnitDate,
-            form=UnitDateInlineForm,
+            form=AcquisitionUnitDateInlineForm,
             extra=1,
             max_num=1,
             validate_max=True,
