@@ -18,6 +18,8 @@ from autharch_sharc.django_kdl_timeline.models import AbstractTimelineEventSnipp
 from autharch_sharc.editor.documents import EADDocument
 from autharch_sharc.editor.serializers import EADDocumentResultSerializer
 
+from .blocks import APIRichTextBlock
+
 
 class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
     """Events imported from csv for Sharc
@@ -166,7 +168,7 @@ class StreamFieldPage(Page):
     body = StreamField(
         [
             ("heading", blocks.CharBlock(classname="full title")),
-            ("paragraph", blocks.RichTextBlock()),
+            ("paragraph", APIRichTextBlock()),
             ("image", ResourceImageBlock()),
             ("gallery", SharcImageGalleryBlock()),
             ("page", ResourcePageBlock()),
@@ -180,15 +182,15 @@ class StreamFieldPage(Page):
                         [
                             (
                                 "heading",
-                                blocks.RichTextBlock(classname="column-heading"),
+                                APIRichTextBlock(classname="column-heading"),
                             ),
                             (
                                 "subheading",
-                                blocks.RichTextBlock(
+                                APIRichTextBlock(
                                     required=False, classname="column-subheading"
                                 ),
                             ),
-                            ("body", blocks.RichTextBlock(classname="column-body")),
+                            ("body", APIRichTextBlock(classname="column-body")),
                         ]
                     ),
                     classname="two-column-50-50",
