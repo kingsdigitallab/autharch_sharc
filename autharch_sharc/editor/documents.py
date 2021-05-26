@@ -1,7 +1,6 @@
 import requests
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
-from ead.constants import NS_MAP
 from ead.models import (
     EAD,
     DIdPhysDescStructuredDimensions,
@@ -395,7 +394,7 @@ class EADDocument(Document):
                         "<wrapper>{}</wrapper>".format(phys.physfacet)
                     )
                     for media in root.xpath(
-                        "e:genreform/e:part/text()", namespaces=NS_MAP
+                        "span[@class='ead-genreform']/span[@class='ead-part']/text()"
                     ):
                         medium = medium + media
         return medium
@@ -449,7 +448,7 @@ class EADDocument(Document):
                 [
                     str(category).strip()
                     for category in root.xpath(
-                        "e:genreform/e:part/text()", namespaces=NS_MAP
+                        "span[@class='ead-genreform']/span[@class='ead-part']/text()"
                     )
                 ]
             )
@@ -591,7 +590,7 @@ class EADDocument(Document):
             root = etree.fromstring(
                 "<wrapper>{}</wrapper>".format(related.relatedmaterial)
             )
-            for element in root.xpath("/e:archref", namespaces=NS_MAP):
+            for element in root.xpath("//span[@class='ead-archref']"):
                 return element.text
         return ""
 
@@ -632,23 +631,23 @@ class EADDocument(Document):
             root = etree.fromstring(
                 "<wrapper>{}</wrapper>".format(controlaccess.controlaccess)
             )
-            for element in root.xpath(path, namespaces=NS_MAP):
+            for element in root.xpath(path):
                 data.append(element.text.strip())
         return data
 
     def _get_donors(self, instance):
         return EADDocument._prepare_control_access_data(
-            instance, "e:persname[@relator='donor']/e:part"
+            instance, "span[@class='ead-persname'][@data-ead-relator='donor']/span[@class='ead-part']"
         )
 
     def _get_acquirers(self, instance):
         return EADDocument._prepare_control_access_data(
-            instance, "e:persname[@relator='acquirer']/e:part"
+            instance, "span[@class='ead-persname'][@data-ead-relator='acquirer']/span[@class='ead-part']"
         )
 
     def _get_publishers(self, instance):
         return EADDocument._prepare_control_access_data(
-            instance, "e:persname[@relator='publisher']/e:part"
+            instance, "span[@class='ead-persname'][@data-ead-relator='publisher']/span[@class='ead-part']"
         )
 
     def prepare_related_people(self, instance):
