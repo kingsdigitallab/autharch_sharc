@@ -795,9 +795,7 @@ class SizeInlineForm(ContainerModelForm):
             form=SizeDimensionsInlineForm,
             extra=1,
             max_num=1,
-            min_num=1,
             validate_max=True,
-            validate_min=True,
         )
         formsets["dimensions"] = DimensionsFormset(
             data, instance=self.instance, prefix=self.prefix + "-dimensions"
@@ -1069,7 +1067,9 @@ class RecordEditForm(ContainerModelForm):
             form=ControlAccessInlineForm,
             extra=1,
             max_num=1,
+            min_num=1,
             validate_max=True,
+            validate_min=True,
         )
         formsets["controlaccesses"] = ControlAccessFormset(
             *args, instance=self.instance, prefix="controlaccess"
@@ -1256,7 +1256,12 @@ class RecordEditForm(ContainerModelForm):
             *args, instance=self.instance, prefix="unittitle"
         )
         RelationFormset = forms.inlineformset_factory(
-            EAD, Relation, form=RelationInlineForm, extra=0
+            EAD,
+            Relation,
+            form=RelationInlineForm,
+            extra=0,
+            min_num=1,
+            validate_min=True,
         )
         formsets["relations"] = RelationFormset(
             *args,
