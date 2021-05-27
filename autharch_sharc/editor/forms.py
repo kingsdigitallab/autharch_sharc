@@ -4,7 +4,6 @@ import re
 
 from django import forms
 from django.core.exceptions import ValidationError
-from ead.constants import EAD_NAMESPACE, EAD_NS, NS_MAP
 from ead.models import (
     EAD,
     Bibliography,
@@ -34,8 +33,6 @@ from ead.models import (
     UnitTitle,
 )
 from lxml import etree
-
-NS_MAP_2 = {None: EAD_NAMESPACE}
 
 
 ENTITY_SEARCH_INPUT_ATTRS = {
@@ -122,7 +119,8 @@ class ArchRefInlineForm(forms.Form):
     )
 
     def clean_archref(self):
-        item = etree.Element(EAD_NS + "archref", nsmap=NS_MAP_2)
+        item = etree.Element("span")
+        item.set("class", "ead-archref")
         item.text = self.cleaned_data["archref"]
         return item
 
@@ -146,7 +144,8 @@ class BibliographyInlineForm(forms.ModelForm):
             self.cleaned_data["bibliography"].replace("\r\n", "\n").replace("\r", "\n")
         )
         for text in data.split("\n\n"):
-            bibref = etree.Element(EAD_NS + "bibref", nsmap=NS_MAP_2)
+            bibref = etree.Element("span")
+            bibref.set("class", "ead-bibref")
             bibref.text = text
             bibrefs.append(serialise_xml(bibref))
         return "".join(bibrefs)
@@ -156,7 +155,7 @@ class BibliographyInlineForm(forms.ModelForm):
         data for a non-model formset."""
         bibrefs = []
         root = etree.fromstring("<wrapper>{}</wrapper>".format(instance.bibliography))
-        for bibref in root.xpath("//e:bibref", namespaces=NS_MAP):
+        for bibref in root.xpath("//span[@class='ead-bibref']"):
             bibrefs.append(serialise_xml(bibref, method="text"))
         return "\n\n".join(bibrefs)
 
@@ -223,18 +222,18 @@ class ControlAccessInlineForm(ContainerModelForm):
         )
         genreforms = [
             {"genreform": serialise_xml(genreform, method="text")}
-            for genreform in root.xpath("//e:genreform", namespaces=NS_MAP)
+            for genreform in root.xpath("//span[@class='ead-genreform']")
         ]
         geognames = [
             {"geogname": serialise_xml(geogname, method="text")}
-            for geogname in root.xpath("//e:geogname", namespaces=NS_MAP)
+            for geogname in root.xpath("//span[@class='ead-geogname']")
         ]
         persnames = [
             {
                 "persname": serialise_xml(persname, method="text"),
-                "relator": persname.get("relator", ""),
+                "relator": persname.get("data-ead-relator", ""),
             }
-            for persname in root.xpath("//e:persname", namespaces=NS_MAP)
+            for persname in root.xpath("//span[@class='ead-persname']")
         ]
         return genreforms, geognames, persnames
 
@@ -252,7 +251,7 @@ class CustodHistInlineForm(forms.ModelForm):
         if instance is not None:
             xml = etree.fromstring("<wrapper>{}</wrapper>".format(instance.custodhist))
             texts = []
-            for para in xml.xpath("//e:p", namespaces=NS_MAP):
+            for para in xml.xpath("//p"):
                 texts.append(serialise_xml(para, method="text"))
             kwargs.update(initial={"custodhist": "\n\n".join(texts)})
         super().__init__(*args, **kwargs)
@@ -262,7 +261,8 @@ class CustodHistInlineForm(forms.ModelForm):
         paras = []
         data = self.cleaned_data["custodhist"].replace("\r\n", "\n").replace("\r", "\n")
         for para in data.split("\n\n"):
-            p = etree.Element(EAD_NS + "p", nsmap=NS_MAP_2)
+            p = etree.Element("p")
+            p.set("class", "ead-p")
             p.text = para
             paras.append(serialise_xml(p))
         return "".join(paras)
@@ -284,8 +284,9 @@ class GenreformInlineForm(forms.Form):
     genreform = forms.CharField()
 
     def clean_genreform(self):
-        item = etree.Element(EAD_NS + "genreform", nsmap=NS_MAP_2)
-        item.set("source", "AAT")
+        item = etree.Element("span")
+        item.set("class", "ead-genreform")
+        item.set("data-ead-source", "AAT")
         item.text = self.cleaned_data["genreform"]
         return serialise_xml(item)
 
@@ -295,8 +296,10 @@ class GeognameInlineForm(forms.Form):
     geogname = forms.CharField(label="Place of origin")
 
     def clean_geogname(self):
-        item = etree.Element(EAD_NS + "geogname", nsmap=NS_MAP_2)
-        part = etree.SubElement(item, EAD_NS + "part", nsmap=NS_MAP_2)
+        item = etree.Element("span")
+        item.set("class", "ead-geogname")
+        part = etree.SubElement(item, "span")
+        part.set("class", "ead-part")
         part.text = self.cleaned_data["geogname"]
         return serialise_xml(item)
 
@@ -433,7 +436,7 @@ class MediumPhysFacetInlineForm(forms.ModelForm):
         if instance is not None:
             xml = etree.fromstring("<wrapper>{}</wrapper>".format(instance.physfacet))
             try:
-                part = xml.xpath("e:genreform[1]/e:part[1]", namespaces=NS_MAP)[0]
+                part = xml.xpath("span[@class='ead-genreform'][1]/span[@class='ead-part'][1]")[0]
                 text = serialise_xml(part, method="text")
             except IndexError:
                 text = ""
@@ -441,8 +444,10 @@ class MediumPhysFacetInlineForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def clean_physfacet(self):
-        genreform = etree.Element(EAD_NS + "genreform", nsmap=NS_MAP_2)
-        part = etree.SubElement(genreform, EAD_NS + "part", nsmap=NS_MAP_2)
+        genreform = etree.Element("span")
+        genreform.set("class", "ead-genreform")
+        part = etree.SubElement(genreform, "span")
+        part.set("class", "ead-part")
         part.text = self.cleaned_data["physfacet"]
         return serialise_xml(genreform)
 
@@ -538,8 +543,10 @@ class PersnameNonModelInlineForm(forms.Form):
         return cleaned_data
 
     def clean_persname(self):
-        item = etree.Element(EAD_NS + "persname", nsmap=NS_MAP_2)
-        part = etree.SubElement(item, EAD_NS + "part", nsmap=NS_MAP_2)
+        item = etree.Element("span")
+        item.set("class", "ead-persname")
+        part = etree.SubElement(item, "span")
+        part.set("class", "ead-part")
         part.text = self.cleaned_data["persname"]
         return item
 
@@ -608,7 +615,8 @@ class RelatedMaterialInlineForm(ContainerModelForm):
 
     def clean_relatedmaterial(self):
         # Wrap the archrefs in a relatedmaterial, per pcaton's instructions.
-        relatedmaterial = etree.Element("relatedmaterial", nsmap=NS_MAP_2)
+        relatedmaterial = etree.Element("span")
+        relatedmaterial.set("class", "ead-relatedmaterial")
         formset = self.formsets["archrefs"]
         for form in formset:
             if form not in formset.deleted_forms:
@@ -625,7 +633,7 @@ class RelatedMaterialInlineForm(ContainerModelForm):
         )
         archrefs = [
             {"archref": serialise_xml(archref, method="text")}
-            for archref in root.xpath("//e:archref", namespaces=NS_MAP)
+            for archref in root.xpath("//span[@class='ead-archref']")
         ]
         return archrefs
 
@@ -728,7 +736,7 @@ class ScopeContentNotesInlineForm(forms.ModelForm):
                 "<wrapper>{}</wrapper>".format(instance.scopecontent)
             )
             texts = []
-            for para in xml.xpath("//e:p", namespaces=NS_MAP):
+            for para in xml.xpath("//p[@class='ead-p']"):
                 texts.append(serialise_xml(para, method="text"))
             kwargs.update(initial={"scopecontent": "\n\n".join(texts)})
         super().__init__(*args, **kwargs)
@@ -740,7 +748,8 @@ class ScopeContentNotesInlineForm(forms.ModelForm):
             self.cleaned_data["scopecontent"].replace("\r\n", "\n").replace("\r", "\n")
         )
         for para in data.split("\n\n"):
-            p = etree.Element(EAD_NS + "p", nsmap=NS_MAP_2)
+            p = etree.Element("p")
+            p.set("class", "ead-p")
             p.text = para
             paras.append(serialise_xml(p))
         return "".join(paras)
@@ -764,7 +773,8 @@ class ScopeContentPublicationDetailsInlineForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def clean_scopecontent(self):
-        item = etree.Element(EAD_NS + "p", nsmap=NS_MAP_2)
+        item = etree.Element("p")
+        item.set("class", "ead-p")
         item.text = self.cleaned_data["scopecontent"]
         return serialise_xml(item)
 
@@ -1235,7 +1245,7 @@ class RecordEditForm(ContainerModelForm):
             EAD,
             UnitId,
             form=UnitIdInlineForm,
-            extra=1,
+            extra=0,
             min_num=1,
             validate_min=True,
         )

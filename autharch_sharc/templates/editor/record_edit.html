@@ -110,13 +110,21 @@
               {% endwith %}
             </div>
             <div>
-              {% with unitids=form.formsets.unitids %}
-              {{ unitids.management_form }}
-              {% for unitid in unitids.forms %}
-              {% render_field unitid.id %}
-              {% render_field unitid.unitid %}
-              {% endfor %}
-              {% endwith %}
+              <div class="formset">
+                {% with unitids=form.formsets.unitids %}
+                <div class="management_form">
+                  {{ unitids.management_form }}
+                </div>
+                <div class="fieldsets">
+                  {% for unitid in unitids.forms %}
+                  {% include "./includes/unitid_inline_form.html" with form=unitid %}
+                  {% endfor %}
+                </div>
+                {% endwith %}
+                <label class="create linked-button">
+                  <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('unitid', this)">Add unit id
+                </label>
+              </div>
               {% render_field form.audience %}
             </div>
           </div>
@@ -470,6 +478,7 @@
     number of extra forms server-side.{% endcomment %}
     {% block empty_forms %}
     {% with formsets=form.formsets %}
+    {% include "./includes/unitid_inline_form.html" with form=formsets.unitids.empty_form %}
     {% with origination_form=formsets.originations.empty_form %}
     {% include "./includes/origination_inline_form.html" with form=origination_form %}
     {% include "./includes/originationpersname_inline_form.html" with form=origination_form.formsets.persnames.empty_form %}
