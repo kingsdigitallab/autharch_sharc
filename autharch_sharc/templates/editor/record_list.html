@@ -132,7 +132,7 @@
     <table id="records-list-table" class="tablesorter">
       <thead>
         <tr>
-          <th class="description" data-label="Title" data-placeholder="Filter by title" scope="col">Title <button class="button-link dotted-underline mgn-left" onclick="toggleAllMoreInformation()">Expand all</button></th>
+          <th class="description" data-label="Title" data-placeholder="Filter by title" scope="col">Title</th>
           <th class="filter-select" scope="col" data-label="Category" data-placeholder="Category">Category</th>
           <th class="sorter-sugar" scope="col" data-label="Updated" data-placeholder="Filter by date">Updated</th>
         </tr>
@@ -143,7 +143,7 @@
         {% if record.pk %}
         <tr>
           <td class="description archival-record"><a href="{% url 'editor:record-edit' record.pk %}">{{ record.unittitle|truncatewords:30 }}</a></td>
-          <td>{{ record.category }}</td>
+          <td>{{ record.category.0 }}</td>
           <td data-text="{{ result.modified.isoformat }}">{{ result.modified }}</td>
         </tr>
         {% endif %}
