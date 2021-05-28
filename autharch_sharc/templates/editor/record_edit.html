@@ -262,14 +262,17 @@
               {% endwith %}
             </div>
           </div>
+          <!-- Provenance -->
           {% with custodhists=form.formsets.custodhists %}
-          {{ custodhists.management_form }}
-          {% for custodhist in custodhists %}
-          {% render_field custodhist.id %}
-          {% render_field custodhist.custodhist %}
-          {% endfor %}
+          <div class="management_form">
+            {{ custodhists.management_form }}
+          </div>
+          <div class="fieldsets">
+            {% for custodhist in custodhists %}
+            {% include "./includes/custodhist_inline_form.html" with form=custodhist %}
+            {% endfor %}
+          </div>
           {% endwith %}
-          <div class="two-column-table">
             <div>
               {% with media=form.formsets.media %}
               <div class="formset">
@@ -298,7 +301,6 @@
               </div>
               {% endwith %}
             </div>
-          </div>
           {% with labels=form.formsets.labels %}
           <div class="formset">
             <div class="management_form">

@@ -251,7 +251,7 @@ class CustodHistInlineForm(forms.ModelForm):
         if instance is not None:
             xml = etree.fromstring("<wrapper>{}</wrapper>".format(instance.custodhist))
             texts = []
-            for para in xml.xpath("//p"):
+            for para in xml.xpath("//p[@class='ead-p']"):
                 texts.append(serialise_xml(para, method="text"))
             kwargs.update(initial={"custodhist": "\n\n".join(texts)})
         super().__init__(*args, **kwargs)

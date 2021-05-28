@@ -1,16 +1,21 @@
 {% load editor_form_tags %}
-<div data-form-type="size">
-  {% render_field form.id %}
-  {% with dimensions=form.formsets.dimensions %}
-  <div class="formset">
-    <div class="management_form">
-      {{ dimensions.management_form }}
+<div class="flex" data-form-type="size">
+  <div class="fieldset inline-deletable">
+    {% render_field form.id %}
+    {% with dimensions=form.formsets.dimensions %}
+    <div class="formset">
+      <div class="management_form">
+        {{ dimensions.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for dimension in dimensions.forms %}
+        {% include "./dimension_inline_form.html" with form=dimension %}
+        {% endfor %}
+      </div>
     </div>
-    <div class="fieldsets">
-      {% for dimension in dimensions.forms %}
-      {% include "./dimension_inline_form.html" with form=dimension %}
-      {% endfor %}
-    </div>
+  </div>
+  <div class="delete-button-block">
+    {% include "./delete_inline_button.html" %}
   </div>
   {% endwith %}
 </div>
