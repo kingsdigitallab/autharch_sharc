@@ -855,16 +855,21 @@ class SourceInlineForm(ContainerModelForm):
 
 class UnitDateInlineForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        instance = kwargs.get("instance", None)
+        if instance is None:
+            kwargs.update(initial={"datechar": self.datechar})
         super().__init__(*args, **kwargs)
-        datechar = self.instance.datechar or self.datechar
-        if datechar == "creation":
+        if self.datechar == "creation":
             self.fields["unitdate"].label = "Date of creation notes"
-        elif datechar == "acquisition":
+        elif self.datechar == "acquisition":
             self.fields["unitdate"].label = "Date of acquisition notes"
 
     class Meta:
         model = UnitDate
-        fields = ["unitdate"]
+        fields = ["datechar", "unitdate"]
+        widgets = {
+            "datechar": forms.HiddenInput(),
+        }
 
 
 class AcquisitionUnitDateInlineForm(UnitDateInlineForm):
@@ -1009,6 +1014,12 @@ class CreationUDSDateRangeInlineForm(UDSDateRangeInlineForm):
 
 
 class UnitDateStructuredInlineForm(ContainerModelForm):
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get("instance", None)
+        if instance is None:
+            kwargs.update(initial={"datechar": self.datechar})
+        super().__init__(*args, **kwargs)
+
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
         data = kwargs.get("data")
@@ -1025,14 +1036,12 @@ class UnitDateStructuredInlineForm(ContainerModelForm):
         )
         return formsets
 
-    def save(self, commit=True):
-        if not self.instance:
-            self.instance.datechar = self.datechar
-        super().save(commit)
-
     class Meta:
         model = UnitDateStructured
-        fields = ["id"]
+        fields = ["id", "datechar"]
+        widgets = {
+            "datechar": forms.HiddenInput(),
+        }
 
 
 class AcquisitionUnitDateStructuredInlineForm(UnitDateStructuredInlineForm):
