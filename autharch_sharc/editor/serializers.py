@@ -73,4 +73,5 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "doc_type",
             "themes",
             "stories",
+            "notes",
         )

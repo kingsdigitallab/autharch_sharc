@@ -394,7 +394,7 @@ class EADDocument(Document):
                         "<wrapper>{}</wrapper>".format(phys.physfacet)
                     )
                     for media in root.xpath(
-                        "span[@class='ead-genreform']/span[@class='ead-part']/text()"
+                        "span[@class='ead-genreform']/span[" "@class='ead-part']/text()"
                     ):
                         medium = medium + media
         return medium
@@ -448,7 +448,7 @@ class EADDocument(Document):
                 [
                     str(category).strip()
                     for category in root.xpath(
-                        "span[@class='ead-genreform']/span[@class='ead-part']/text()"
+                        "span[@class='ead-genreform']/span[" "@class='ead-part']/text()"
                     )
                 ]
             )
@@ -637,17 +637,23 @@ class EADDocument(Document):
 
     def _get_donors(self, instance):
         return EADDocument._prepare_control_access_data(
-            instance, "span[@class='ead-persname'][@data-ead-relator='donor']/span[@class='ead-part']"
+            instance,
+            "span[@class='ead-persname'][@data-ead-relator='donor']/span["
+            "@class='ead-part']",
         )
 
     def _get_acquirers(self, instance):
         return EADDocument._prepare_control_access_data(
-            instance, "span[@class='ead-persname'][@data-ead-relator='acquirer']/span[@class='ead-part']"
+            instance,
+            "span[@class='ead-persname'][@data-ead-relator='acquirer']/span["
+            "@class='ead-part']",
         )
 
     def _get_publishers(self, instance):
         return EADDocument._prepare_control_access_data(
-            instance, "span[@class='ead-persname'][@data-ead-relator='publisher']/span[@class='ead-part']"
+            instance,
+            "span[@class='ead-persname']["
+            "@data-ead-relator='publisher']/span[@class='ead-part']",
         )
 
     def prepare_related_people(self, instance):
