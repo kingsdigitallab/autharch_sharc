@@ -293,7 +293,7 @@ class GenreformInlineForm(forms.Form):
 
 class GeognameInlineForm(forms.Form):
 
-    geogname = forms.CharField(label="Place of origin")
+    geogname = forms.CharField(label="Place of origin", required=False)
 
     def clean_geogname(self):
         item = etree.Element("span")
@@ -1148,7 +1148,11 @@ class RecordEditForm(ContainerModelForm):
             *args, instance=self.instance, prefix="origination"
         )
         PhysLocFormset = forms.inlineformset_factory(
-            EAD, PhysLoc, form=PhyslocInlineForm, extra=1, max_num=1, validate_max=True
+            EAD, PhysLoc,
+            form=PhyslocInlineForm,
+            extra=1,
+            max_num=1,
+            validate_max=True,
         )
         formsets["physlocs"] = PhysLocFormset(
             *args, instance=self.instance, prefix="physloc"

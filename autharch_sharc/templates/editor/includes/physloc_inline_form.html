@@ -1,5 +1,11 @@
 {% load editor_form_tags %}
-<div data-form-type="physloc">
-  {% render_field form.id %}
-  {% render_field form.physloc %}
+<div class="flex" data-form-type="physloc">
+  <div class="fieldset inline-deletable">
+    {% render_form_delete_widget form.DELETE %}
+    {% render_field form.id %}
+    {% render_field form.physloc %}
+  </div>
+  <div class="delete-button-block">
+    {% include "./delete_inline_button.html" %}
+  </div>
 </div>

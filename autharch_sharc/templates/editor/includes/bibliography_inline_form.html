@@ -1,5 +1,11 @@
 {% load editor_form_tags %}
-<fieldset data-form-type="bibliography">
-  {% render_field form.id %}
-  {% render_field form.bibliography %}
+<fieldset class="flex" data-form-type="bibliography">
+  <div class="fieldset inline-deletable">
+    {% render_form_delete_widget form.DELETE %}
+    {% render_field form.id %}
+    {% render_field form.bibliography %}
+  </div>
+  <div class="delete-button-block">
+    {% include "./delete_inline_button.html" %}
+  </div>
 </fieldset>

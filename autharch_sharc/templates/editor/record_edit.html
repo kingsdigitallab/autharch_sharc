@@ -346,6 +346,9 @@
                 {% include "./includes/bibliography_inline_form.html" with form=bibliography %}
                 {% endfor %}
               </div>
+              <label class="create linked-button">
+                <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('bibliography', this)">Add published reference
+              </label>
             </div>
             {% endwith %}
             {% with sources=form.formsets.sources %}

@@ -1,16 +1,22 @@
 {% load editor_form_tags %}
-<div data-form-type="label">
-  {% render_field form.id %}
-  {% with physfacets=form.formsets.physfacets %}
-  <div class="formset">
-    <div class="management_form">
-      {{ physfacets.management_form }}
+<div class="flex" data-form-type="label">
+  <div class="fieldset inline-deletable">
+    {% render_form_delete_widget form.DELETE %}
+    {% render_field form.id %}
+    {% with physfacets=form.formsets.physfacets %}
+    <div class="formset">
+      <div class="management_form">
+        {{ physfacets.management_form }}
+      </div>
+      <div class="fieldsets">
+        {% for physfacet in physfacets.forms %}
+        {% include "./physfacet_inline_form.html" with form=physfacet %}
+        {% endfor %}
+      </div>
     </div>
-    <div class="fieldsets">
-      {% for physfacet in physfacets.forms %}
-      {% include "./physfacet_inline_form.html" with form=physfacet %}
-      {% endfor %}
-    </div>
+    {% endwith %}
   </div>
-  {% endwith %}
+  <div class="delete-button-block">
+    {% include "./delete_inline_button.html" %}
+  </div>
 </div>
