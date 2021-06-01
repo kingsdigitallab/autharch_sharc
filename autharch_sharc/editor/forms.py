@@ -538,7 +538,7 @@ class PersnameNonModelInlineForm(forms.Form):
         persname = cleaned_data.get("persname")
         relator = cleaned_data.get("relator")
         if persname is not None and relator:
-            persname.set("relator", relator)
+            persname.set("data-ead-relator", relator)
         cleaned_data["persname"] = serialise_xml(persname)
         return cleaned_data
 
