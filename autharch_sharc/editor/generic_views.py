@@ -1,44 +1,77 @@
+from django.core.paginator import Page, Paginator
 from django.views.generic import FormView
 from django.views.generic.list import MultipleObjectMixin
+
+
+class ElasticPaginator(Paginator):
+    """ Paginator that will work with elastic search"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.count = self.object_list.hits.total.value
+
+    def page(self, number):
+        number = self.validate_number(number)
+        return Page(self.object_list, number, self)
 
 
 class SearchView(MultipleObjectMixin, FormView):
     """Form view that handles searches via a form that is submitted via
     HTTP GET."""
 
-    form_name = 'search_form'
+    form_name = "search_form"
     object_list = None
-    search_field = 'q'
+    search_field = "q"
+    perPage = 10
 
     def form_invalid(self, form):
-        context = self.get_context_data(**{
-            self.form_name: form,
-            self.context_object_name: self.get_queryset(),
-        })
+        context = self.get_context_data(
+            **{
+                self.form_name: form,
+                self.context_object_name: self.get_queryset(),
+            }
+        )
         return self.render_to_response(context)
 
     def form_valid(self, form):
         query = form.cleaned_data.get(self.search_field)
         requested_facets = self._split_selected_facets(
-            self.request.GET.getlist(self.facet_key))
+            self.request.GET.getlist(self.facet_key)
+        )
         kwargs = {}
         if query:
-            kwargs['query'] = query
+            kwargs["query"] = query
         if requested_facets:
-            kwargs['filters'] = requested_facets
+            kwargs["filters"] = requested_facets
         kwargs.update(self._get_filters())
         search = self.search_class(**kwargs)
-        response = search.execute()
+
+        page = int(self.request.GET.get("page", "1"))
+        per_page = int(self.request.GET.get("paginate_by", self.perPage))
+        start = (page - 1) * per_page
+
+        end = start + per_page
+
+        response = search[start:end].execute()
+        paginator = ElasticPaginator(response, per_page)
+        page_obj = paginator.get_page(page)
         facets, selected_facets = self._annotate_facets(
-            response.facets, self.request.GET)
+            response.facets, self.request.GET
+        )
+        facet_link = self.create_facet_link(self.request.GET)
+
         context = self.get_context_data(
             **{
                 self.context_object_name: response,
                 self.form_name: form,
+                "paginator": paginator,
+                "paginate_by": per_page,
+                "page_obj": page_obj,
                 "facets": facets,
                 "query": query,
                 "results_count": response.hits.total.value,
                 "selected_facets": selected_facets,
+                "facet_link": facet_link,
             }
         )
         return self.render_to_response(context)
@@ -51,11 +84,13 @@ class SearchView(MultipleObjectMixin, FormView):
             return self.form_invalid(form)
 
     def get_form_kwargs(self):
-        kwargs = {'initial': self.get_initial()}
-        if self.request.method == 'GET':
-            kwargs.update({
-                'data': self.request.GET,
-            })
+        kwargs = {"initial": self.get_initial()}
+        if self.request.method == "GET":
+            kwargs.update(
+                {
+                    "data": self.request.GET,
+                }
+            )
         return kwargs
 
     def get_queryset(self):

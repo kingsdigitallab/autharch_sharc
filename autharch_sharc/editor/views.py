@@ -93,7 +93,21 @@ class FacetMixin:
         facets = qd.getlist(self.facet_key)
         facets.append(new_facet)
         qd.setlist(self.facet_key, facets)
+        if "page" in qd:
+            qd["page"] = 1
         link = "?{}".format(qd.urlencode())
+        return link
+
+    def create_facet_link(self, query_dict):
+        """Return a querystring of facets for use in pagination"""
+        qd = query_dict.copy()
+        facets = qd.getlist(self.facet_key)
+        qd.setlist(self.facet_key, facets)
+        if "page" in qd:
+            del qd["page"]
+        if "paginate_by" in qd:
+            del qd["paginate_by"]
+        link = "{}".format(qd.urlencode())
         return link
 
     def _create_unapply_link(self, facet_name, value, query_dict):
@@ -104,6 +118,8 @@ class FacetMixin:
         facets = qd.getlist(self.facet_key)
         facets.remove(old_facet)
         qd.setlist(self.facet_key, facets)
+        if "page" in qd:
+            qd["page"] = 1
         link = qd.urlencode()
         if link:
             link = "?{}".format(link)
@@ -158,6 +174,7 @@ class RecordHistory(LoginRequiredMixin, DetailView):
 
 
 class RecordSearch(FacetedSearch):
+    index = "editor"
     doc_types = [EADDocument]
     facets = {
         "acquirers": TermsFacet(field="related_people.acquirers"),
@@ -218,7 +235,6 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
     form_class = forms.EADRecordSearchForm
     search_class = RecordSearch
     template_name = "editor/record_list.html"
-    paginate_by = 10
 
     def _create_unapply_year_link(self, query_dict, prefix):
         """Return a query string to unapply the start and end year 'facet' for
@@ -235,20 +251,9 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
             link = "."
         return link
 
-    def get_paginate_by(self, queryset):
-        """
-        Get the number of items to paginate by, or ``None`` for no pagination.
-        """
-        if self.request.GET and "paginate_by" in self.request.GET:
-            try:
-                return int(self.request.GET["paginate_by"])
-            except ValueError:
-                return self.paginate_by
-        else:
-            return self.paginate_by
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        self.get_queryset()
         context["acquisition_max_year"] = context["form"]._acquisition_max_year
         context["acquisition_min_year"] = context["form"]._acquisition_min_year
         context["acquisition_end_year"] = self.request.GET.get("acquisition_end_year")
