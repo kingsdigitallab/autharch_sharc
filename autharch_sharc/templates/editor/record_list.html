@@ -157,11 +157,11 @@
       <p>
         rows per page: <a href="#" data-label="10">10</a>
         {% if results_count > 25 %}
-          | <a href="#" data-label="25">25</a>
+          | <a href="?page=1&paginate_by=25" data-label="25">25</a>
           {% if results_count > 50 %}
-          | <a href="#" data-label="50">50</a>
+          | <a href="?page=1&paginate_by=50" data-label="50">50</a>
             {% if results_count > 100 %}
-            |  <a href="#" data-label="100">100</a>
+            |  <a href="?page=1&paginate_by=100" data-label="100">100</a>
             {% endif %}
           {% endif %}
         {% endif %}

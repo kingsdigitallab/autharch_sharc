@@ -218,6 +218,7 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
     form_class = forms.EADRecordSearchForm
     search_class = RecordSearch
     template_name = "editor/record_list.html"
+    paginate_by = 10
 
     def _create_unapply_year_link(self, query_dict, prefix):
         """Return a query string to unapply the start and end year 'facet' for
@@ -233,6 +234,18 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
         else:
             link = "."
         return link
+
+    def get_paginate_by(self, queryset):
+        """
+        Get the number of items to paginate by, or ``None`` for no pagination.
+        """
+        if self.request.GET and "paginate_by" in self.request.GET:
+            try:
+                return int(self.request.GET["paginate_by"])
+            except ValueError:
+                return self.paginate_by
+        else:
+            return self.paginate_by
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
