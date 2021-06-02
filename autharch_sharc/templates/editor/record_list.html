@@ -167,12 +167,21 @@
         {% endif %}
       </p>
     </div>
+
     <div class="page-list">
+    <a href="?page=1">
       <button class="first"><i class="fal fa-step-backward"></i></button>
+    </a>
+      <a href="?page={{ paginator.previous_page_number }}">
       <button class="prev"><i class="fal fa-caret-left"></i></button>
-      <span class="pagecount"></span>
+      </a>
+        <span class="current">{{ paginator.number }}</span>
+      <a href="?page={{ paginator.next_page_number }}">
       <button class="next"><i class="fal fa-caret-right"></i></button>
+      </a>
+      <a href="?page={{ paginator.num_pages }}">
       <button class="last"><i class="fal fa-step-forward"></i></button>
+      </a>
     </div>
     {% endif %}
   </div>
