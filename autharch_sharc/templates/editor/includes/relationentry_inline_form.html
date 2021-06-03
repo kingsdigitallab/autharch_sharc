@@ -1,6 +1,12 @@
 {% load editor_form_tags %}
-<div data-form-type="{{ form_type }}">
-  {% render_field form.id %}
-  {% render_field form.localtype %}
-  {% render_field form.relationentry %}
+<div class="flex" data-form-type="{{ form_type }}">
+  <div class="inline-deletable">
+    {% render_form_delete_widget form.DELETE %}
+    {% render_field form.id %}
+    {% render_field form.localtype %}
+    {% render_field form.relationentry %}
+  </div>
+  <div class="delete-button-block">
+    {% include "./delete_inline_button.html" %}
+  </div>
 </div>

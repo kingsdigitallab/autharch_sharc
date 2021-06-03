@@ -22,7 +22,12 @@
         {% include "./relationentry_inline_form.html" with form=connectiontype form_type='connectiontype' %}
         {% endfor %}
       </div>
+      <label class="create linked-button">
+        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('connectiontype', this)">Add connection
+      </label>
       {% endwith %}
+    </div>
+    <div class="formset">
       {% with primaryconnections=form.formsets.primaryconnections %}
       <div class="management_form">
         {{ primaryconnections.management_form }}
@@ -32,7 +37,12 @@
         {% include "./relationentry_inline_form.html" with form=primaryconnection form_type='primaryconnection' %}
         {% endfor %}
       </div>
+      <label class="create linked-button">
+        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('primaryconnection', this)">Add connection
+      </label>
       {% endwith %}
+    </div>
+    <div class="formset">
       {% with secondaryconnections=form.formsets.secondaryconnections %}
       <div class="management_form">
         {{ secondaryconnections.management_form }}
@@ -42,6 +52,9 @@
         {% include "./relationentry_inline_form.html" with form=secondaryconnection form_type='secondaryconnection' %}
         {% endfor %}
       </div>
+      <label class="create linked-button">
+        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('secondaryconnection', this)">Add connection
+      </label>
       {% endwith %}
     </div>
   </div>
