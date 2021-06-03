@@ -2,7 +2,6 @@
 <fieldset data-form-type="source">
   <div class="formset">
     {% with sourceentries=form.formsets.sourceentries %}
-    {% render_form_delete_widget form.DELETE %}
     {% render_field form.id %}
     <div class="management_form">
       {{ sourceentries.management_form }}

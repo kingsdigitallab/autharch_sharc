@@ -1,6 +1,7 @@
 {% load editor_form_tags %}
 <div class="flex" data-form-type="medium">
   <div class="fieldset inline-deletable">
+    {% render_form_delete_widget form.DELETE %}
     {% render_field form.id %}
     {% with physfacets=form.formsets.physfacets %}
     <div class="formset">
