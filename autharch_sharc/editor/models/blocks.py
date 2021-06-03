@@ -11,3 +11,14 @@ class APIRichTextBlock(blocks.RichTextBlock):
     def get_api_representation(self, value, context=None):
         representation = super().get_api_representation(value, context)
         return expand_db_html(representation)
+
+
+class RichTextNoParagraphBlock(blocks.RichTextBlock):
+    """
+    Rich text parsed block with paragraph stripped
+    From https://github.com/wagtail/wagtail/issues/2695
+    """
+
+    def get_api_representation(self, value, context=None):
+        representation = super().get_api_representation(value, context)
+        return expand_db_html(representation).replace("</p>", "").replace("<p>", "")

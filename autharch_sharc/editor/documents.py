@@ -45,14 +45,10 @@ class EADDocument(Document):
     """ Document model for EAD objects uploaded via xml"""
 
     """ Used for iiif images while we wait for them"""
-    default_iiif_manifest_url = "/rct/iiif/732115a/"
-    default_full_image_url = (
-        "https://rct.resourcespace.com/iiif/image/34658/full/max/0/default.jpg"
-    )
-    default_iiif_image_url = "/rct/iiif/image/34658"
-    default_thumbnail_url = (
-        "https://rct.resourcespace.com/iiif/image/34658/full/thm/0/default.jpg"
-    )
+    default_iiif_manifest_url = "PLACEHOLDER"
+    default_full_image_url = "PLACEHOLDER"
+    default_iiif_image_url = "PLACEHOLDER"
+    default_thumbnail_url = "PLACEHOLDER"
     default_doc_type = "object"
 
     class Index:

@@ -18,7 +18,7 @@ from autharch_sharc.django_kdl_timeline.models import AbstractTimelineEventSnipp
 from autharch_sharc.editor.documents import EADDocument
 from autharch_sharc.editor.serializers import EADDocumentResultSerializer
 
-from .blocks import APIRichTextBlock
+from .blocks import APIRichTextBlock, RichTextNoParagraphBlock
 
 
 class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
@@ -182,11 +182,11 @@ class StreamFieldPage(Page):
                         [
                             (
                                 "heading",
-                                APIRichTextBlock(classname="column-heading"),
+                                RichTextNoParagraphBlock(classname="column-heading"),
                             ),
                             (
                                 "subheading",
-                                APIRichTextBlock(
+                                RichTextNoParagraphBlock(
                                     required=False, classname="column-subheading"
                                 ),
                             ),
