@@ -193,6 +193,8 @@ class RecordSearch(FacetedSearch):
         "references_unpublished.raw",
         "medium",
         "label",
+        "reference",
+        "category",
     ]
 
     def __init__(
@@ -204,11 +206,13 @@ class RecordSearch(FacetedSearch):
         creation_end=None,
         acquisition_start=None,
         acquisition_end=None,
+        reference=None,
     ):
         self._creation_start = creation_start
         self._creation_end = creation_end
         self._acquisition_start = acquisition_start
         self._acquisition_end = acquisition_end
+        self.reference = reference
         super().__init__(query, filters, sort)
 
     def search(self):
@@ -227,6 +231,11 @@ class RecordSearch(FacetedSearch):
             acquisition["lte"] = self._acquisition_end
         if acquisition:
             s = s.filter("range", date_of_acquisition=acquisition)
+        if self.reference:
+            try:
+                s = s.filter("match", reference=self.reference)
+            except TypeError:
+                pass
         return s
 
 
@@ -306,6 +315,7 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
             "acquisition_end": qs.get("acquisition_end_year"),
             "creation_start": qs.get("creation_start_year"),
             "creation_end": qs.get("creation_end_year"),
+            "reference": qs.get("reference"),
         }
         for key in list(filters.keys()):
             if filters[key] is None:

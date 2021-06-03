@@ -105,8 +105,9 @@
 
   {% block content %}
   {% if selected_facets or start_year or end_year %}
-  <div class="selected-facets">
+  <div id="selected-facets" class="selected-facets" data-facet-link="{{ facet_link }}">
     <h4>Selected filters</h4>
+  <p id="facet_link">{{ facet_link }}</p>
     <p>
       {% for selected_facet in selected_facets %}
       {% render_facet selected_facet %}
@@ -153,49 +154,28 @@
       </tbody>
     </table>
   </div>
-  <div  class="pager">
+  <div id="records-list-table_pager_info" class="pager">
     {% if results_count > 10 %}
     <div class="page-size">
       <p>
-        rows per page: <a href="?page=1&paginate_by=10&{{facet_link}}" >10</a>
+        rows per page: <a href="#" data-label="10">10</a>
         {% if results_count > 25 %}
-          | <a href="?page=1&paginate_by=25&{{facet_link}}" >25</a>
+          | <a href="#" data-label="25">25</a>
           {% if results_count > 50 %}
-          | <a href="?page=1&paginate_by=50&{{facet_link}}" >50</a>
+          | <a href="#" data-label="50">50</a>
             {% if results_count > 100 %}
-            |  <a href="?page=1&paginate_by=100&{{facet_link}}" >100</a>
+            |  <a href="#" data-label="100">100</a>
             {% endif %}
           {% endif %}
         {% endif %}
       </p>
     </div>
-
     <div class="page-list">
-    <a href="?page=1&paginate_by={{ paginate_by }}&{{facet_link}}">
       <button class="first"><i class="fal fa-step-backward"></i></button>
-    </a>
-      {% if page_obj.previous_page_number > 1 %}
-      <a href="?page={{ page_obj.previous_page_number }}&paginate_by={{ paginate_by }}&{{facet_link}}">
       <button class="prev"><i class="fal fa-caret-left"></i></button>
-      </a>
-        {% else %}
-        <button class="prev"><i class="fal fa-caret-left"></i></button>
-        {% endif %}
-        <span class="current">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
-    {% if page_obj.number < paginator.num_pages %}
-      <a href="?page={{ page_obj.next_page_number }}&paginate_by={{ paginate_by }}&{{facet_link}}">
+      <span class="pagecount"></span>
       <button class="next"><i class="fal fa-caret-right"></i></button>
-      </a>
-      {% else %}
-      <button class="next"><i class="fal fa-caret-right"></i></button>
-      {% endif %}
-    {% if page_obj.number < paginator.num_pages %}
-      <a href="?page={{ paginator.num_pages }}&paginate_by={{ paginate_by }}&{{facet_link}}">
       <button class="last"><i class="fal fa-step-forward"></i></button>
-      </a>
-      {% else %}
-      <button class="last"><i class="fal fa-step-forward"></i></button>
-      {% endif %}
     </div>
     {% endif %}
   </div>
