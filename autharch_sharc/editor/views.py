@@ -36,6 +36,9 @@ def _print_error_log(form, indent=0):
     if hasattr(form, "formsets"):
         for formset in form.formsets.values():
             print("{}{}: {}".format(" " * indent, type(formset), formset.is_valid()))
+            non_form_errors = formset.non_form_errors()
+            if non_form_errors:
+                print(non_form_errors)
             for form in formset.forms:
                 _print_error_log(form, indent + 2)
 
@@ -135,21 +138,6 @@ class FacetMixin:
             facet, value = selected_facet.split(":", maxsplit=1)
             split_facets.setdefault(facet, []).append(value)
         return split_facets
-
-
-class HomeView(LoginRequiredMixin, TemplateView):
-    template_name = "editor/home.html"
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context["current_section"] = "home"
-        context["modified"] = self._get_modified_records(self.request.user)
-        return context
-
-    def _get_modified_records(self, user):
-        versions = Version.objects.get_for_model(EAD).filter(revision__user=user)
-        record_ids = [version.object_id for version in versions]
-        return EAD.objects.filter(id__in=record_ids)
 
 
 class RecordDeletedListView(LoginRequiredMixin, ListView):
@@ -328,6 +316,11 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
 
 
 @login_required
+def home(request):
+    return redirect(reverse("editor:record-list"))
+
+
+@login_required
 def record_create(request):
     form_errors = []
     if request.method == "POST":
@@ -401,6 +394,7 @@ def record_edit(request, record_id):
             )
             return redirect(url)
         else:
+            _print_error_log(form)
             form_errors = forms.assemble_form_errors(form)
     else:
         form = forms.RecordEditForm(instance=record)
