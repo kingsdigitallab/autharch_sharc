@@ -331,7 +331,7 @@ CORS_URLS_REGEX = r"^/api/.*$"
 # https://github.com/django-es/django-elasticsearch-dsl
 ELASTICSEARCH_DSL = {"default": {"hosts": "elasticsearch:9200"}}
 ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = (
-    "editor.signals.ElasticsearchSemiRealTimeSignalProcessor"
+    "autharch_sharc.editor.signals.ElasticsearchSemiRealTimeSignalProcessor"
 )
 ELASTICSEARCH_INDEX = "editor"
 
