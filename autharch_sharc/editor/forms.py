@@ -1,6 +1,6 @@
 import calendar
-from datetime import date
 import re
+from datetime import date
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -34,7 +34,6 @@ from ead.models import (
 )
 from lxml import etree
 
-
 ENTITY_SEARCH_INPUT_ATTRS = {
     "aria-label": "Search",
     "placeholder": "Search all people and corporate bodies",
@@ -55,7 +54,10 @@ RECORD_SEARCH_END_YEAR_INPUT_ATTRS = {
     "aria-label": "End year",
 }
 
-AUDIENCE_HELP = 'Indicates whether the record is for public consumption ("external") or not ("internal").'
+AUDIENCE_HELP = (
+    "Indicates whether the record is for public consumption "
+    '("external") or not ("internal").'
+)
 
 
 def serialise_xml(element, method="xml"):
@@ -436,7 +438,9 @@ class MediumPhysFacetInlineForm(forms.ModelForm):
         if instance is not None:
             xml = etree.fromstring("<wrapper>{}</wrapper>".format(instance.physfacet))
             try:
-                part = xml.xpath("span[@class='ead-genreform'][1]/span[@class='ead-part'][1]")[0]
+                part = xml.xpath(
+                    "span[@class='ead-genreform'][1]/span[@class='ead-part'][1]"
+                )[0]
                 text = serialise_xml(part, method="text")
             except IndexError:
                 text = ""
@@ -875,12 +879,12 @@ class CreationUnitDateInlineForm(UnitDateInlineForm):
 
 
 class UDSDateRangeInlineForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
         instance = kwargs.get("instance", None)
         if instance is not None:
-            kwargs.update(initial={
-                "display_date": self._assemble_display_date(instance)})
+            kwargs.update(
+                initial={"display_date": self._assemble_display_date(instance)}
+            )
         super().__init__(*args, **kwargs)
 
     @classmethod
@@ -888,20 +892,26 @@ class UDSDateRangeInlineForm(forms.ModelForm):
         from_date_iso = instance.fromdate_standarddate
         to_date_iso = instance.todate_standarddate
         if not from_date_iso:
-            return ''
+            return ""
         date_format = "%d %B %Y"
         try:
             from_date = date.fromisoformat(from_date_iso).strftime(date_format)
         except ValueError:
-            return ''
+            return ""
         if not to_date_iso or to_date_iso == from_date_iso:
             return from_date
         to_date = date.fromisoformat(to_date_iso).strftime(date_format)
         return "{}-{}".format(from_date, to_date)
 
-    def _assemble_range_date(self, from_day=None, from_month=None,
-                             from_year=None, to_day=None, to_month=None,
-                             to_year=None):
+    def _assemble_range_date(
+        self,
+        from_day=None,
+        from_month=None,
+        from_year=None,
+        to_day=None,
+        to_month=None,
+        to_year=None,
+    ):
         if from_day is None:
             from_day = 1
             changed_day = True
@@ -930,14 +940,27 @@ class UDSDateRangeInlineForm(forms.ModelForm):
                 to_day = self._get_last_day_for_month(to_month, to_year)
             else:
                 to_day = from_day
-        return (date(int(from_year), from_month, int(from_day)),
-                date(int(to_year), to_month, int(to_day)))
+        return (
+            date(int(from_year), from_month, int(from_day)),
+            date(int(to_year), to_month, int(to_day)),
+        )
 
     @classmethod
     def _convert_month(cls, month):
-        months = ("January", "February", "March", "April", "May", "June",
-                  "July", "August", "September", "October", "November",
-                  "December")
+        months = (
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        )
         return months.index(month) + 1
 
     @classmethod
@@ -957,7 +980,7 @@ class UDSDateRangeInlineForm(forms.ModelForm):
         # Validate the display date and populate the from and to model
         # fields from its value.
         cleaned_data = super().clean()
-        display_date = cleaned_data.get('display_date')
+        display_date = cleaned_data.get("display_date")
         if display_date is None:
             return cleaned_data
         pattern = r"""
@@ -965,7 +988,8 @@ class UDSDateRangeInlineForm(forms.ModelForm):
 (?:                     # start optional from element day
 (?P<from_day>\d{1,2})   # from day
 \s+)?                   # end optional from day element
-(?P<from_month>January|February|March|April|May|June|July|August|September|October|November|December)   # from month
+(?P<from_month>January|February|March|April|May|June|July|August|September
+|October|November|December)   # from month
 \s+)?                   # end optional from elements day and month
 (?P<from_year>\d{4})    # from year
 (?:                     # start optional to elements day, month, and year
@@ -974,37 +998,43 @@ class UDSDateRangeInlineForm(forms.ModelForm):
 (?:                     # start optional to elements day
 (?P<to_day>\d{1,2})     # to day
 \s+)?                   # end optional to day element
-(?P<to_month>January|February|March|April|May|June|July|August|September|October|November|December)     # to month
+(?P<to_month>January|February|March|April|May|June|July|August|September
+|October|November|December)     # to month
 \s+)?                   # end optional to elements day and month
 (?P<to_year>\d{1,4})    # to year
 )?                      # end optional to elements day, month, and year
 """
         match = re.fullmatch(pattern, display_date, re.VERBOSE)
         if match is None:
-            self.add_error('display_date', ValidationError(
-                'Invalid date format: %(value)s', code='invalid',
-                params={'value': display_date}))
+            self.add_error(
+                "display_date",
+                ValidationError(
+                    "Invalid date format: %(value)s",
+                    code="invalid",
+                    params={"value": display_date},
+                ),
+            )
         else:
             from_date, to_date = self._assemble_range_date(**match.groupdict())
-            cleaned_data['fromdate_standarddate'] = from_date.isoformat()
-            cleaned_data['todate_standarddate'] = to_date.isoformat()
+            cleaned_data["fromdate_standarddate"] = from_date.isoformat()
+            cleaned_data["todate_standarddate"] = to_date.isoformat()
         return cleaned_data
 
     class Meta:
         model = UnitDateStructuredDateRange
         fields = ["id", "fromdate_standarddate", "todate_standarddate"]
         widgets = {
-            'fromdate_standarddate': forms.HiddenInput(),
-            'todate_standarddate': forms.HiddenInput(),
+            "fromdate_standarddate": forms.HiddenInput(),
+            "todate_standarddate": forms.HiddenInput(),
         }
 
 
 class AcquisitionUDSDateRangeInlineForm(UDSDateRangeInlineForm):
-    display_date = forms.CharField(label='Date of acquisition')
+    display_date = forms.CharField(label="Date of acquisition")
 
 
 class CreationUDSDateRangeInlineForm(UDSDateRangeInlineForm):
-    display_date = forms.CharField(label='Date of creation')
+    display_date = forms.CharField(label="Date of creation")
 
 
 class UnitDateStructuredInlineForm(ContainerModelForm):
@@ -1151,7 +1181,8 @@ class RecordEditForm(ContainerModelForm):
             *args, instance=self.instance, prefix="origination"
         )
         PhysLocFormset = forms.inlineformset_factory(
-            EAD, PhysLoc,
+            EAD,
+            PhysLoc,
             form=PhyslocInlineForm,
             extra=1,
             max_num=1,
@@ -1175,8 +1206,12 @@ class RecordEditForm(ContainerModelForm):
             queryset=ScopeContent.objects.filter(localtype="publication_details")
         )
         SizeFormset = forms.inlineformset_factory(
-            EAD, DIdPhysDescStructured, form=SizeInlineForm, extra=1, max_num=1,
-            validate_max=True
+            EAD,
+            DIdPhysDescStructured,
+            form=SizeInlineForm,
+            extra=1,
+            max_num=1,
+            validate_max=True,
         )
         formsets["sizes"] = SizeFormset(
             *args,
@@ -1329,7 +1364,7 @@ class RecordEditForm(ContainerModelForm):
         model = EAD
         fields = ["audience"]
         help_texts = {
-            'audience': AUDIENCE_HELP,
+            "audience": AUDIENCE_HELP,
         }
 
 
@@ -1370,25 +1405,32 @@ class EADRecordSearchForm(forms.Form):
         widget=forms.NumberInput(attrs=RECORD_SEARCH_END_YEAR_INPUT_ATTRS),
     )
 
-    def __init__(self, *args, creation_min_year=0, creation_max_year=2040,
-                 acquisition_min_year=0, acquisition_max_year=2040, **kwargs):
+    def __init__(
+        self,
+        *args,
+        creation_min_year=0,
+        creation_max_year=2040,
+        acquisition_min_year=0,
+        acquisition_max_year=2040,
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
-        acquisition_start_widget = self.fields['acquisition_start_year'].widget
-        acquisition_start_widget.attrs['min'] = acquisition_min_year
-        acquisition_start_widget.attrs['max'] = acquisition_max_year
-        acquisition_start_widget.attrs['placeholder'] = acquisition_min_year
-        acquisition_end_widget = self.fields['acquisition_end_year'].widget
-        acquisition_end_widget.attrs['min'] = acquisition_min_year
-        acquisition_end_widget.attrs['max'] = acquisition_max_year
-        acquisition_end_widget.attrs['placeholder'] = acquisition_max_year
-        creation_start_widget = self.fields['creation_start_year'].widget
-        creation_start_widget.attrs['min'] = creation_min_year
-        creation_start_widget.attrs['max'] = creation_max_year
-        creation_start_widget.attrs['placeholder'] = creation_min_year
-        creation_end_widget = self.fields['creation_end_year'].widget
-        creation_end_widget.attrs['min'] = creation_min_year
-        creation_end_widget.attrs['max'] = creation_max_year
-        creation_end_widget.attrs['placeholder'] = creation_max_year
+        acquisition_start_widget = self.fields["acquisition_start_year"].widget
+        acquisition_start_widget.attrs["min"] = acquisition_min_year
+        acquisition_start_widget.attrs["max"] = acquisition_max_year
+        acquisition_start_widget.attrs["placeholder"] = acquisition_min_year
+        acquisition_end_widget = self.fields["acquisition_end_year"].widget
+        acquisition_end_widget.attrs["min"] = acquisition_min_year
+        acquisition_end_widget.attrs["max"] = acquisition_max_year
+        acquisition_end_widget.attrs["placeholder"] = acquisition_max_year
+        creation_start_widget = self.fields["creation_start_year"].widget
+        creation_start_widget.attrs["min"] = creation_min_year
+        creation_start_widget.attrs["max"] = creation_max_year
+        creation_start_widget.attrs["placeholder"] = creation_min_year
+        creation_end_widget = self.fields["creation_end_year"].widget
+        creation_end_widget.attrs["min"] = creation_min_year
+        creation_end_widget.attrs["max"] = creation_max_year
+        creation_end_widget.attrs["placeholder"] = creation_max_year
         self._acquisition_min_year = acquisition_min_year
         self._acquisition_max_year = acquisition_max_year
         self._creation_min_year = creation_min_year
