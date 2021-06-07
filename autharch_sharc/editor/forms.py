@@ -355,7 +355,8 @@ class LanguageDeclarationInlineForm(forms.ModelForm):
         # Set the language from the language code.
         cleaned_data = super().clean()
         lang_term = cleaned_data.get("language_langcode")
-        cleaned_data["language"] = lang_term.label
+        if lang_term is not None:
+            cleaned_data["language"] = lang_term.label
         return cleaned_data
 
     class Meta:
