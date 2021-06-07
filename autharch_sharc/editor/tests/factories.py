@@ -5,23 +5,26 @@ from factory.django import DjangoModelFactory
 import autharch_sharc.editor.models as models
 
 
-class EADObjectFactory(DjangoModelFactory):
+class StoryObjectFactory(DjangoModelFactory):
     RCIN = factory.Faker("random_int", min=1, max=9999)
 
     class Meta:
-        model = models.EADObject
+        model = models.StoryObject
 
 
-class EADObjectGroupFactory(DjangoModelFactory):
+class ThemeObjectCollectionFactory(DjangoModelFactory):
     """ Group of ead objects e.g. theme"""
 
     title = factory.Faker("sentence", nb_words=4)
     slug = factory.Faker("slug")
-    introduction = factory.Faker("sentence", nb_words=6)
-    description = factory.Faker("sentence", nb_words=8)
+    body = "[]"
+    live = True
+    show_in_menus = True
+    path = "00010009"
+    depth = 2
 
     class Meta:
-        model = models.EADObjectGroup
+        model = models.ThemeObjectCollection
 
 
 class EADFactory(DjangoModelFactory):
