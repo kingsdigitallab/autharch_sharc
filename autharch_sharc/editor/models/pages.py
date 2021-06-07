@@ -312,6 +312,12 @@ class StoryObject(models.Model):
         verbose_name = "Story object"
         verbose_name_plural = "Story objects"
 
+    panels = [
+        FieldPanel("ead"),
+        FieldPanel("connection_type"),
+        FieldPanel("story"),
+    ]
+
     def __str__(self):
         label = str(self.story) + ":" + str(self.ead)
         return (label[0:75] + "...") if len(label) > 75 else label
