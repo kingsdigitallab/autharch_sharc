@@ -14,6 +14,9 @@ from ead.models import (
     UnitDateStructuredDateRange,
 )
 from elasticsearch_dsl import FacetedSearch, TermsFacet
+from rest_framework import permissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from reversion.models import Revision, Version
 from reversion.views import create_revision
 
@@ -335,6 +338,33 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
             }
         )
         return kwargs
+
+
+class RecordListApiView(APIView):
+    """Extra view to return table data as an api call """
+
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def document_search(self, request, **kwargs):
+        # pass request to record list
+        kwargs = {"request": request}
+        record_list = RecordList(**kwargs)
+        context = record_list.get_context_data(**kwargs)
+        if "results_count" in context:
+            results_count = context["results_count"]
+        else:
+            results_count = 0
+        if "object_list" in context:
+            object_list = context["object_list"]
+        else:
+            object_list = []
+        # record_list.context_object_name
+        #
+        return {"count": results_count, "results": object_list}
+
+    def get(self, request, *args, **kwargs):
+        results = self.document_search(request, **kwargs)
+        return Response({"data": results})
 
 
 @login_required

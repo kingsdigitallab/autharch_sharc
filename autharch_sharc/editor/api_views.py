@@ -302,6 +302,34 @@ class ThemeView(APIView):
         return Response({"themes": results})
 
 
+class EditorTableView(APIView):
+    """
+    Return rows for the table in the editor
+
+    """
+
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = EADDocumentResultSerializer
+
+    def document_search(self, request, **kwargs):
+        """Get all documents with a theme
+        aggregate them into lists by theme"""
+        # docviewset = EADDocumentViewSet()
+        # s = Search(index=docviewset.index, using=docviewset.client)
+        # response = s.query(Exists(field="themes.raw")).execute()
+        # themes_results = dict()
+        # Collate response into different themes
+        results = list()
+        for h in kwargs["records"]:
+            results.append(EADDocumentThemeResultSerializer(h).data)
+
+        return results
+
+    def get(self, request, *args, **kwargs):
+        results = self.document_search(request, **kwargs)
+        return Response({"count": kwargs["results_count"], "results": results})
+
+
 # class SharcListSearchResults(APIView):
 #
 #

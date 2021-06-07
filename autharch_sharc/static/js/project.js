@@ -122,7 +122,7 @@ $(document).ready(function () {
             container: $('#' + $(el).parent('.table-container').next('.pager').attr('id')),
             size: 10,
             // &paginate_by=&{filterList:filter}&{sortList:column}
-            ajaxUrl: '/api/documents/?page={page+1}&paginate_by={size}',
+            ajaxUrl: '/editor/records/?result_format=json&page={page+1}&paginate_by={size}',
             customAjaxUrl: function (table, url) {
                 // Get the selected facets and q search
                 let facet_link = $('#selected-facets').data('facet-link');
@@ -139,13 +139,14 @@ $(document).ready(function () {
             savePages: false,
             pageReset: 0,
             ajaxProcessing: function (data) {
+                console.log(data);
                 var total_rows = data.count;
                 var rows = [];
                 var headers = [];
                 if (data.results) {
                     var results = data.results;
                     for (var x = 0; x < results.length; x++) {
-                        let row_title = results[x].unittitle;
+                        let row_title = results[x].title;
                         if (row_title.length > 100) {
                             row_title = row_title.substring(0, 100) + '...';
                         }

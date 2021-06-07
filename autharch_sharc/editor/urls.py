@@ -15,8 +15,7 @@ urlpatterns = [
     path("records/deleted/", deleted_record_list, name="record-deleted-list"),
     path("records/new/", views.record_create, name="record-create"),
     path("records/<int:record_id>/", views.record_edit, name="record-edit"),
-    path("records/<int:record_id>/delete/", views.record_delete,
-         name="record-delete"),
+    path("records/<int:record_id>/delete/", views.record_delete, name="record-delete"),
     path("records/<int:pk>/history/", record_history, name="record-history"),
     path("revert/", views.revert, name="revert"),
 ]

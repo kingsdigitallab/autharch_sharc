@@ -107,7 +107,7 @@
   {% if selected_facets or start_year or end_year %}
   <div id="selected-facets" class="selected-facets" data-facet-link="{{ facet_link }}">
     <h4>Selected filters</h4>
-  <p id="facet_link">{{ facet_link }}</p>
+
     <p>
       {% for selected_facet in selected_facets %}
       {% render_facet selected_facet %}
