@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from ead.models import EAD
-from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
+from wagtail.admin.edit_handlers import FieldPanel, HelpPanel, StreamFieldPanel
 from wagtail.api import APIField
 from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.core import blocks
@@ -12,13 +12,14 @@ from wagtail.core.models import Page
 from wagtail.core.templatetags.wagtailcore_tags import RichText
 from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.search import index
+from wagtail.snippets.edit_handlers import SnippetChooserPanel
 from wagtail.snippets.models import register_snippet
 
 from autharch_sharc.django_kdl_timeline.models import AbstractTimelineEventSnippet
 from autharch_sharc.editor.documents import EADDocument
 from autharch_sharc.editor.serializers import EADDocumentResultSerializer
 
-from .blocks import APIRichTextBlock, RichTextNoParagraphBlock
+from .stream_blocks import APIRichTextBlock, RichTextNoParagraphBlock
 
 
 class SharcTimelineEventSnippet(AbstractTimelineEventSnippet):
@@ -287,6 +288,58 @@ class StoryObjectCollection(StreamFieldPage):
     ]
 
 
+class WagtailEADSnippet(index.Indexed, models.Model):
+    """A middleware snippet to facilitate using the ead objects
+    in wagtail
+    Fields in the EAD for searching/filtering are brought forward here
+    so wagtail can use them.
+    Should be updated whenever the index is updated
+    """
+
+    ead = models.ForeignKey(
+        EAD, null=True, on_delete=models.CASCADE, related_name="ead_snippets"
+    )
+    unittitle = models.TextField(null=True, blank=True)
+    reference = models.CharField(max_length=256, null=True, blank=True)
+
+    panels = [
+        HelpPanel(content="Do not Edit!"),
+        FieldPanel("unittitle"),
+        FieldPanel("reference"),
+    ]
+
+    search_fields = [
+        index.SearchField("unittitle", partial_match=True),
+        index.FilterField("reference", partial_match=True),
+    ]
+
+    class Meta:
+        verbose_name = "EAD wagtail object"
+        verbose_name_plural = "EAD wagtail objects"
+
+    def __str__(self):
+        label = str(self.reference) + ":" + str(self.unittitle)
+        return (label[0:75] + "...") if len(label) > 75 else label
+
+
+register_snippet(WagtailEADSnippet)
+
+
+@receiver(post_save, sender=EAD)
+def add_ead_snippetsave(sender, instance, **kwargs):
+    # save the object
+    import pdb
+
+    pdb.set_trace()
+    doc = EADDocument()
+    # update the mirrored wagtail snippet
+    ead_snippet, created = WagtailEADSnippet.objects.get_or_create(
+        unittitle=doc.prepare_unittitle(instance),
+        reference=doc.prepare_reference(instance),
+        ead=instance,
+    )
+
+
 class StoryObject(models.Model):
     """Intersection set for collections
     now including type
@@ -294,6 +347,13 @@ class StoryObject(models.Model):
 
     ead = models.ForeignKey(
         EAD, null=True, on_delete=models.CASCADE, related_name="story_objects"
+    )
+
+    ead_snippet = models.ForeignKey(
+        WagtailEADSnippet,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="ead_snippet",
     )
 
     connection_type = models.ForeignKey(
@@ -313,7 +373,7 @@ class StoryObject(models.Model):
         verbose_name_plural = "Story objects"
 
     panels = [
-        FieldPanel("ead"),
+        SnippetChooserPanel("ead_snippet"),
         FieldPanel("connection_type"),
         FieldPanel("story"),
     ]
