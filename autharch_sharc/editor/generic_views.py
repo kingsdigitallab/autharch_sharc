@@ -35,27 +35,6 @@ class SearchView(MultipleObjectMixin, FormView):
         )
         return self.render_to_response(context)
 
-    def run_search(self, form, request):
-        query = form.cleaned_data.get(self.search_field)
-        requested_facets = self._split_selected_facets(
-            self.request.GET.getlist(self.facet_key)
-        )
-        kwargs = {}
-        if query:
-            kwargs["query"] = query
-        if requested_facets:
-            kwargs["filters"] = requested_facets
-        kwargs.update(self._get_filters())
-        search = self.search_class(**kwargs)
-
-        page = int(request.GET.get("page", "1"))
-        per_page = int(request.GET.get("paginate_by", self.perPage))
-        start = (page - 1) * per_page
-
-        end = start + per_page
-
-        return search[start:end].execute(), page, per_page
-
     def form_valid(self, form):
 
         query = form.cleaned_data.get(self.search_field)
