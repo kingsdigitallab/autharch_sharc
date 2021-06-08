@@ -434,7 +434,6 @@ def record_edit(request, record_id):
             )
             return redirect(url)
         else:
-            _print_error_log(form)
             form_errors = forms.assemble_form_errors(form)
     else:
         form = forms.RecordEditForm(instance=record)

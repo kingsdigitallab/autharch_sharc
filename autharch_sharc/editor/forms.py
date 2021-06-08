@@ -40,6 +40,8 @@ ENTITY_SEARCH_INPUT_ATTRS = {
     "type": "search",
 }
 
+INITIAL_RIGHTS_CITATION = '1.0 Universal (CC0 1.0) Public Domain Dedication'
+
 RECORD_SEARCH_INPUT_ATTRS = {
     "aria-label": "Search",
     "placeholder": "Search all archival records",
@@ -170,6 +172,12 @@ class BibliographyInlineForm(forms.ModelForm):
 
 
 class ControlAccessInlineForm(ContainerModelForm):
+    # controlaccess must be made not required because otherwise an
+    # empty field (such as on a new record) fails validation before
+    # reaching clean_controlaccess where the content is generated from
+    # the non-model inline formsets.
+    controlaccess = forms.CharField(required=False, widget=forms.HiddenInput)
+
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
         data = kwargs.get("data")
@@ -179,7 +187,7 @@ class ControlAccessInlineForm(ContainerModelForm):
             initial_persnames,
         ) = self._parse_controlaccess()
         GenreformFormset = forms.formset_factory(
-            GenreformInlineForm, can_delete=True, extra=1, max_num=1, validate_max=True
+            GenreformInlineForm, extra=1, max_num=1, validate_max=True
         )
         formsets["genreforms"] = GenreformFormset(
             data, initial=initial_genreforms, prefix=self.prefix + "-genreform"
@@ -216,6 +224,13 @@ class ControlAccessInlineForm(ContainerModelForm):
             )
         return "".join(controlaccess)
 
+    def has_changed(self):
+        # When there is no instance, we want to save so that we
+        # capture the data on the non-model inline formsets.
+        if self.instance.id is None:
+            return True
+        return super().has_changed()
+
     def _parse_controlaccess(self):
         """Returns the genreforms, geognames, and persnames in the instance's
         controlaccess field as initial data for non-model formsets."""
@@ -242,9 +257,6 @@ class ControlAccessInlineForm(ContainerModelForm):
     class Meta:
         model = ControlAccess
         fields = ["controlaccess", "id"]
-        widgets = {
-            "controlaccess": forms.HiddenInput(),
-        }
 
 
 class CustodHistInlineForm(forms.ModelForm):
@@ -351,6 +363,13 @@ class LabelPhysFacetInlineForm(forms.ModelForm):
 
 
 class LanguageDeclarationInlineForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in ['language_langcode', 'script_el_script']:
+            self.fields[field].required = True
+            self.fields[field].widget.is_required = True
+
     def clean(self):
         # Set the language from the language code.
         cleaned_data = super().clean()
@@ -713,6 +732,16 @@ class RightsDeclarationInlineForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in self.disabled_fields:
             self.fields[field].disabled = True
+
+    def clean_citation(self):
+        return INITIAL_RIGHTS_CITATION
+
+    def has_changed(self):
+        # When there is no instance, we want to save so that we
+        # capture the citation.
+        if self.instance.id is None:
+            return True
+        return super().has_changed()
 
     class Meta:
         model = RightsDeclaration
@@ -1357,7 +1386,8 @@ class RecordEditForm(ContainerModelForm):
             validate_min=True,
         )
         formsets["rightsdeclarations"] = RightsDeclarationFormset(
-            *args, instance=self.instance, prefix="rightsdeclaration"
+            *args, instance=self.instance, prefix="rightsdeclaration",
+            initial=[{'citation': INITIAL_RIGHTS_CITATION}],
         )
         return formsets
 
