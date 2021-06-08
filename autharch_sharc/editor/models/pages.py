@@ -1,7 +1,13 @@
 import kdl_wagtail.core.blocks as kdl_blocks
 from django.db import models
 from ead.models import EAD
-from wagtail.admin.edit_handlers import FieldPanel, HelpPanel, StreamFieldPanel
+from modelcluster.fields import ParentalKey
+from wagtail.admin.edit_handlers import (
+    FieldPanel,
+    HelpPanel,
+    InlinePanel,
+    StreamFieldPanel,
+)
 from wagtail.api import APIField
 from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.core import blocks
@@ -14,6 +20,8 @@ from wagtail.snippets.edit_handlers import SnippetChooserPanel
 from wagtail.snippets.models import register_snippet
 
 from autharch_sharc.django_kdl_timeline.models import AbstractTimelineEventSnippet
+from autharch_sharc.editor.documents import EADDocument
+from autharch_sharc.editor.serializers import EADDocumentResultSerializer
 
 from .stream_blocks import APIRichTextBlock, RichTextNoParagraphBlock
 
@@ -257,6 +265,10 @@ class WagtailEADSnippet(index.Indexed, models.Model):
     unittitle = models.TextField(null=True, blank=True)
     reference = models.CharField(max_length=256, null=True, blank=True)
 
+    @property
+    def search_content(self):
+        return str(self.reference)
+
     panels = [
         HelpPanel(content="Do not Edit!"),
         FieldPanel("unittitle"),
@@ -264,8 +276,7 @@ class WagtailEADSnippet(index.Indexed, models.Model):
     ]
 
     search_fields = [
-        index.SearchField("unittitle", partial_match=True),
-        index.FilterField("reference", partial_match=True),
+        index.SearchField("search_content", partial_match=True),
     ]
 
     class Meta:
@@ -273,7 +284,7 @@ class WagtailEADSnippet(index.Indexed, models.Model):
         verbose_name_plural = "EAD wagtail objects"
 
     def __str__(self):
-        label = str(self.reference) + ":" + str(self.unittitle)
+        label = str(self.reference) + ": " + str(self.unittitle)
         return (label[0:75] + "...") if len(label) > 75 else label
 
 
@@ -281,29 +292,30 @@ register_snippet(WagtailEADSnippet)
 
 
 class StoryObjectCollection(StreamFieldPage):
-    # @property
-    # def related_documents(self):
-    #     """NOTE: This arrangement is slightly round the houses
-    #     because we
-    #     A) need to preserve the fundamental relationships in the editor
-    #     and
-    #     B) need to return the elastic document, not the EAD object itself
-    #     So the editor assigned the relationship, we build it into the index
-    #     and then retrieve it as a doc as necessary
-    #     """
-    #
-    #     s = EADDocument.search().filter("term", stories__story=self.title)
-    #     related_documents = list()
-    #     for hit in s:
-    #         related_documents.append(EADDocumentResultSerializer(hit).data)
-    #     return related_documents
+    @property
+    def related_documents(self):
+        """NOTE: This arrangement is slightly round the houses
+        because we
+        A) need to preserve the fundamental relationships in the editor
+        and
+        B) need to return the elastic document, not the EAD object itself
+        So the editor assigned the relationship, we build it into the index
+        and then retrieve it as a doc as necessary
+        """
+        pks = []
+        for story_object in self.story_objects.all():
+            pks.append(story_object.ead_snippet.ead_id)
+        s = EADDocument.search().filter("terms", pk=pks)
+        related_documents = list()
+        for hit in s:
+            related_documents.append(EADDocumentResultSerializer(hit).data)
+        return related_documents
 
-    api_fields = [
-        APIField("title"),
-        APIField("body"),
-        APIField(
-            "related_documents",
-        ),
+    api_fields = [APIField("title"), APIField("body"), APIField("related_documents")]
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+        InlinePanel("story_objects", label="Story Objects"),
     ]
 
 
@@ -312,20 +324,24 @@ class ThemeObjectCollection(StreamFieldPage):
 
     ead_objects = models.ManyToManyField(EAD, related_name="themes")
 
-    # def related_documents(self):
-    #     s = EADDocument.search().filter("term", themes__raw=self.title)
-    #     related_documents = list()
-    #     for hit in s:
-    #         related_documents.append(EADDocumentResultSerializer(hit).data)
-    #     return related_documents
+    @property
+    def related_documents(self):
 
-    api_fields = [
-        APIField("title"),
-        APIField("body"),
-        APIField(
-            "related_documents",
-        ),
+        pks = []
+        for theme_object in self.theme_objects.all():
+            pks.append(theme_object.ead_snippet.ead_id)
+        s = EADDocument.search().filter("terms", pk=pks)
+        related_documents = list()
+        for hit in s:
+            related_documents.append(EADDocumentResultSerializer(hit).data)
+        return related_documents
+
+    content_panels = Page.content_panels + [
+        FieldPanel("body"),
+        InlinePanel("theme_objects", label="Objects"),
     ]
+
+    api_fields = [APIField("title"), APIField("body"), APIField("related_documents")]
 
 
 class StoryObjectCollectionType(models.Model):
@@ -342,6 +358,43 @@ class StoryObjectCollectionType(models.Model):
 register_snippet(StoryObjectCollectionType)
 
 
+class ThemeObject(models.Model):
+    """Intersection set for collections
+    now including type
+    """
+
+    ead_snippet = models.ForeignKey(
+        WagtailEADSnippet,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="theme_snippet",
+    )
+
+    theme = ParentalKey(
+        ThemeObjectCollection,
+        related_name="theme_objects",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    class Meta:
+        verbose_name = "Theme object"
+        verbose_name_plural = "Theme objects"
+
+    panels = [
+        SnippetChooserPanel("ead_snippet"),
+        FieldPanel("theme"),
+    ]
+
+    def __str__(self):
+        label = str(self.story) + ":" + str(self.ead)
+        return (label[0:75] + "...") if len(label) > 75 else label
+
+
+register_snippet(ThemeObject)
+
+
 class StoryObject(models.Model):
     """Intersection set for collections
     now including type
@@ -355,14 +408,14 @@ class StoryObject(models.Model):
         WagtailEADSnippet,
         null=True,
         on_delete=models.CASCADE,
-        related_name="ead_snippet",
+        related_name="story_snippet",
     )
 
     connection_type = models.ForeignKey(
         StoryObjectCollectionType, null=True, on_delete=models.CASCADE
     )
 
-    story = models.ForeignKey(
+    story = ParentalKey(
         StoryObjectCollection,
         related_name="story_objects",
         null=True,

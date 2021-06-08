@@ -33,7 +33,8 @@ urlpatterns += [
     path(
         r"api/events/", api_views.SharcListTimelineEvents.as_view(), name="event-list"
     ),
-    path(r"api/themes/", api_views.ThemeView.as_view(), name="theme-list"),
+    # path(r"api/themes/", api_views.ThemeView.as_view(), name="theme-list"),
+    # path(r"api/stories/", api_views.StoryView.as_view(), name="story-list"),
     # API base url
     path("api/", include("config.api_router")),
     re_path(

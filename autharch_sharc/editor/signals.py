@@ -1,15 +1,11 @@
 import django.dispatch
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django_elasticsearch_dsl.signals import BaseSignalProcessor
 from ead.models import EAD
 
 from autharch_sharc.editor.documents import EADDocument
-from autharch_sharc.editor.models import (
-    StoryObject,
-    ThemeObjectCollection,
-    WagtailEADSnippet,
-)
+from autharch_sharc.editor.models import WagtailEADSnippet
 
 view_post_save = django.dispatch.Signal(providing_args=["instance"])
 
@@ -32,35 +28,34 @@ class ElasticsearchSemiRealTimeSignalProcessor(BaseSignalProcessor):
         view_post_save.disconnect(self.handle_save)
 
 
-@receiver(post_save, sender=StoryObject)
-@receiver(post_delete, sender=StoryObject)
-@receiver(post_save, sender=ThemeObjectCollection)
-@receiver(post_delete, sender=ThemeObjectCollection)
-def update_ead_index(sender, instance, **kwargs):
-    """Updates the related documents if one of the object stories/themes
-    have changed"""
-    ead_objects = []
-    if isinstance(instance, ThemeObjectCollection):
-        ead_objects = instance.ead_objects
-    elif isinstance(instance, StoryObject):
-        ead_objects = [instance.ead]
-
-    if ead_objects is not None and len(ead_objects) > 0:
-        for ead_object in ead_objects:
-            # Find related documents by unitid
-            for unitid in ead_object.unitid_set.all():
-                s = (
-                    EADDocument.search()
-                    .filter("term", reference=unitid.unitid)
-                    .execute()
-                )
-                for hit in s:
-                    # update index entry
-                    if isinstance(instance, ThemeObjectCollection):
-                        hit.themes = hit.prepare_themes(ead_object)
-                    elif isinstance(instance, StoryObject):
-                        hit.stories = hit.prepare_stories(ead_object)
-                    hit.save()
+# @receiver(post_save, sender=StoryObject)
+# @receiver(post_delete, sender=StoryObject)
+# @receiver(post_save, sender=ThemeObjectCollection)
+# @receiver(post_delete, sender=ThemeObjectCollection)
+# def update_ead_index(sender, instance, **kwargs):
+#     """Updates the related documents if one of the object stories/themes
+#     have changed"""
+#     ead_objects = []
+#     if isinstance(instance, ThemeObjectCollection):
+#         ead_objects = instance.theme_objects.all()
+#     elif isinstance(instance, StoryObject):
+#         ead_objects = instance.story_objects.all()
+#
+#     if ead_objects is not None and len(ead_objects) > 0:
+#         for ead_object in ead_objects:
+#             # Find related documents by unitid
+#             s = (
+#                 EADDocument.search()
+#                 .filter("term", pk=ead_object.ead_snippet.ead_id)
+#                 .execute()
+#             )
+#             for hit in s:
+#                 # update index entry
+#                 if isinstance(instance, ThemeObjectCollection):
+#                     hit.themes = hit.prepare_themes(ead_object.ead_snippet.ead)
+#                 elif isinstance(instance, StoryObject):
+#                     hit.stories = hit.prepare_stories(ead_object.ead_snippet.ead)
+#                 hit.save()
 
 
 @receiver(post_save, sender=EAD)

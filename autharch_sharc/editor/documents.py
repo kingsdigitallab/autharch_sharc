@@ -11,7 +11,7 @@ from ead.models import (
 from elasticsearch_dsl import analyzer, normalizer
 from lxml import etree
 
-from autharch_sharc.editor.models import SharcIIIF, StoryObject
+from autharch_sharc.editor.models import SharcIIIF
 
 html_strip_analyzer = analyzer(
     "html_strip", tokenizer="standard", char_filter=["html_strip"]
@@ -100,18 +100,18 @@ class EADDocument(Document):
             "suggest": fields.CompletionField(),
         }
     )
-    stories = fields.ObjectField(
-        properties={
-            "story": fields.KeywordField(),
-            "connection_type": fields.KeywordField(),
-        }
-    )
-    themes = fields.TextField(
-        fields={
-            "raw": fields.KeywordField(),
-            "lowercase": fields.KeywordField(normalizer=lowercase_sort_normalizer),
-        }
-    )
+    # stories = fields.ObjectField(
+    #     properties={
+    #         "story": fields.KeywordField(),
+    #         "connection_type": fields.KeywordField(),
+    #     }
+    # )
+    # themes = fields.TextField(
+    #     fields={
+    #         "raw": fields.KeywordField(),
+    #         "lowercase": fields.KeywordField(normalizer=lowercase_sort_normalizer),
+    #     }
+    # )
     related_people = fields.ObjectField(
         properties={
             "acquirers": fields.KeywordField(
@@ -213,23 +213,33 @@ class EADDocument(Document):
             return False
         return True
 
-    def prepare_themes(self, instance):
-        StoryObject.objects.filter()
-        if instance.themes.count() > 0:
-            return [theme.title for theme in instance.themes.all()]
-        return []
-
-    def prepare_stories(self, instance):
-        """ EAD Group Objects"""
-        stories = []
-        for story_object in instance.story_objects.all():
-            stories.append(
-                {
-                    "story": story_object.story.title,
-                    "connection_type": story_object.connection_type.type,
-                }
-            )
-        return stories
+    # def prepare_themes(self, instance):
+    #
+    #     if (
+    #         ThemeObjectCollection.objects.filter(
+    #             theme_objects__ead_snippet__ead=instance
+    #         ).count()
+    #         > 0
+    #     ):
+    #         return [
+    #             theme.title
+    #             for theme in ThemeObjectCollection.objects.filter(
+    #                 theme_objects__ead_snippet__ead=instance
+    #             )
+    #         ]
+    #     return []
+    #
+    # def prepare_stories(self, instance):
+    #     """ EAD Group Objects"""
+    #     stories = []
+    #     for story_object in StoryObject.objects.filter(ead_snippet__ead=instance):
+    #         stories.append(
+    #             {
+    #                 "story": story_object.story.title,
+    #                 "connection_type": story_object.connection_type.type,
+    #             }
+    #         )
+    #     return stories
 
     def prepare_doc_type(self, instance):
         return self.default_doc_type

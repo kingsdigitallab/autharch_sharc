@@ -4,6 +4,24 @@ from django.core.management.base import BaseCommand
 from ead.models import EAD
 
 from autharch_sharc.editor import models
+from autharch_sharc.editor.documents import EADDocument
+
+
+def add_theme_object(doc, ead_object, theme):
+    theme_objects = models.ThemeObject.objects.filter(ead_snippet__ead=ead_object)
+    if theme_objects.count() > 0:
+        theme_object = theme_objects[0]
+    else:
+
+        # update the mirrored wagtail snippet
+        (ead_snippet, created,) = models.WagtailEADSnippet.objects.get_or_create(
+            unittitle=doc.prepare_unittitle(ead_object),
+            reference=doc.prepare_reference(ead_object),
+            ead=ead_object,
+        )
+        theme_object, created = models.ThemeObject.objects.get_or_create(
+            theme=theme, ead_snippet=ead_snippet
+        )
 
 
 def add_themes() -> Tuple[int, int, int]:
@@ -49,23 +67,25 @@ def add_themes() -> Tuple[int, int, int]:
     """
     If default rcins are present, attach objects to themes
     """
+    doc = EADDocument()
     if on_the_page:
+
         for rcin in page_rcin:
 
             for ead_object in EAD.objects.filter(unitid__unitid=rcin):
-                on_the_page.ead_objects.add(ead_object)
+                add_theme_object(doc, ead_object, on_the_page)
                 page_attached += 1
 
     if shakespeare:
         for ead_object in EAD.objects.filter(unitid__unitid__in=shakespeare_rcin):
-            shakespeare.ead_objects.add(ead_object)
+            add_theme_object(doc, ead_object, shakespeare)
             shakespeare_attached += 1
 
     if on_the_stage:
         for rcin in stage_rcin:
 
             for ead_object in EAD.objects.filter(unitid__unitid=rcin):
-                on_the_stage.ead_objects.add(ead_object)
+                add_theme_object(doc, ead_object, on_the_stage)
                 stage_attached += 1
     return page_attached, shakespeare_attached, stage_attached
 

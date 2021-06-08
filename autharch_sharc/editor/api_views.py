@@ -12,8 +12,7 @@ from django_elasticsearch_dsl_drf.filter_backends import (
     SuggesterFilterBackend,
 )
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
-from elasticsearch_dsl import Search, TermsFacet
-from elasticsearch_dsl.query import Exists
+from elasticsearch_dsl import TermsFacet
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -233,72 +232,6 @@ class SharcSiteSearch(EADDocumentViewSet):
     def get_doc_type_queryset(self):
         # Include all objects in this search
         return self.filter_queryset(self.get_queryset())
-
-
-# class SharcSiteSearch(EADDocumentViewSet):
-#     """
-#     Provides searches on documents and wagtail objects
-#          in one response"""
-#
-#     def get_doc_type_queryset(self):
-#         # Include all objects in this search
-#         q= self.filter_queryset(
-#             self.get_queryset()).query(MatchPhrasePrefix(themes={"query":
-#             "On"}))
-#         return self.filter_queryset(self.get_queryset())
-
-
-class ThemeView(APIView):
-    """
-    Objects attached to a group e.g. themes
-
-    """
-
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def document_search(self, request):
-        """Get all documents with a theme
-        aggregate them into lists by theme"""
-        docviewset = EADDocumentViewSet()
-        s = Search(index=docviewset.index, using=docviewset.client)
-        response = s.query(Exists(field="themes.raw")).execute()
-        themes_results = dict()
-        # Collate response into different themes
-        for h in response:
-            theme = h.themes[0]
-            if theme not in themes_results:
-                themes_results[theme] = list()
-            result = themes_results[theme]
-            result.append(EADDocumentThemeResultSerializer(h).data)
-            themes_results[theme] = result
-        themes = []
-        # Refactor into expected api results
-
-        # Will always goes first
-        # todo refactor this if we decide to add a theme order
-        if "William Shakespeare" in themes_results:
-            themes.append(
-                {
-                    "id": 1,  # no used, kept for clarity
-                    "title": "William Shakespeare",
-                    "featuredObjects": themes_results["William Shakespeare"],
-                }
-            )
-        # others
-        for theme in themes_results.keys():
-            if theme != "William Shakespeare":
-                themes.append(
-                    {
-                        "id": 1,  # no used, kept for clarity
-                        "title": theme,
-                        "featuredObjects": themes_results[theme],
-                    }
-                )
-        return themes
-
-    def get(self, request, *args, **kwargs):
-        results = self.document_search(request)
-        return Response({"themes": results})
 
 
 class EditorTableView(APIView):
