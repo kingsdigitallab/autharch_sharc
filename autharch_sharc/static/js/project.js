@@ -151,7 +151,7 @@ $(document).ready(function () {
                             row_title = row_title.substring(0, 100) + '...';
                         }
                         let row = [
-                            '<a href="' + results[x].id + '/">' + row_title + "</a>",
+                            '<a href="/editor/records/' + results[x].id + '/">' + row_title + "</a>",
                             results[x].category,
                             results[x].reference,
                             ''
