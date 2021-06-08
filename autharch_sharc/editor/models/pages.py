@@ -328,9 +328,6 @@ register_snippet(WagtailEADSnippet)
 @receiver(post_save, sender=EAD)
 def add_ead_snippetsave(sender, instance, **kwargs):
     # save the object
-    import pdb
-
-    pdb.set_trace()
     doc = EADDocument()
     # update the mirrored wagtail snippet
     ead_snippet, created = WagtailEADSnippet.objects.get_or_create(
