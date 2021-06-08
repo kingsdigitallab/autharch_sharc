@@ -312,13 +312,6 @@ class ThemeObjectCollection(StreamFieldPage):
 
     ead_objects = models.ManyToManyField(EAD, related_name="themes")
 
-    ead_snippet = models.ForeignKey(
-        WagtailEADSnippet,
-        null=True,
-        on_delete=models.CASCADE,
-        related_name="ead_snippet",
-    )
-
     # def related_documents(self):
     #     s = EADDocument.search().filter("term", themes__raw=self.title)
     #     related_documents = list()

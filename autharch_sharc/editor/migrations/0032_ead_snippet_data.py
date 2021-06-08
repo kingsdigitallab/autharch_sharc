@@ -3,7 +3,8 @@
 from django.db import migrations
 from ead.models import EAD
 
-from autharch_sharc.editor.models import EADDocument, WagtailEADSnippet
+from autharch_sharc.editor.documents import EADDocument
+from autharch_sharc.editor.models import WagtailEADSnippet
 
 
 def add_ead_snippets(apps, schema_editor):
