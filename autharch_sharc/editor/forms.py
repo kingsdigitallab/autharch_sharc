@@ -366,9 +366,9 @@ class LanguageDeclarationInlineForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in ['language_langcode', 'script_el_script']:
-            self.fields[field].required = True
-            self.fields[field].widget.is_required = True
+        #for field in ['language_langcode', 'script_el_script']:
+        #    self.fields[field].required = True
+        #    self.fields[field].widget.is_required = True
 
     def clean(self):
         # Set the language from the language code.
@@ -1368,7 +1368,7 @@ class RecordEditForm(ContainerModelForm):
             form=LanguageDeclarationInlineForm,
             extra=1,
             max_num=1,
-            min_num=1,
+            min_num=0,
             validate_max=True,
             validate_min=True,
         )
@@ -1393,7 +1393,7 @@ class RecordEditForm(ContainerModelForm):
 
     class Meta:
         model = EAD
-        fields = ["audience"]
+        fields = ["audience", "recordid"]
         help_texts = {
             "audience": AUDIENCE_HELP,
         }

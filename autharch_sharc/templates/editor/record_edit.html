@@ -95,6 +95,7 @@
                 </div>
               </div>
               {% endwith %}
+              {% render_field form.recordid %}
               {% with controlaccesses=form.formsets.controlaccesses %}
               {{ controlaccesses.management_form }}
               {% for controlaccess in controlaccesses.forms %}
