@@ -11,7 +11,7 @@ from ead.models import (
 from elasticsearch_dsl import analyzer, normalizer
 from lxml import etree
 
-from autharch_sharc.editor.models import SharcIIIF
+from autharch_sharc.editor.models import SharcIIIF, StoryObject
 
 html_strip_analyzer = analyzer(
     "html_strip", tokenizer="standard", char_filter=["html_strip"]
@@ -214,6 +214,7 @@ class EADDocument(Document):
         return True
 
     def prepare_themes(self, instance):
+        StoryObject.objects.filter()
         if instance.themes.count() > 0:
             return [theme.title for theme in instance.themes.all()]
         return []

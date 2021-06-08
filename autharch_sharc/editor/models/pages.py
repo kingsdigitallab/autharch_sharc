@@ -1,7 +1,5 @@
 import kdl_wagtail.core.blocks as kdl_blocks
 from django.db import models
-from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 from ead.models import EAD
 from wagtail.admin.edit_handlers import FieldPanel, HelpPanel, StreamFieldPanel
 from wagtail.api import APIField
@@ -16,8 +14,6 @@ from wagtail.snippets.edit_handlers import SnippetChooserPanel
 from wagtail.snippets.models import register_snippet
 
 from autharch_sharc.django_kdl_timeline.models import AbstractTimelineEventSnippet
-from autharch_sharc.editor.documents import EADDocument
-from autharch_sharc.editor.serializers import EADDocumentResultSerializer
 
 from .stream_blocks import APIRichTextBlock, RichTextNoParagraphBlock
 
@@ -247,47 +243,6 @@ class SharcRichTextPage(Page):
         }
 
 
-class StoryObjectCollectionType(models.Model):
-    type = models.CharField(blank=True, null=True, max_length=512)
-
-    class Meta:
-        verbose_name = "Story Connection Type"
-        verbose_name_plural = "Story Connection Types"
-
-    def __str__(self):
-        return str(self.type)
-
-
-register_snippet(StoryObjectCollectionType)
-
-
-class StoryObjectCollection(StreamFieldPage):
-    @property
-    def related_documents(self):
-        """NOTE: This arrangement is slightly round the houses
-        because we
-        A) need to preserve the fundamental relationships in the editor
-        and
-        B) need to return the elastic document, not the EAD object itself
-        So the editor assigned the relationship, we build it into the index
-        and then retrieve it as a doc as necessary
-        """
-
-        s = EADDocument.search().filter("term", stories__story=self.title)
-        related_documents = list()
-        for hit in s:
-            related_documents.append(EADDocumentResultSerializer(hit).data)
-        return related_documents
-
-    api_fields = [
-        APIField("title"),
-        APIField("body"),
-        APIField(
-            "related_documents",
-        ),
-    ]
-
-
 class WagtailEADSnippet(index.Indexed, models.Model):
     """A middleware snippet to facilitate using the ead objects
     in wagtail
@@ -325,16 +280,73 @@ class WagtailEADSnippet(index.Indexed, models.Model):
 register_snippet(WagtailEADSnippet)
 
 
-@receiver(post_save, sender=EAD)
-def add_ead_snippetsave(sender, instance, **kwargs):
-    # save the object
-    doc = EADDocument()
-    # update the mirrored wagtail snippet
-    ead_snippet, created = WagtailEADSnippet.objects.get_or_create(
-        unittitle=doc.prepare_unittitle(instance),
-        reference=doc.prepare_reference(instance),
-        ead=instance,
+class StoryObjectCollection(StreamFieldPage):
+    # @property
+    # def related_documents(self):
+    #     """NOTE: This arrangement is slightly round the houses
+    #     because we
+    #     A) need to preserve the fundamental relationships in the editor
+    #     and
+    #     B) need to return the elastic document, not the EAD object itself
+    #     So the editor assigned the relationship, we build it into the index
+    #     and then retrieve it as a doc as necessary
+    #     """
+    #
+    #     s = EADDocument.search().filter("term", stories__story=self.title)
+    #     related_documents = list()
+    #     for hit in s:
+    #         related_documents.append(EADDocumentResultSerializer(hit).data)
+    #     return related_documents
+
+    api_fields = [
+        APIField("title"),
+        APIField("body"),
+        APIField(
+            "related_documents",
+        ),
+    ]
+
+
+class ThemeObjectCollection(StreamFieldPage):
+    """ A collection of objects based on theme """
+
+    ead_objects = models.ManyToManyField(EAD, related_name="themes")
+
+    ead_snippet = models.ForeignKey(
+        WagtailEADSnippet,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="ead_snippet",
     )
+
+    # def related_documents(self):
+    #     s = EADDocument.search().filter("term", themes__raw=self.title)
+    #     related_documents = list()
+    #     for hit in s:
+    #         related_documents.append(EADDocumentResultSerializer(hit).data)
+    #     return related_documents
+
+    api_fields = [
+        APIField("title"),
+        APIField("body"),
+        APIField(
+            "related_documents",
+        ),
+    ]
+
+
+class StoryObjectCollectionType(models.Model):
+    type = models.CharField(blank=True, null=True, max_length=512)
+
+    class Meta:
+        verbose_name = "Story Connection Type"
+        verbose_name_plural = "Story Connection Types"
+
+    def __str__(self):
+        return str(self.type)
+
+
+register_snippet(StoryObjectCollectionType)
 
 
 class StoryObject(models.Model):
@@ -381,55 +393,3 @@ class StoryObject(models.Model):
 
 
 register_snippet(StoryObject)
-
-
-class ThemeObjectCollection(StreamFieldPage):
-    """ A collection of objects based on theme """
-
-    ead_objects = models.ManyToManyField(EAD, related_name="themes")
-
-    def related_documents(self):
-        s = EADDocument.search().filter("term", themes__raw=self.title)
-        related_documents = list()
-        for hit in s:
-            related_documents.append(EADDocumentResultSerializer(hit).data)
-        return related_documents
-
-    api_fields = [
-        APIField("title"),
-        APIField("body"),
-        APIField(
-            "related_documents",
-        ),
-    ]
-
-
-@receiver(post_save, sender=StoryObject)
-@receiver(post_delete, sender=StoryObject)
-@receiver(post_save, sender=ThemeObjectCollection)
-@receiver(post_delete, sender=ThemeObjectCollection)
-def update_ead_index(sender, instance, **kwargs):
-    """Updates the related documents if one of the object stories/themes
-    have changed"""
-    ead_objects = []
-    if isinstance(instance, ThemeObjectCollection):
-        ead_objects = instance.ead_objects
-    elif isinstance(instance, StoryObject):
-        ead_objects = [instance.ead]
-
-    if ead_objects is not None and len(ead_objects) > 0:
-        for ead_object in ead_objects:
-            # Find related documents by unitid
-            for unitid in ead_object.unitid_set.all():
-                s = (
-                    EADDocument.search()
-                    .filter("term", reference=unitid.unitid)
-                    .execute()
-                )
-                for hit in s:
-                    # update index entry
-                    if isinstance(instance, ThemeObjectCollection):
-                        hit.themes = hit.prepare_themes(ead_object)
-                    elif isinstance(instance, StoryObject):
-                        hit.stories = hit.prepare_stories(ead_object)
-                    hit.save()
