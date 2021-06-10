@@ -505,7 +505,9 @@ class EADDocument(Document):
     def parse_individual_connections(self, sh_connection, data):
         """ Parse all connections looking for indiviudal types"""
         if len(sh_connection) > 1:
-            if sh_connection[1] == "Biographical" and len(sh_connection) > 3:
+            if (
+                sh_connection[1] == "Biographical" or sh_connection[1] == "Biography"
+            ) and len(sh_connection) > 3:
                 # This is a biographical location
                 label = "{} - {}".format(
                     sh_connection[2],
