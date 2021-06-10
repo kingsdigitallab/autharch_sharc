@@ -121,8 +121,8 @@ $(document).ready(function () {
         $('#' + $(el).attr('id')).tablesorterPager({
             container: $('#' + $(el).parent('.table-container').next('.pager').attr('id')),
             size: 10,
-            // &paginate_by=&{filterList:filter}&{sortList:column}
-            ajaxUrl: '/editor/records/?result_format=json&page={page+1}&paginate_by={size}',
+            // &paginate_by=
+            ajaxUrl: '/editor/records/?result_format=json&page={page+1}&paginate_by={size}&{filterList:filter}&{sortList:column}',
             customAjaxUrl: function (table, url) {
                 // Get the selected facets and q search
                 let facet_link = $('#selected-facets').data('facet-link');

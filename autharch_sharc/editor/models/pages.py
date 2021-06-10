@@ -2,6 +2,7 @@ import kdl_wagtail.core.blocks as kdl_blocks
 from django.db import models
 from ead.models import EAD
 from modelcluster.fields import ParentalKey
+from rest_framework import serializers
 from wagtail.admin.edit_handlers import (
     FieldPanel,
     HelpPanel,
@@ -169,7 +170,30 @@ class ResourcePageBlock(blocks.PageChooserBlock):
     pass
 
 
-class StreamFieldPage(Page):
+class MenuChildrenMixin:
+    @classmethod
+    def serialize_menu_page(cls, menu_page):
+        menu_json = MenuChildrenSerializer().to_representation(menu_page)
+        children = []
+        for child in (
+            menu_page.get_children().filter(show_in_menus=True).filter(live=True)
+        ):
+            children.append(cls.serialize_menu_page(child))
+        menu_json["children"] = children
+        return menu_json
+
+    children = []
+
+    @property
+    def menu_children(self):
+        """ Get all in children pages in menu for api menu hierarchy"""
+        children = []
+        for child in self.get_children().filter(show_in_menus=True).filter(live=True):
+            children.append(self.serialize_menu_page(child))
+        return children
+
+
+class StreamFieldPage(Page, MenuChildrenMixin):
     body = StreamField(
         [
             ("heading", blocks.CharBlock(classname="full title")),
@@ -211,6 +235,7 @@ class StreamFieldPage(Page):
     api_fields = [
         APIField("title"),
         APIField("body"),
+        APIField("menu_children"),
     ]
 
     search_fields = Page.search_fields + [
@@ -220,7 +245,19 @@ class StreamFieldPage(Page):
     promote_panels = Page.promote_panels
 
 
-class SharcRichTextPage(Page):
+class MenuChildrenSerializer(serializers.Field):
+    def to_representation(self, value):
+        return {
+            "id": value.id,
+            "title": value.title,
+            "slug": value.slug,
+        }
+
+    def to_internal_value(self, data):
+        return data
+
+
+class SharcRichTextPage(Page, MenuChildrenMixin):
     body = RichTextField(blank=True, null=True)
 
     search_fields = Page.search_fields + [
@@ -238,7 +275,12 @@ class SharcRichTextPage(Page):
     def body_html(self):
         return str(RichText(self.body))
 
-    api_fields = [APIField("title"), APIField("body"), APIField("body_html")]
+    api_fields = [
+        APIField("title"),
+        APIField("body"),
+        APIField("body_html"),
+        APIField("menu_children"),
+    ]
 
     promote_panels = Page.promote_panels
 

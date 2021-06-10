@@ -6,11 +6,7 @@ from wagtail.api.v2.views import PagesAPIViewSet
 from wagtail.documents.api.v2.views import DocumentsAPIViewSet
 from wagtail.images.api.v2.views import ImagesAPIViewSet
 
-from autharch_sharc.editor.api_views import (
-    EADDocumentViewSet,
-    MenuHierarchyViewSet,
-    SharcSiteSearch,
-)
+from autharch_sharc.editor.api_views import EADDocumentViewSet, SharcSiteSearch
 from autharch_sharc.users.api.views import UserViewSet
 
 if settings.DEBUG:
@@ -39,4 +35,3 @@ wagtail_api_router = WagtailAPIRouter("wagtailapi")
 wagtail_api_router.register_endpoint("images", ImagesAPIViewSet)
 wagtail_api_router.register_endpoint("pages", SharcPagesAPIViewSet)
 wagtail_api_router.register_endpoint("documents", DocumentsAPIViewSet)
-wagtail_api_router.register_endpoint("menus", MenuHierarchyViewSet)
