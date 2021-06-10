@@ -9,8 +9,8 @@ from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.core import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
-from autharch_sharc.django_kdl_timeline.api import wagtail_api_router
 from autharch_sharc.editor import api_views
+from config.api_router import wagtail_api_router
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
@@ -33,7 +33,6 @@ urlpatterns += [
     path(
         r"api/events/", api_views.SharcListTimelineEvents.as_view(), name="event-list"
     ),
-    # path(r"api/themes/", api_views.ThemeView.as_view(), name="theme-list"),
     # path(r"api/stories/", api_views.StoryView.as_view(), name="story-list"),
     # API base url
     path("api/", include("config.api_router")),

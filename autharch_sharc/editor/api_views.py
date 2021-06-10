@@ -16,6 +16,7 @@ from elasticsearch_dsl import TermsFacet
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from wagtail.api.v2.views import BaseAPIViewSet, PagesAPIViewSet
 
 from autharch_sharc.django_kdl_timeline.views import ListTimelineEvents
 from autharch_sharc.editor.models import SharcTimelineEventSnippet
@@ -260,3 +261,23 @@ class EditorTableView(APIView):
     def get(self, request, *args, **kwargs):
         results = self.document_search(request, **kwargs)
         return Response({"count": kwargs["results_count"], "results": results})
+
+
+class MenuHierarchyViewSet(PagesAPIViewSet):
+    """ Subclassed wagtail viewset to show hierarchy """
+
+    listing_default_fields = BaseAPIViewSet.listing_default_fields + [
+        "title",
+        "html_url",
+        "slug",
+    ]
+
+    body_fields = BaseAPIViewSet.body_fields + ["title"]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(show_in_menus=True)
+
+    def listing_view(self, request):
+        response = super().listing_view(request)
+        return response
