@@ -171,6 +171,10 @@ class ResourcePageBlock(blocks.PageChooserBlock):
 
 
 class MenuChildrenMixin:
+    """Serialize children shown in menus for this page
+    Used to get a proper menu hierarchy from within wagtail's page
+    api"""
+
     @classmethod
     def serialize_menu_page(cls, menu_page):
         menu_json = MenuChildrenSerializer().to_representation(menu_page)
@@ -179,7 +183,7 @@ class MenuChildrenMixin:
             menu_page.get_children().filter(show_in_menus=True).filter(live=True)
         ):
             children.append(cls.serialize_menu_page(child))
-        menu_json["children"] = children
+        menu_json["menu_children"] = children
         return menu_json
 
     children = []
