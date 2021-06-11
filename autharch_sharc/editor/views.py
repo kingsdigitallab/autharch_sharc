@@ -168,12 +168,15 @@ class RecordSearch(FacetedSearch):
     index = "editor"
     doc_types = [EADDocument]
     facets = {
-        "acquirers": TermsFacet(field="related_people.acquirers"),
-        "categories": TermsFacet(field="category"),
-        "performances": TermsFacet(field="related_sources.performances"),
-        "sources": TermsFacet(field="related_sources.sources"),
-        "texts": TermsFacet(field="related_sources.texts"),
-        "works": TermsFacet(field="related_sources.works"),
+        # size sets the maximum number of facet values to return; ES
+        # has an (overridable) limit of 250.
+        "acquirers": TermsFacet(field="related_people.acquirers", size=250),
+        "categories": TermsFacet(field="category", size=250),
+        "performances": TermsFacet(field="related_sources.performances",
+                                   size=250),
+        "sources": TermsFacet(field="related_sources.sources", size=250),
+        "texts": TermsFacet(field="related_sources.texts", size=250),
+        "works": TermsFacet(field="related_sources.works", size=250),
     }
     fields = [
         "creators.name",
