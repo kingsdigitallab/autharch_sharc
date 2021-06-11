@@ -301,7 +301,9 @@ class GenreformInlineForm(forms.Form):
         item = etree.Element("span")
         item.set("class", "ead-genreform")
         item.set("data-ead-source", "AAT")
-        item.text = self.cleaned_data["genreform"]
+        part = etree.SubElement(item, "span")
+        part.set("class", "ead-part")
+        part.text = self.cleaned_data["genreform"]
         return serialise_xml(item)
 
 
