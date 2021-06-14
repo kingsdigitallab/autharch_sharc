@@ -172,8 +172,7 @@ class RecordSearch(FacetedSearch):
         # has an (overridable) limit of 250.
         "acquirers": TermsFacet(field="related_people.acquirers", size=250),
         "categories": TermsFacet(field="category", size=250),
-        "performances": TermsFacet(field="related_sources.performances",
-                                   size=250),
+        "performances": TermsFacet(field="related_sources.performances", size=250),
         "sources": TermsFacet(field="related_sources.sources", size=250),
         "texts": TermsFacet(field="related_sources.texts", size=250),
         "works": TermsFacet(field="related_sources.works", size=250),
@@ -181,6 +180,7 @@ class RecordSearch(FacetedSearch):
     fields = [
         "creators.name",
         "unittitle",
+        "unittitle.raw",
         "provenance.raw",
         "notes.raw",
         "references_published.raw",
@@ -201,12 +201,14 @@ class RecordSearch(FacetedSearch):
         acquisition_start=None,
         acquisition_end=None,
         reference=None,
+        unittitle=None,
     ):
         self._creation_start = creation_start
         self._creation_end = creation_end
         self._acquisition_start = acquisition_start
         self._acquisition_end = acquisition_end
         self.reference = reference
+        self.unititle = unittitle
         super().__init__(query, filters, sort)
 
     def search(self):
@@ -230,6 +232,8 @@ class RecordSearch(FacetedSearch):
                 s = s.filter("match", reference=self.reference)
             except TypeError:
                 pass
+        if self.unititle:
+            s = s.query("prefix", unittitle__raw="geo")
         return s
 
 

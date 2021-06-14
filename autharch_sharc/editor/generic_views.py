@@ -42,10 +42,20 @@ class SearchView(MultipleObjectMixin, FormView):
             self.request.GET.getlist(self.facet_key)
         )
         kwargs = {}
+        if self.request.GET:
+            # in table filters
+            title_filter = self.request.GET.get("filter[0]")
+            # category_filter = self.request.GET.get("filter[1]")
+            # unit_id_filter = self.request.GET.get("filter[2]")
+            # updated_filter = self.request.GET.get("filter[3]")
+            if title_filter:
+                kwargs["unittitle"] = title_filter
+
         if query:
             kwargs["query"] = query
         if requested_facets:
             kwargs["filters"] = requested_facets
+
         kwargs.update(self._get_filters())
         search = self.search_class(**kwargs)
 
