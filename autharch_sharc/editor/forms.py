@@ -627,6 +627,12 @@ class SecondaryConnectionInlineForm(RelationEntryInlineForm):
 
 
 class RelatedMaterialInlineForm(ContainerModelForm):
+    # relatedmaterial must be made not required because otherwise an
+    # empty field (such as on a new record) fails validation before
+    # reaching clean_relatedmaterial where the content is generated from
+    # the inline formsets.
+    relatedmaterial = forms.CharField(required=False, widget=forms.HiddenInput)
+
     def _add_formsets(self, *args, **kwargs):
         formsets = {}
         data = kwargs.get("data")
@@ -666,9 +672,6 @@ class RelatedMaterialInlineForm(ContainerModelForm):
     class Meta:
         model = RelatedMaterial
         fields = ["id", "relatedmaterial"]
-        widgets = {
-            "relatedmaterial": forms.HiddenInput(),
-        }
 
 
 class RelationInlineForm(ContainerModelForm):
