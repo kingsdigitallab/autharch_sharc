@@ -724,9 +724,15 @@ class RelationInlineForm(ContainerModelForm):
         )
         return formsets
 
+    def clean_otherrelationtype(self):
+        return "sh_connection"
+
     class Meta:
         model = Relation
-        fields = ["id"]
+        fields = ["id", "otherrelationtype"]
+        widgets = {
+            "otherrelationtype": forms.HiddenInput()
+        }
 
 
 class RightsDeclarationInlineForm(forms.ModelForm):
