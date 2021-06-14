@@ -469,7 +469,7 @@ class EADDocument(Document):
             relation__relations=instance, localtype=localtype
         ):
             connection = relationentry.relationentry
-            connections.extend([tag.strip() for tag in connection.split(";")])
+            connections.extend([[tag.strip() for tag in connection.split(";")]])
         return connections
 
     def _all_sh_connections(self, instance) -> dict:
@@ -494,17 +494,19 @@ class EADDocument(Document):
         data["performance_connections"] = []
 
         for connection_key in all_connections.keys():
-            connection = all_connections[connection_key]
-            if connection and len(connection) > 0:
-                if connection[0].lower() == "individual":
-                    data = self.parse_individual_connections(connection, data)
-                elif connection[0].lower() == "works":
-                    data = self.parse_work_connections(connection, data)
+            connections = all_connections[connection_key]
+            for connection in connections:
+                if connection and len(connection) > 0:
+                    if connection[0].lower() == "individual":
+                        data = self.parse_individual_connections(connection, data)
+                    elif connection[0].lower() == "works":
+                        data = self.parse_work_connections(connection, data)
         return data
 
     def parse_individual_connections(self, sh_connection, data):
         """ Parse all connections looking for indiviudal types"""
         if len(sh_connection) > 1:
+            label = ""
             if sh_connection[1] == "Biographical" or sh_connection[1] == "Biography":
                 # This is a biographical location
                 if len(sh_connection) > 3:
@@ -512,14 +514,16 @@ class EADDocument(Document):
                         sh_connection[2],
                         sh_connection[3],
                     )
-                else:
+                elif len(sh_connection) > 2:
                     label = "{}".format(sh_connection[2])
+                elif len(sh_connection) > 1:
+                    label = "{}".format(sh_connection[1])
             elif len(sh_connection) > 2:
                 label = sh_connection[2]
             else:
                 label = sh_connection[1]
-
-            data["individual_connections"].append(label)
+            if label and len(label) > 0:
+                data["individual_connections"].append(label)
         return data
 
     def parse_work_connections(self, sh_connection, data):
