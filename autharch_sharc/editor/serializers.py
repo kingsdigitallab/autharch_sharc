@@ -71,7 +71,7 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "media",
             "search_content",
             "doc_type",
-            "themes",
             "stories",
             "notes",
+            "provenance",
         )

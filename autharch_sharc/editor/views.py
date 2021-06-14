@@ -181,7 +181,7 @@ class RecordSearch(FacetedSearch):
         "creators.name",
         "unittitle",
         "unittitle.raw",
-        "provenance.raw",
+        "provenance",
         "notes.raw",
         "references_published.raw",
         "references_unpublished.raw",

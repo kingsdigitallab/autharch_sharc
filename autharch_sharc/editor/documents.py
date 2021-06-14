@@ -509,10 +509,13 @@ class EADDocument(Document):
                 sh_connection[1] == "Biographical" or sh_connection[1] == "Biography"
             ) and len(sh_connection) > 3:
                 # This is a biographical location
-                label = "{} - {}".format(
-                    sh_connection[2],
-                    sh_connection[3],
-                )
+                if len(sh_connection) > 3:
+                    label = "{} - {}".format(
+                        sh_connection[2],
+                        sh_connection[3],
+                    )
+                else:
+                    label = "{}".format(sh_connection[2])
             elif len(sh_connection) > 2:
                 label = sh_connection[2]
             else:
@@ -697,10 +700,18 @@ class EADDocument(Document):
 
     def prepare_provenance(self, instance):
         # From CustodHist.custodhist
-        provenance = " ".join(
-            instance.custodhist_set.values_list("custodhist", flat=True)
-        )
-        return {"raw": provenance, "html": provenance}
+        provenances = []
+        for prov in instance.custodhist_set.all():
+            try:
+                root = etree.fromstring(prov.custodhist)
+                provenances.append({"raw": root.text.strip(), "html": prov.custodhist})
+            except etree.XMLSyntaxError:
+                provenances.append({"raw": prov.custodhist, "html": prov.custodhist})
+        # provenance = " ".join(
+        #     instance.custodhist_set.values_list("custodhist", flat=True)
+        # )
+
+        return provenances
 
     def prepare_references_published(self, instance):
         # From Bibliography.bibliography
