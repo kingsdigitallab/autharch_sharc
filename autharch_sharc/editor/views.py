@@ -208,7 +208,7 @@ class RecordSearch(FacetedSearch):
         self._acquisition_start = acquisition_start
         self._acquisition_end = acquisition_end
         self.reference = reference
-        self.unititle = unittitle
+        self.unittitle = unittitle
         super().__init__(query, filters, sort)
 
     def search(self):
@@ -232,8 +232,8 @@ class RecordSearch(FacetedSearch):
                 s = s.filter("match", reference=self.reference)
             except TypeError:
                 pass
-        if self.unititle:
-            s = s.query("prefix", unittitle__raw="geo")
+        if self.unittitle:
+            s = s.query("prefix", unittitle__raw=self.unittitle)
         return s
 
 
