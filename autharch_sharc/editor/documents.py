@@ -460,8 +460,8 @@ class EADDocument(Document):
                 ]
             )
         if len(categories) > 0:
-            return categories
-        return None
+            return categories[0]
+        return ""
 
     def _prepare_connection(self, instance, localtype):
         connections = []
