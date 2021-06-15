@@ -109,20 +109,13 @@ $(document).ready(function () {
                         filter_filterLabel: 'Filter records by {{label}}',
 
                     },
-                    sortList: [[2, 0]],
-                    headers: {
-                        2: {
-                            sorter: 'level'
-                        }
-                    }
                 })
         }
 
         $('#' + $(el).attr('id')).tablesorterPager({
             container: $('#' + $(el).parent('.table-container').next('.pager').attr('id')),
             size: 10,
-            // &paginate_by=
-            ajaxUrl: '/editor/records/?result_format=json&page={page+1}&paginate_by={size}&{filterList:filter}&{sortList:column}',
+            ajaxUrl: '/editor/records/?result_format=json&page={page+1}&paginate_by={size}&{filterList:filter}',
             customAjaxUrl: function (table, url) {
                 // Get the selected facets and q search
                 let facet_link = $('#selected-facets').data('facet-link');

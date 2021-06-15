@@ -200,6 +200,7 @@ class RecordSearch(FacetedSearch):
             creation_end=None,
             acquisition_start=None,
             acquisition_end=None,
+            category=None,
             reference=None,
             unittitle=None,
             updated=None,
@@ -208,8 +209,9 @@ class RecordSearch(FacetedSearch):
         self._creation_end = creation_end
         self._acquisition_start = acquisition_start
         self._acquisition_end = acquisition_end
-        self.reference = reference
-        self.unittitle = unittitle
+        self._category = category
+        self._reference = reference
+        self._unittitle = unittitle
         super().__init__(query, filters, sort)
 
     def search(self):
@@ -228,13 +230,15 @@ class RecordSearch(FacetedSearch):
             acquisition["lte"] = self._acquisition_end
         if acquisition:
             s = s.filter("range", date_of_acquisition=acquisition)
-        if self.reference:
+        if self._category:
+            s = s.query("prefix", category__lowercase=self._category)
+        if self._reference:
             try:
-                s = s.filter("prefix", reference=self.reference)
+                s = s.filter("prefix", reference=self._reference)
             except TypeError:
                 pass
-        if self.unittitle:
-            s = s.query("prefix", unittitle=self.unittitle)
+        if self._unittitle:
+            s = s.query("prefix", unittitle=self._unittitle)
         return s
 
 
@@ -315,6 +319,7 @@ class RecordList(LoginRequiredMixin, SearchView, FacetMixin):
             "creation_start": qs.get("creation_start_year"),
             "creation_end": qs.get("creation_end_year"),
             # In-table filters, submitted as part of Ajax call.
+            "category": qs.get("filter[1]"),
             "reference": qs.get("filter[2]"),
             "unittitle": qs.get("filter[0]"),
         }

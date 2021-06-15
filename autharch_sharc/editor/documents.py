@@ -446,6 +446,8 @@ class EADDocument(Document):
         return years
 
     def prepare_category(self, instance):
+        # It is required for this project that there be one and only
+        # one category, though EAD3 allows many.
         categories = []
         for controlaccess in instance.controlaccess_set.all():
             root = etree.fromstring(

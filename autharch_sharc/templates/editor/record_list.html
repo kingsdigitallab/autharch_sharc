@@ -134,8 +134,8 @@
       <thead>
         <tr>
           <th class="description" data-label="Title" data-placeholder="Filter by title" scope="col">Title</th>
-          <th class="filter-select" scope="col" data-label="Category" data-placeholder="Category">Category</th>
-          <th data-label="Unit ID" scope="col">Unit ID</th>
+          <th scope="col" data-label="Category" data-placeholder="Filter by category">Category</th>
+          <th data-label="Unit ID" data-placeholder="Filter by unit ID" scope="col">Unit ID</th>
         </tr>
       </thead>
       <tbody>
@@ -144,7 +144,7 @@
         {% if record.pk %}
         <tr>
           <td class="description archival-record"><a href="{% url 'editor:record-edit' record.pk %}">{{ record.unittitle|truncatewords:30 }}</a></td>
-          <td>{{ record.category.0 }}</td>
+          <td>{{ record.category }}</td>
           <td>{{ record.reference }}</td>
         </tr>
         {% endif %}
