@@ -13,7 +13,7 @@ from wagtail.api import APIField
 from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.core import blocks
 from wagtail.core.fields import RichTextField, StreamField
-from wagtail.core.models import Page
+from wagtail.core.models import Orderable, Page
 from wagtail.core.templatetags.wagtailcore_tags import RichText
 from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.search import index
@@ -297,7 +297,7 @@ class SharcRichTextPage(Page, MenuChildrenMixin):
         }
 
 
-class WagtailEADSnippet(index.Indexed, models.Model):
+class WagtailEADSnippet(index.Indexed, Orderable, models.Model):
     """A middleware snippet to facilitate using the ead objects
     in wagtail
     Fields in the EAD for searching/filtering are brought forward here
@@ -404,7 +404,7 @@ class StoryObjectCollectionType(models.Model):
 register_snippet(StoryObjectCollectionType)
 
 
-class ThemeObject(models.Model):
+class ThemeObject(Orderable, models.Model):
     """Intersection set for collections
     now including type
     """
@@ -441,7 +441,7 @@ class ThemeObject(models.Model):
 register_snippet(ThemeObject)
 
 
-class StoryObject(models.Model):
+class StoryObject(Orderable, models.Model):
     """Intersection set for collections
     now including type
     """
