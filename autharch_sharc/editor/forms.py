@@ -622,7 +622,7 @@ class SecondaryConnectionInlineForm(RelationEntryInlineForm):
 
     class Meta(RelationEntryInlineForm.Meta):
         labels = {
-            "relationentry": "Secondary connection to relevant work?",
+            "relationentry": "Secondary relation to relevant work?",
         }
 
 
