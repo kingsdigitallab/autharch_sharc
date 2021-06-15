@@ -135,7 +135,6 @@ $(document).ready(function () {
                 type: 'GET', // default setting
                 dataType: 'json'
             },
-            processAjaxOnInit: false,
             savePages: false,
             pageReset: 0,
             ajaxProcessing: function (data) {
