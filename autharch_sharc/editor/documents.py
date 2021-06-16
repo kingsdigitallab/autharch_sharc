@@ -737,8 +737,8 @@ class EADDocument(Document):
             instance.bibliography_set.values_list("bibliography", flat=True)
         )
 
-        html_refs = re.sub("^<bibref.*?>", "", refs)
-        html_refs = re.sub("</bibref>$", "", html_refs)
+        html_refs = re.sub("^<.*?>", "", refs)
+        html_refs = re.sub("</.*?>$", "", html_refs)
         if html_refs == "None":
             # blank null value
             refs = ""
