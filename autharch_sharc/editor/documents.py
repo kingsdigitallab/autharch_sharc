@@ -1,3 +1,5 @@
+import re
+
 import requests
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
@@ -706,28 +708,51 @@ class EADDocument(Document):
         # From CustodHist.custodhist
         provenances = []
         for prov in instance.custodhist_set.all():
+            raw = prov.custodhist
+            html = prov.custodhist
             try:
                 root = etree.fromstring(prov.custodhist)
-                provenances.append({"raw": root.text.strip(), "html": prov.custodhist})
+                raw = root.text.strip()
             except etree.XMLSyntaxError:
-                provenances.append({"raw": prov.custodhist, "html": prov.custodhist})
-        # provenance = " ".join(
-        #     instance.custodhist_set.values_list("custodhist", flat=True)
-        # )
+                pass
+            # <p class="ead-p">None</p>
+            html = EADDocument._strip_initial_p(html)
 
-        return provenances
+            provenances.append({"raw": raw, "html": html})
+
+        if len(provenances) > 0 and provenances[0]["html"] != "None":
+            return provenances[0]
+        return {"raw": "", "html": ""}
+
+    @classmethod
+    def _strip_initial_p(cls, html):
+        """Strip p tag wrapping provenence, leave others intact"""
+        html = re.sub("^<p.*?>", "", html)
+        html = re.sub("</p>$", "", html)
+        return html
 
     def prepare_references_published(self, instance):
         # From Bibliography.bibliography
         refs = " ".join(
             instance.bibliography_set.values_list("bibliography", flat=True)
         )
-        return {"raw": refs, "html": refs}
+
+        html_refs = re.sub("^<bibref.*?>", "", refs)
+        html_refs = re.sub("</bibref>$", "", html_refs)
+        if html_refs == "None":
+            # blank null value
+            refs = ""
+            html_refs = ""
+        return {"raw": refs, "html": html_refs}
 
     def prepare_references_unpublished(self, instance):
         # From SourceEntry.sourceentry
         entries = SourceEntry.objects.filter(source__sources=instance)
         refs = " ".join(entries.values_list("sourceentry", flat=True))
+        if len(refs) > 0:
+            if refs == "None":
+                # blank null value
+                refs = ""
         return {"raw": refs, "html": refs}
 
     def prepare_unittitle(self, instance):

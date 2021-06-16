@@ -74,5 +74,6 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "stories",
             "notes",
             "provenance",
+            "references_published",
             "references_unpublished",
         )
