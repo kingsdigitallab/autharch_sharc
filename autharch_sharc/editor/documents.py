@@ -739,7 +739,7 @@ class EADDocument(Document):
 
         html_refs = re.sub("^<.*?>", "", refs)
         html_refs = re.sub("</.*?>$", "", html_refs)
-        if html_refs == "None":
+        if html_refs == "None" or html_refs == '<span class="ead-bibref">None</span>':
             # blank null value
             refs = ""
             html_refs = ""
