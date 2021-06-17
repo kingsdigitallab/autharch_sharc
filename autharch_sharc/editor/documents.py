@@ -465,6 +465,9 @@ class EADDocument(Document):
             )
         if len(categories) > 0:
             return categories[0]
+        elif len(root.xpath("span[@class='ead-genreform']/text()")) > 0:
+            # try a different pattern
+            return root.xpath("span[@class='ead-genreform']/text()")
         return ""
 
     def _prepare_connection(self, instance, localtype):
