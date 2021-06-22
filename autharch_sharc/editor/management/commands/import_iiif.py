@@ -82,21 +82,26 @@ class Command(BaseCommand):
         SharcIIIF.objects.all().delete()
         # import sheets
         self.parse_iiif_sheet(
-            "data/ShaRC_manifests_March2021_library.csv",
+            "data/ShaRC_manifests_library.csv",
             {"images_available": 2, "iiif_uri": [3, 4, 5, 6, 7]},
             "Library",
         )
 
         self.parse_iiif_sheet(
-            "data/ShaRC_manifests_March2021_paintings.csv",
+            "data/ShaRC_manifests_paintings.csv",
             {"images_available": 2, "iiif_uri": [3, 4, 5]},
             "Paintings",
         )
 
         self.parse_iiif_sheet(
-            "data/ShaRC_manifests_March2021_printroom.csv",
+            "data/ShaRC_manifests_printroom.csv",
             {"images_available": 2, "iiif_uri": [3, 4, 5]},
             "Print Room",
+        )
+        self.parse_iiif_sheet(
+            "data/ShaRC_manifests_archives.csv",
+            {"images_available": 2, "iiif_uri": [3, 4, 5]},
+            "Archives",
         )
 
         self.stdout.write(
