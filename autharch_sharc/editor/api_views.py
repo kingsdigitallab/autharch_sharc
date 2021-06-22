@@ -168,9 +168,10 @@ class EADDocumentViewSet(DocumentViewSet):
     ordering_fields = {
         "unittitle": "unittitle.sort",
         "date_of_creation": "date_of_creation",
+        "date_of_acquisition": "date_of_acquisition",
     }
 
-    ordering = ("unittitle", "date_of_creation")
+    ordering = ("unittitle",)
 
     def get_doc_type_queryset(self):
         # Include only objects in this search
