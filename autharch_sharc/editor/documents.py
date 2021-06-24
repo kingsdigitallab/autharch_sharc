@@ -8,6 +8,7 @@ from ead.models import (
     DIdPhysDescStructuredDimensions,
     RelationEntry,
     SourceEntry,
+    UnitDate,
     UnitDateStructuredDateRange,
 )
 from elasticsearch_dsl import analyzer, normalizer
@@ -189,6 +190,8 @@ class EADDocument(Document):
     connection_type = fields.KeywordField()
     date_of_acquisition = fields.IntegerField()
     date_of_creation = fields.IntegerField()
+    date_of_creation_notes = fields.TextField()
+    date_of_acquisition_notes = fields.TextField()
     publicationstatus_value = fields.KeywordField()
     unittitle = fields.TextField(
         fields={
@@ -446,6 +449,20 @@ class EADDocument(Document):
         else:
             years = list(range(start_year, end_year + 1))
         return years
+
+    def prepare_date_notes(self, instance, datechar):
+        # <unitdate datechar="creation">Published December 3 1787</unitdate>
+        for unitdate in UnitDate.objects.filter(did=instance, datechar=datechar):
+            if unitdate.unitdate == "None":
+                return None
+            return unitdate.unitdate
+        return None
+
+    def prepare_date_of_creation_notes(self, instance):
+        return self.prepare_date_notes(instance, "creation")
+
+    def prepare_date_of_acquisition_notes(self, instance):
+        return self.prepare_date_notes(instance, "acquisition")
 
     def prepare_category(self, instance):
         # It is required for this project that there be one and only
