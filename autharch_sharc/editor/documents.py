@@ -546,7 +546,7 @@ class EADDocument(Document):
                 label = sh_connection[2]
             else:
                 label = sh_connection[1]
-            if label and len(label) > 0:
+            if label and len(label) > 0 and label not in data["individual_connections"]:
                 data["individual_connections"].append(label)
         return data
 
@@ -568,15 +568,18 @@ class EADDocument(Document):
                 if len(sh_connection) > 2:
                     label = sh_connection[2]
                 for split_label in label.split(","):
-                    if len(split_label) > 0:
+                    if (
+                        len(split_label) > 0
+                        and split_label not in data["work_connections"]
+                    ):
                         data["work_connections"].append(split_label.strip())
 
             elif sh_connection[1].lower() == "attributed to shakespeare":
                 # create type using type of attributed work
 
                 label = sh_connection[2]
-
-                data["work_connections"].append(label)
+                if len(label) > 0 and label not in data["work_connections"]:
+                    data["work_connections"].append(label)
 
             # Texts
             elif sh_connection[1].lower() == "text":
@@ -591,7 +594,7 @@ class EADDocument(Document):
                     label = sh_connection[2]
                 else:
                     label = sh_connection[1]
-                if len(label) > 0:
+                if len(label) > 0 and label not in data["text_connections"]:
                     data["text_connections"].append(label)
 
             elif sh_connection[1].lower() == "performance":
@@ -610,7 +613,7 @@ class EADDocument(Document):
                     label = sh_connection[2]
                 else:
                     label = sh_connection[1]
-                if len(label) > 0:
+                if len(label) > 0 and label not in data["performance_connections"]:
                     data["performance_connections"].append(label)
 
             # Sources
@@ -619,7 +622,7 @@ class EADDocument(Document):
                     label = sh_connection[2]
                 else:
                     label = sh_connection[1]
-                if len(label) > 0:
+                if len(label) > 0 and label not in data["source_connections"]:
                     data["source_connections"].append(label)
         return data
 

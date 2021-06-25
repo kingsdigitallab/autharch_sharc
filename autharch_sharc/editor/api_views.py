@@ -67,7 +67,11 @@ class EADDocumentViewSet(DocumentViewSet):
         SuggesterFilterBackend,
     ]
 
-    search_fields = ("search_content",)
+    # search_fields = ("search_content",)
+    search_fields = (
+        "=reference",
+        "unittitle",
+    )
 
     filter_fields = {
         "pk": "pk",
