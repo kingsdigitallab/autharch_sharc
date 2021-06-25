@@ -1,7 +1,7 @@
 {% load editor_form_tags %}
 <fieldset data-form-type="relation">
   <div class="fieldset-header">
-    <h4>Connection </h4>
+    <h4>Connection</h4>
     <div class="flex">
       <div>
         {% render_field form.id %}
@@ -19,12 +19,9 @@
       </div>
       <div class="fieldsets">
         {% for connectiontype in connectiontypes.forms %}
-        {% include "./relationentry_inline_form.html" with form=connectiontype form_type='connectiontype' %}
+        {% include "./relationentry_type_inline_form.html" with form=connectiontype %}
         {% endfor %}
       </div>
-      <label class="create linked-button">
-        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('connectiontype', this)">Add connection
-      </label>
       {% endwith %}
     </div>
     <div class="formset">
@@ -38,7 +35,7 @@
         {% endfor %}
       </div>
       <label class="create linked-button">
-        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('primaryconnection', this)">Add connection
+        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('primaryconnection', this)">Add primary connection
       </label>
       {% endwith %}
     </div>
@@ -53,7 +50,7 @@
         {% endfor %}
       </div>
       <label class="create linked-button">
-        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('secondaryconnection', this)">Add connection
+        <input type="button" class="icon-only" value="&#xf067;" onclick="addEmptyForm('secondaryconnection', this)">Add secondary connection
       </label>
       {% endwith %}
     </div>
