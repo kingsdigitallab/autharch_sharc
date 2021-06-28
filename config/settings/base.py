@@ -44,6 +44,11 @@ LOCALE_PATHS = [str(ROOT_DIR / "locale")]
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
+# FORMS
+# Increased for editor records with lots of connections
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2048
+
+
 # URLS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf
