@@ -683,7 +683,9 @@ class RelationInlineForm(ContainerModelForm):
             RelationEntry,
             form=ConnectionTypeInlineForm,
             extra=0,
+            max_num=1,
             min_num=1,
+            validate_max=True,
             validate_min=True,
         )
         formsets["connectiontypes"] = ConnectionTypeFormset(
@@ -697,8 +699,6 @@ class RelationInlineForm(ContainerModelForm):
             RelationEntry,
             form=PrimaryConnectionInlineForm,
             extra=0,
-            min_num=1,
-            validate_min=True,
         )
         formsets["primaryconnections"] = PrimaryConnectionFormset(
             data,
@@ -711,8 +711,6 @@ class RelationInlineForm(ContainerModelForm):
             RelationEntry,
             form=SecondaryConnectionInlineForm,
             extra=0,
-            min_num=1,
-            validate_min=True,
         )
         formsets["secondaryconnections"] = SecondaryConnectionFormset(
             data,

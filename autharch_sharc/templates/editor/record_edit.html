@@ -500,7 +500,6 @@
     {% endwith %}
     {% with relation_form=formsets.relations.empty_form %}
     {% include "./includes/relation_inline_form.html" with form=relation_form %}
-    {% include "./includes/relationentry_inline_form.html" with form=relation_form.formsets.connectiontypes.empty_form form_type='connectiontype' %}
     {% include "./includes/relationentry_inline_form.html" with form=relation_form.formsets.primaryconnections.empty_form form_type='primaryconnection' %}
     {% include "./includes/relationentry_inline_form.html" with form=relation_form.formsets.secondaryconnections.empty_form form_type='secondaryconnection' %}
     {% endwith %}
