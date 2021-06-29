@@ -31,15 +31,10 @@ Included here so we can use it in api view and in building search content
 eaddocument_search_fields = (
     "unittitle",
     "reference",
-    "category",
     "connection_primary",
-    "related_sources.works",
-    "related_sources.texts",
-    "related_sources.performances",
-    "related_sources.sources",
-    "related_sources.individuals",
-    "acquirer",
     "label",
+    "references_published.raw",
+    "references_unpublished.raw",
 )
 
 

@@ -8,6 +8,7 @@ from django_elasticsearch_dsl_drf.filter_backends import (
     DefaultOrderingFilterBackend,
     FacetedSearchFilterBackend,
     FilteringFilterBackend,
+    MultiMatchSearchFilterBackend,
     OrderingFilterBackend,
     SuggesterFilterBackend,
 )
@@ -65,13 +66,19 @@ class EADDocumentViewSet(DocumentViewSet):
         CompoundSearchFilterBackend,
         # the suggester backend needs to be the last backend
         SuggesterFilterBackend,
+        MultiMatchSearchFilterBackend,
     ]
 
-    # search_fields = ("search_content",)
-    search_fields = (
-        "=reference",
-        "unittitle",
-    )
+    search_fields = ("search_content",)
+
+    multi_match_search_fields = {
+        "unittitle": {"boost": 4},
+        "reference": {"boost": 5},
+        "notes": None,
+        "label": None,
+        "references_published.html": None,
+        "references_unpublished.html": None,
+    }
 
     filter_fields = {
         "pk": "pk",
