@@ -1,5 +1,5 @@
 {% load editor_form_tags %}
-<fieldset class="flex" data-form-type="unitdate">
+<div class="flex" data-form-type="unitdate">
   <div class="inline-deletable">
     {% render_form_delete_widget form.DELETE %}
     {% render_field form.id %}
@@ -9,4 +9,4 @@
   <div class="delete-button-block">
     {% include "./delete_inline_button.html" %}
   </div>
-</fieldset>
+</div>

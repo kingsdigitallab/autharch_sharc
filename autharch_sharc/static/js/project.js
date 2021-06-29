@@ -598,17 +598,11 @@ function toggleDeleteInline(event, button) {
     let jButton = $(button);
     let label = jButton.parent('label');
     let header = label.parents('.fieldset-header');
-    let fieldset = header.parent('fieldset');
 
     // grey out the header if inactive
     header.toggleClass('inactive');
-    // uncheck preferred identity
-    header.find('input[type="checkbox"]:checked').prop('checked', false);
-    fieldset.removeClass('border-left');
     // remove toggle button
     header.find('.toggle-tab-button').toggleClass('inactive');
-    //toggle the display of preferred identity and authorised form
-    header.find('input[type="checkbox"]').parent().toggleClass('none');
 
     // Find the element for the part of the form to be shown/hidden,
     // and toggle its visibility.
