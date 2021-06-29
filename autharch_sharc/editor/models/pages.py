@@ -255,6 +255,7 @@ class MenuChildrenSerializer(serializers.Field):
             "id": value.id,
             "title": value.title,
             "slug": value.slug,
+            "url": value.url,
         }
 
     def to_internal_value(self, data):
