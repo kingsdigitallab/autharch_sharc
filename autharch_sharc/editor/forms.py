@@ -698,7 +698,9 @@ class RelationInlineForm(ContainerModelForm):
             Relation,
             RelationEntry,
             form=PrimaryConnectionInlineForm,
-            extra=0,
+            extra=1,
+            max_num=1,
+            validate_max=True,
         )
         formsets["primaryconnections"] = PrimaryConnectionFormset(
             data,
@@ -1272,7 +1274,9 @@ class RecordEditForm(ContainerModelForm):
             form=CreationUnitDateStructuredInlineForm,
             extra=1,
             max_num=1,
+            min_num=1,
             validate_max=True,
+            validate_min=True,
         )
         formsets["creation_dates"] = CreationDateFormset(
             *args,

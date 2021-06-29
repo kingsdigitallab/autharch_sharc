@@ -73,13 +73,7 @@
     <div class="form-section">
       <h2>SUMMARY</h2>
       <fieldset id="summary">
-        <div class="fieldset-header">
-          <h4>Short title</h4>
-          <div>
-            <button class="toggle-tab-button active" onclick="toggleTab()" aria-label="toggle tab"></button>
-          </div>
-        </div>
-        <div class="fieldset-body expand">
+        <div class="fieldset">
           <div class="two-column-table">
             <div>
               {% with unittitles=form.formsets.unittitles %}
@@ -138,7 +132,7 @@
                 </div>
                 <div class="fieldsets">
                   {% for date in dates.forms %}
-                  {% include "./includes/unitdatestructured_inline_form.html" with form=date %}
+                  {% include "./includes/unitdatestructured_creation_inline_form.html" with form=date %}
                   {% endfor %}
                 </div>
               </div>

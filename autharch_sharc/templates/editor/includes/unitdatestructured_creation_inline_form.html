@@ -1,7 +1,6 @@
 {% load editor_form_tags %}
-<div class="flex" data-form-type="unitdatestructured">
-  <div class="fieldset inline-deletable">
-    {% render_form_delete_widget form.DELETE %}
+<div data-form-type="unitdatestructured">
+  <div class="fieldset">
     {% render_field form.id %}
     {% render_field form.datechar %}
     {% with dateranges=form.formsets.dateranges %}
@@ -15,9 +14,6 @@
         {% endfor %}
       </div>
     </div>
-  </div>
-  <div class="delete-button-block">
-    {% include "./delete_inline_button.html" %}
   </div>
   {% endwith %}
 </div>
