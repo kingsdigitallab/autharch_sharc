@@ -44,8 +44,11 @@ class Command(BaseCommand):
                     images_available = ""
                 for uri_column in column_format["iiif_uri"]:
                     iiif_uri = csv_line[uri_column]
-                    # pdb.set_trace()
-                    if len(iiif_uri) > 0 and "http" in iiif_uri:
+
+                    if len(iiif_uri) > 0 and ("http" in iiif_uri or "www" in iiif_uri):
+                        if "http" not in iiif_uri:
+                            # Add https at the front to make the link work
+                            iiif_uri = "https://" + iiif_uri
                         if len(rcin) == 0:
                             # get the end of the uri
                             # use first column as the rcin
@@ -74,6 +77,7 @@ class Command(BaseCommand):
     def parse_iiif_sheet(self, filename, column_format, department) -> None:
         with open(filename, "r") as csv_file:
             csvfile = csv.reader(csv_file, delimiter=",")
+            print("{}\n".format(department))
             for csv_line in csvfile:
                 self.parse_iiif_row(csv_line, column_format, department)
 
@@ -81,6 +85,13 @@ class Command(BaseCommand):
         # Reset objects
         SharcIIIF.objects.all().delete()
         # import sheets
+
+        self.parse_iiif_sheet(
+            "data/ShaRC_manifests_paintings.csv",
+            {"images_available": 2, "iiif_uri": [3]},
+            "Paintings",
+        )
+
         self.parse_iiif_sheet(
             "data/ShaRC_manifests_library.csv",
             {"images_available": 2, "iiif_uri": [3, 4, 5, 6, 7]},
@@ -88,14 +99,8 @@ class Command(BaseCommand):
         )
 
         self.parse_iiif_sheet(
-            "data/ShaRC_manifests_paintings.csv",
-            {"images_available": 2, "iiif_uri": [3, 4, 5]},
-            "Paintings",
-        )
-
-        self.parse_iiif_sheet(
             "data/ShaRC_manifests_printroom.csv",
-            {"images_available": 2, "iiif_uri": [3, 4, 5]},
+            {"images_available": 2, "iiif_uri": [3]},
             "Print Room",
         )
         self.parse_iiif_sheet(

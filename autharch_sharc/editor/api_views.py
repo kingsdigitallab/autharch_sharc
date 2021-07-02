@@ -182,7 +182,10 @@ class EADDocumentViewSet(DocumentViewSet):
         "date_of_acquisition": "date_of_acquisition",
     }
 
-    ordering = ("unittitle",)
+    ordering = (
+        "_score",
+        "unittitle.sort",
+    )
 
     def get_doc_type_queryset(self):
         # Include only objects in this search
