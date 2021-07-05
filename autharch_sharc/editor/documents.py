@@ -737,7 +737,7 @@ class EADDocument(Document):
             "acquirers": acquirers,
             "donors": donors,
             "publishers": publishers,
-            "all_people": people,
+            "all_people": people if len(people) > 0 else None,
         }
 
     def prepare_related_sources(self, instance):
