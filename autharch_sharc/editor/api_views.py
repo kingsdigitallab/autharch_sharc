@@ -89,6 +89,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "category": "category.lowercase",
         "themes": "themes.raw",
         "acquirer": "related_people.acquirers",
+        "people": "related_people.all_people",
         "work": "related_sources.works",
         "text": "related_sources.texts",
         "performance": "related_sources.performances",

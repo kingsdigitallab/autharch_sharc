@@ -65,6 +65,7 @@ class EADDocument(Document):
             "name": fields.TextField(),
         }
     )
+
     pk = fields.IntegerField(attr="id")
     reference = fields.KeywordField()
     archdesc_level = fields.KeywordField(attr="archdesc_level")
@@ -125,6 +126,12 @@ class EADDocument(Document):
             "publishers": fields.KeywordField(
                 fields={
                     "suggest": fields.CompletionField(),
+                }
+            ),
+            "all_people": fields.ObjectField(
+                properties={
+                    "name": fields.KeywordField(),
+                    "type": fields.KeywordField(),
                 }
             ),
         }
@@ -693,10 +700,44 @@ class EADDocument(Document):
         )
 
     def prepare_related_people(self, instance):
+        acquirers = self._get_acquirers(instance)
+        donors = self._get_donors(instance)
+        publishers = self._get_publishers(instance)
+        people = list()
+        for publisher in publishers:
+            people.append(
+                {
+                    "name": publisher,
+                    "type": "publisher",
+                }
+            )
+        for donor in donors:
+            people.append(
+                {
+                    "name": donor,
+                    "type": "donor",
+                }
+            )
+        for acquirer in acquirers:
+            people.append(
+                {
+                    "name": acquirer,
+                    "type": "acquirer",
+                }
+            )
+        for creator in self.prepare_creators(instance):
+            people.append(
+                {
+                    "name": creator["name"],
+                    "type": "creator",
+                }
+            )
+
         return {
-            "acquirers": self._get_acquirers(instance),
-            "donors": self._get_donors(instance),
-            "publishers": self._get_publishers(instance),
+            "acquirers": acquirers,
+            "donors": donors,
+            "publishers": publishers,
+            "all_people": people,
         }
 
     def prepare_related_sources(self, instance):
