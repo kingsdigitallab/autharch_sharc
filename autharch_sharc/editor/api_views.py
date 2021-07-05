@@ -119,6 +119,12 @@ class EADDocumentViewSet(DocumentViewSet):
             "enabled": True,
             "options": ES_FACET_OPTIONS,
         },
+        "people": {
+            "facet": TermsFacet,
+            "field": "related_people.all_people",
+            "enabled": True,
+            "options": ES_FACET_OPTIONS,
+        },
         "individual_connections": {
             "facet": TermsFacet,
             "field": "related_sources.individuals",
