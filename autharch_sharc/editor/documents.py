@@ -191,7 +191,9 @@ class EADDocument(Document):
     )
     connection_type = fields.KeywordField()
     date_of_acquisition = fields.IntegerField()
+    date_of_acquisition_range = fields.TextField()
     date_of_creation = fields.IntegerField()
+    date_of_creation_range = fields.TextField()
     date_of_creation_notes = fields.TextField()
     date_of_acquisition_notes = fields.TextField()
     publicationstatus_value = fields.KeywordField()
@@ -754,8 +756,25 @@ class EADDocument(Document):
     def prepare_date_of_acquisition(self, instance):
         return self._get_year_range(instance, "acquisition")
 
+    def prepare_date_of_acquisition_range(self, instance):
+        return EADDocument._prepare_date_range(
+            self._get_year_range(instance, "acquisition")
+        )
+
     def prepare_date_of_creation(self, instance):
         return self._get_year_range(instance, "creation")
+
+    def prepare_date_of_creation_range(self, instance):
+        dates = self.prepare_date_of_creation(instance)
+        return EADDocument._prepare_date_range(dates)
+
+    @classmethod
+    def _prepare_date_range(self, dates):
+        if dates and len(dates) > 0:
+            if len(dates) > 1:
+                return "{}-{}".format(dates[0], dates[len(dates) - 1])
+            return "{}".format(dates[0])
+        return ""
 
     def prepare_notes(self, instance):
         # From ScopeContent.scopecontent with localtype="notes".
