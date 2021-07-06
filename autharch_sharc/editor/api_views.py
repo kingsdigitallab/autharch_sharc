@@ -113,6 +113,12 @@ class EADDocumentViewSet(DocumentViewSet):
             "enabled": False,
             "options": ES_FACET_OPTIONS,
         },
+        "creator": {
+            "facet": TermsFacet,
+            "field": "creators.name",
+            "enabled": True,
+            "options": ES_FACET_OPTIONS,
+        },
         "acquirer": {
             "facet": TermsFacet,
             "field": "related_people.acquirers",

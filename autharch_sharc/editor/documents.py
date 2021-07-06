@@ -62,7 +62,7 @@ class EADDocument(Document):
     creators = fields.ObjectField(
         properties={
             "key": fields.KeywordField(),
-            "name": fields.TextField(),
+            "name": fields.KeywordField(),
         }
     )
 
@@ -664,7 +664,7 @@ class EADDocument(Document):
                     creators.append(
                         {
                             "key": "{}-{}".format(name_type, name.id),
-                            "name": name.assembled_name,
+                            "name": name.assembled_name.strip(),
                         }
                     )
         return creators
