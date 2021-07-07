@@ -131,7 +131,9 @@ class EADDocument(Document):
             "all_people": fields.ObjectField(
                 properties={
                     "name": fields.KeywordField(),
+                    "surname": fields.KeywordField(),
                     "type": fields.KeywordField(),
+                    "suggest": fields.CompletionField(),
                 }
             ),
         }
@@ -701,6 +703,15 @@ class EADDocument(Document):
             "@data-ead-relator='publisher']/span[@class='ead-part']",
         )
 
+    def _extract_surname(self, name):
+        """This is a bit of a hack to get a surname from heterogenous data
+        we're getting the word before the () dates"""
+
+        if re.search(r"\s+(\w+) \(.*?\)\s*$", name):
+            result = re.search(r"\s+(\w+) \(.*?\)\s*$", name)
+            return result.group(1)
+        return None
+
     def prepare_related_people(self, instance):
         acquirers = self._get_acquirers(instance)
         donors = self._get_donors(instance)
@@ -710,6 +721,7 @@ class EADDocument(Document):
             people.append(
                 {
                     "name": publisher,
+                    "surname": self._extract_surname(publisher),
                     "type": "publisher",
                 }
             )
@@ -717,20 +729,16 @@ class EADDocument(Document):
             people.append(
                 {
                     "name": donor,
+                    "surname": self._extract_surname(donor),
                     "type": "donor",
                 }
             )
-        for acquirer in acquirers:
-            people.append(
-                {
-                    "name": acquirer,
-                    "type": "acquirer",
-                }
-            )
+
         for creator in self.prepare_creators(instance):
             people.append(
                 {
                     "name": creator["name"],
+                    "surname": self._extract_surname(creator["name"]),
                     "type": "creator",
                 }
             )
