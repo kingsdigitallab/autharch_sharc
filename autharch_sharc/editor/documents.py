@@ -682,9 +682,6 @@ class EADDocument(Document):
             root = etree.fromstring(
                 "<wrapper>{}</wrapper>".format(controlaccess.controlaccess)
             )
-            import pdb
-
-            pdb.set_trace()
             for element in root.xpath(path):
                 data.append(element.text.strip())
         return data
@@ -722,7 +719,7 @@ class EADDocument(Document):
     def _get_people(self, instance):
         # data-ead-relator
         people = list()
-        path = ("span[@class='ead-persname'][@data-ead-relator!='acquirer']",)
+        path = "span[@class='ead-persname'][@data-ead-relator!='acquirer']"
         for controlaccess in instance.controlaccess_set.all():
             root = etree.fromstring(
                 "<wrapper>{}</wrapper>".format(controlaccess.controlaccess)
