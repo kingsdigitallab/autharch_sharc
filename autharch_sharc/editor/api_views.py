@@ -89,7 +89,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "category": "category.lowercase",
         "themes": "themes.raw",
         "acquirer": "related_people.acquirers",
-        "people": "related_people.all_people",
+        "people": "related_people.all_people.name",
         "work": "related_sources.works",
         "text": "related_sources.texts",
         "performance": "related_sources.performances",
@@ -188,7 +188,7 @@ class EADDocumentViewSet(DocumentViewSet):
             },
         },
         "people_suggest": {
-            "field": "related_people.all_people.suggest",
+            "field": "related_people.all_people.name.suggest",
             "suggesters": [
                 SUGGESTER_COMPLETION,
             ],

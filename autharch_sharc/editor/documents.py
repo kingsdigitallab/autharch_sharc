@@ -130,11 +130,14 @@ class EADDocument(Document):
             ),
             "all_people": fields.ObjectField(
                 properties={
-                    "name": fields.KeywordField(),
+                    "name": fields.KeywordField(
+                        fields={
+                            "suggest": fields.CompletionField(),
+                        }
+                    ),
                     "surname": fields.KeywordField(),
                     "facet_label": fields.KeywordField(),
                     "type": fields.KeywordField(),
-                    "suggest": fields.CompletionField(),
                 }
             ),
         }
@@ -741,7 +744,7 @@ class EADDocument(Document):
             people.append(
                 {
                     "name": creator["name"],
-                    "facet_label": "{} - {}".format(creator, "Creator"),
+                    "facet_label": "{} - {}".format(creator["name"], "Creator"),
                     "surname": self._extract_surname(creator["name"]),
                     "type": "creator",
                 }
