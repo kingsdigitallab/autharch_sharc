@@ -187,6 +187,16 @@ class EADDocumentViewSet(DocumentViewSet):
                 # Whether duplicate suggestions should be filtered out.
             },
         },
+        "people_suggest": {
+            "field": "related_people.all_people.suggest",
+            "suggesters": [
+                SUGGESTER_COMPLETION,
+            ],
+            "options": {
+                "size": 20,
+                "skip_duplicates": True,
+            },
+        },
     }
 
     ordering_fields = {
