@@ -132,6 +132,7 @@ class EADDocument(Document):
                 properties={
                     "name": fields.KeywordField(),
                     "surname": fields.KeywordField(),
+                    "facet_label": fields.KeywordField(),
                     "type": fields.KeywordField(),
                     "suggest": fields.CompletionField(),
                 }
@@ -721,6 +722,7 @@ class EADDocument(Document):
             people.append(
                 {
                     "name": publisher,
+                    "facet_label": "{} - {}".format(publisher, "Publisher"),
                     "surname": self._extract_surname(publisher),
                     "type": "publisher",
                 }
@@ -729,6 +731,7 @@ class EADDocument(Document):
             people.append(
                 {
                     "name": donor,
+                    "facet_label": "{} - {}".format(donor, "Donor"),
                     "surname": self._extract_surname(donor),
                     "type": "donor",
                 }
@@ -738,6 +741,7 @@ class EADDocument(Document):
             people.append(
                 {
                     "name": creator["name"],
+                    "facet_label": "{} - {}".format(creator, "Creator"),
                     "surname": self._extract_surname(creator["name"]),
                     "type": "creator",
                 }
