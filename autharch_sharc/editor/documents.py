@@ -682,6 +682,9 @@ class EADDocument(Document):
             root = etree.fromstring(
                 "<wrapper>{}</wrapper>".format(controlaccess.controlaccess)
             )
+            import pdb
+
+            pdb.set_trace()
             for element in root.xpath(path):
                 data.append(element.text.strip())
         return data
@@ -716,39 +719,76 @@ class EADDocument(Document):
             return result.group(1)
         return None
 
+    def _get_people(self, instance):
+        # data-ead-relator
+        people = list()
+        path = ("span[@class='ead-persname'][@data-ead-relator!='acquirer']",)
+        for controlaccess in instance.controlaccess_set.all():
+            root = etree.fromstring(
+                "<wrapper>{}</wrapper>".format(controlaccess.controlaccess)
+            )
+
+            for element in root.xpath(path):
+                type = element.get("data-ead-relator")
+                if len(element) > 0:
+                    child = element[0]
+                    name = child.text.strip()
+                    people.append(
+                        {
+                            "name": name,
+                            "facet_label": "{} - {}".format(name, type),
+                            "surname": self._extract_surname(name),
+                            "type": type,
+                        }
+                    )
+        return people
+
     def prepare_related_people(self, instance):
         acquirers = self._get_acquirers(instance)
         donors = self._get_donors(instance)
         publishers = self._get_publishers(instance)
-        people = list()
-        for publisher in publishers:
-            people.append(
-                {
-                    "name": publisher,
-                    "facet_label": "{} - {}".format(publisher, "Publisher"),
-                    "surname": self._extract_surname(publisher),
-                    "type": "publisher",
-                }
-            )
-        for donor in donors:
-            people.append(
-                {
-                    "name": donor,
-                    "facet_label": "{} - {}".format(donor, "Donor"),
-                    "surname": self._extract_surname(donor),
-                    "type": "donor",
-                }
-            )
+        people = self._get_people(instance)
 
-        for creator in self.prepare_creators(instance):
-            people.append(
-                {
-                    "name": creator["name"],
-                    "facet_label": "{} - {}".format(creator["name"], "Creator"),
-                    "surname": self._extract_surname(creator["name"]),
-                    "type": "creator",
-                }
-            )
+        # for person in people:
+        #     people.append(
+        #             {
+        #                 "name": person,
+        #                 "facet_label": "{} - {}".format(publisher,
+        #                 "Publisher"),
+        #                 "surname": self._extract_surname(publisher),
+        #                 "type": "publisher",
+        #             }
+        #         )
+        #     )
+
+        # for publisher in publishers:
+        #     people.append(
+        #         {
+        #             "name": publisher,
+        #             "facet_label": "{} - {}".format(publisher, "Publisher"),
+        #             "surname": self._extract_surname(publisher),
+        #             "type": "publisher",
+        #         }
+        #     )
+        # for donor in donors:
+        #     people.append(
+        #         {
+        #             "name": donor,
+        #             "facet_label": "{} - {}".format(donor, "Donor"),
+        #             "surname": self._extract_surname(donor),
+        #             "type": "donor",
+        #         }
+        #     )
+        #
+        # for creator in self.prepare_creators(instance):
+        #     people.append(
+        #         {
+        #             "name": creator["name"],
+        #             "facet_label": "{} - {}".format(creator["name"], "Creator"),
+        #             "surname": self._extract_surname(creator["name"]),
+        #             "type": "creator",
+        #         }
+        #     )
 
         return {
             "acquirers": acquirers,
