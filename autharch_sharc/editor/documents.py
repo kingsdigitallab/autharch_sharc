@@ -38,6 +38,9 @@ eaddocument_search_fields = (
 )
 
 
+# class PeopleDocument(Document):
+
+
 @registry.register_document
 class EADDocument(Document):
     """ Document model for EAD objects uploaded via xml"""

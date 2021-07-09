@@ -127,9 +127,9 @@ class EADDocumentViewSet(DocumentViewSet):
         },
         "people": {
             "facet": TermsFacet,
-            "field": "related_people.all_people.name",
+            "field": "related_people.all_people.facet_label",
             "enabled": True,
-            "options": ES_FACET_OPTIONS,
+            "options": {"order": {"_key": "asc"}, "size": 1000},
         },
         "individual_connections": {
             "facet": TermsFacet,
