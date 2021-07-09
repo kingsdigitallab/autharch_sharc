@@ -738,15 +738,16 @@ class EADDocument(Document):
                 if len(element) > 0:
                     child = element[0]
                     name = child.text.strip()
-                    people.append(
-                        {
-                            "name": name,
-                            "facet_label": "{} - {}".format(name, type),
-                            "surname": self._extract_surname(name),
-                            "type": type,
-                        }
-                    )
-                    print("{} - {}\n".format(name, type))
+                    if name is not None:
+                        people.append(
+                            {
+                                "name": name,
+                                "facet_label": "{} - {}".format(name, type),
+                                "surname": self._extract_surname(name),
+                                "type": type,
+                            }
+                        )
+                        # print("{} - {}\n".format(name, type))
         return people
 
     def prepare_related_people(self, instance):
