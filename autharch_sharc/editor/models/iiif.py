@@ -11,3 +11,8 @@ class SharcIIIF(models.Model):
     images_available = models.TextField(blank=True, null=True)
     department = models.CharField(blank=True, null=True, max_length=256)
     order = models.IntegerField(default=1)
+
+    class Meta:
+        verbose_name = "IIF Uri"
+        verbose_name_plural = "IIF Uris"
+        ordering = ["order"]

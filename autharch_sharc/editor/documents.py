@@ -108,7 +108,8 @@ class EADDocument(Document):
     # themes = fields.TextField(
     #     fields={
     #         "raw": fields.KeywordField(),
-    #         "lowercase": fields.KeywordField(normalizer=lowercase_sort_normalizer),
+    #         "lowercase": fields.KeywordField(
+    #         normalizer=lowercase_sort_normalizer),
     #     }
     # )
     related_people = fields.ObjectField(
@@ -187,6 +188,7 @@ class EADDocument(Document):
             "image_height": fields.IntegerField(),
             "thumbnail_width": fields.IntegerField(),
             "thumbnail_height": fields.IntegerField(),
+            "order": fields.IntegerField(),
         }
     )
 
@@ -247,7 +249,8 @@ class EADDocument(Document):
     # def prepare_stories(self, instance):
     #     """ EAD Group Objects"""
     #     stories = []
-    #     for story_object in StoryObject.objects.filter(ead_snippet__ead=instance):
+    #     for story_object in StoryObject.objects.filter(
+    #     ead_snippet__ead=instance):
     #         stories.append(
     #             {
     #                 "story": story_object.story.title,
@@ -295,6 +298,7 @@ class EADDocument(Document):
         thumbnail_width = 175
         thumbnail_height = 130
         label = "1"
+        order = 1
         # Try to fetch the iiif manifest
         RCIN = self.prepare_reference(instance)
         if SharcIIIF.objects.filter(rcin=RCIN).count() > 0:
@@ -335,6 +339,22 @@ class EADDocument(Document):
                                             thumbnail_width = thumbnail["width"]
                                         if "height" in thumbnail:
                                             thumbnail_height = thumbnail["height"]
+
+                                        media.append(
+                                            {
+                                                "label": canvas["label"],
+                                                "iiif_manifest_url": iiif_manifest_url,
+                                                "iiif_image_url": iiif_image_url,
+                                                "full_image_url": full_image_url,
+                                                "thumbnail_url": thumbnail_url,
+                                                "image_width": image_width,
+                                                "image_height": image_height,
+                                                "thumbnail_width": thumbnail_width,
+                                                "thumbnail_height": thumbnail_height,
+                                                "order": order,
+                                            }
+                                        )
+                                        order += 1
                         except IndexError:
                             pass
                 except (
@@ -342,19 +362,7 @@ class EADDocument(Document):
                     requests.exceptions.MissingSchema,
                 ):
                     print("BaD url! {}\n".format(manifest_url))
-                media.append(
-                    {
-                        "label": label,
-                        "iiif_manifest_url": iiif_manifest_url,
-                        "iiif_image_url": iiif_image_url,
-                        "full_image_url": full_image_url,
-                        "thumbnail_url": thumbnail_url,
-                        "image_width": image_width,
-                        "image_height": image_height,
-                        "thumbnail_width": thumbnail_width,
-                        "thumbnail_height": thumbnail_height,
-                    }
-                )
+
         # if 'metadata' in response:
         #     for data in response['metadata']:
         #         if data['label'] == 'Title':
@@ -781,7 +789,8 @@ class EADDocument(Document):
         #     people.append(
         #         {
         #             "name": creator["name"],
-        #             "facet_label": "{} - {}".format(creator["name"], "Creator"),
+        #             "facet_label": "{} - {}".format(creator["name"],
+        #             "Creator"),
         #             "surname": self._extract_surname(creator["name"]),
         #             "type": "creator",
         #         }
@@ -869,7 +878,10 @@ class EADDocument(Document):
 
         html_refs = re.sub("^<.*?>", "", refs)
         html_refs = re.sub("</.*?>$", "", html_refs)
-        if html_refs == "None" or html_refs == '<span class="ead-bibref">None</span>':
+        if (
+            html_refs == "None"
+            or html_refs == "<span " 'class="ead-bibref">None</span>'
+        ):
             # blank null value
             refs = ""
             html_refs = ""
