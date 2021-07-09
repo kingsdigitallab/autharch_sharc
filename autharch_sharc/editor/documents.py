@@ -33,8 +33,8 @@ eaddocument_search_fields = (
     "reference",
     "connection_primary",
     "label",
-    "references_published.raw",
-    "references_unpublished.raw",
+    "references_published",
+    "references_unpublished",
 )
 
 
@@ -83,14 +83,20 @@ class EADDocument(Document):
     )
     references_published = fields.ObjectField(
         properties={
-            "raw": fields.TextField(),
-            "html": fields.TextField(analyzer=html_strip_analyzer),
+            "reference": fields.TextField(
+                fields={
+                    "raw": fields.KeywordField(),
+                }
+            ),
         }
     )
     references_unpublished = fields.ObjectField(
         properties={
-            "raw": fields.TextField(),
-            "html": fields.TextField(analyzer=html_strip_analyzer),
+            "reference": fields.TextField(
+                fields={
+                    "raw": fields.KeywordField(),
+                }
+            ),
         }
     )
     category = fields.KeywordField(
@@ -787,16 +793,15 @@ class EADDocument(Document):
         #         }
         #     )
         #
-        # for creator in self.prepare_creators(instance):
-        #     people.append(
-        #         {
-        #             "name": creator["name"],
-        #             "facet_label": "{} - {}".format(creator["name"],
-        #             "Creator"),
-        #             "surname": self._extract_surname(creator["name"]),
-        #             "type": "creator",
-        #         }
-        #     )
+        for creator in self.prepare_creators(instance):
+            people.append(
+                {
+                    "name": creator["name"],
+                    "facet_label": "{} - {}".format(creator["name"], "Creator"),
+                    "surname": self._extract_surname(creator["name"]),
+                    "type": "creator",
+                }
+            )
 
         return {
             "acquirers": acquirers,
@@ -874,30 +879,35 @@ class EADDocument(Document):
 
     def prepare_references_published(self, instance):
         # From Bibliography.bibliography
-        refs = " ".join(
-            instance.bibliography_set.values_list("bibliography", flat=True)
-        )
+        raw = " ".join(instance.bibliography_set.values_list("bibliography", flat=True))
 
-        html_refs = re.sub("^<.*?>", "", refs)
-        html_refs = re.sub("</.*?>$", "", html_refs)
-        if (
-            html_refs == "None"
-            or html_refs == "<span " 'class="ead-bibref">None</span>'
-        ):
-            # blank null value
-            refs = ""
-            html_refs = ""
-        return {"raw": refs, "html": html_refs}
+        # html_refs = re.sub("^<.*?>", "", refs)
+        # html_refs = re.sub("</.*?>$", "", html_refs)
+        refs = list()
+        root = etree.fromstring("<wrapper>{}</wrapper>".format(raw))
+        for child in root:
+            # if len(html_refs) > 0:
+            #     html_refs = html_refs + ", "
+
+            if child.text is not None and child.text != "None":
+                refs.append({"reference": child.text})
+
+        return refs
 
     def prepare_references_unpublished(self, instance):
         # From SourceEntry.sourceentry
         entries = SourceEntry.objects.filter(source__sources=instance)
-        refs = " ".join(entries.values_list("sourceentry", flat=True))
-        if len(refs) > 0:
-            if refs == "None":
-                # blank null value
-                refs = ""
-        return {"raw": refs, "html": refs}
+        # refs = " ".join(entries.values_list("sourceentry", flat=True))
+        # if len(refs) > 0:
+        #     if refs == "None":
+        #         # blank null value
+        #         refs = ""
+        # return {"raw": refs, "html": refs}
+        refs = list()
+        for entry in entries:
+            if entry.sourceentry != "None":
+                refs.append({"reference": entry.sourceentry})
+        return refs
 
     def prepare_unittitle(self, instance):
         try:
