@@ -746,6 +746,7 @@ class EADDocument(Document):
                             "type": type,
                         }
                     )
+                    print("{} - {}\n".format(name, type))
         return people
 
     def prepare_related_people(self, instance):
