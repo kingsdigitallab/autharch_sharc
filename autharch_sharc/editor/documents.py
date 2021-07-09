@@ -748,7 +748,9 @@ class EADDocument(Document):
                             }
                         )
                         # print("{} - {}\n".format(name, type))
-        return people
+        if len(people) > 0:
+            return people
+        return None
 
     def prepare_related_people(self, instance):
         acquirers = self._get_acquirers(instance)
