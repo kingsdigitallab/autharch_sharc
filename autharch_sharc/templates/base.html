@@ -44,12 +44,6 @@
             <h4>Archival records</h4>
           </a>
         </div>
-        <div class="link{% if current_section == 'deleted' %} active{% endif %}">
-          <a href="{% url 'editor:record-deleted-list' %}">
-            <i class="far fa-trash-alt"></i>
-            <h4>Deleted</h4>
-          </a>
-        </div>
       </nav>
     </header>
     {% endblock %}

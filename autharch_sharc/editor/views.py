@@ -143,13 +143,6 @@ class FacetMixin:
         return split_facets
 
 
-class RecordDeletedListView(LoginRequiredMixin, ListView):
-    template_name = "editor/record_deleted_list.html"
-
-    def get_queryset(self):
-        return EAD.objects.filter(maintenancestatus_value="deleted")
-
-
 class RecordHistory(LoginRequiredMixin, DetailView):
     model = EAD
     template_name = "editor/record_history.html"
@@ -406,31 +399,10 @@ def record_create(request):
 
 
 @login_required
-@create_revision()
-@require_POST
-def record_delete(request, record_id):
-    record = get_object_or_404(EAD, pk=record_id)
-    if is_deleted_record(record):
-        return redirect("editor:record-history", record_id=record_id)
-    if request.POST.get("DELETE") == "DELETE":
-        reversion.set_comment("Deleted")
-        reversion.set_user(request.user)
-        record.maintenancestatus_value = "deleted"
-        record.save()
-        view_post_save.send(sender=EAD, instance=record)
-        return redirect("editor:record-list")
-    return redirect("editor:record-edit", record_id=record_id)
-
-
-@login_required
 def record_edit(request, record_id):
     record = get_object_or_404(EAD, pk=record_id)
     form_errors = []
-    is_deleted = is_deleted_record(record)
-    if is_deleted:
-        current_section = "deleted"
-    else:
-        current_section = "records"
+    current_section = "records"
     if request.method == "POST":
         form = forms.RecordEditForm(request.POST, instance=record)
         if form.is_valid():
@@ -454,11 +426,9 @@ def record_edit(request, record_id):
         form = forms.RecordEditForm(instance=record)
     context = {
         "current_section": current_section,
-        "delete_url": reverse("editor:record-delete", kwargs={"record_id": record_id}),
         "form": form,
         "form_media": form.media,
         "form_errors": form_errors,
-        "is_deleted": is_deleted,
         "record": record,
         "reverted": request.GET.get("reverted", False),
         "saved": request.GET.get("saved", False),
@@ -474,7 +444,3 @@ def revert(request):
     return redirect(
         request.POST.get("redirect_url") + "?reverted={}".format(revision_id)
     )
-
-
-def is_deleted_record(record):
-    return record.maintenancestatus_value == "deleted"
