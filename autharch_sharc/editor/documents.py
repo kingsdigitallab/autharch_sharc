@@ -684,12 +684,13 @@ class EADDocument(Document):
         for origination in instance.origination_set.all():
             for name_type in ("corpname", "famname", "name", "persname"):
                 for name in getattr(origination, name_type + "_set").all():
-                    creators.append(
-                        {
-                            "key": "{}-{}".format(name_type, name.id),
-                            "name": name.assembled_name.strip(),
-                        }
-                    )
+                    if name and len(name.assembled_name) > 0:
+                        creators.append(
+                            {
+                                "key": "{}-{}".format(name_type, name.id),
+                                "name": name.assembled_name.strip(),
+                            }
+                        )
         return creators
 
     @classmethod
