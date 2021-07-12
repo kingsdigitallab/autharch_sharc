@@ -880,7 +880,7 @@ class SourceInlineForm(ContainerModelForm):
         formsets = {}
         data = kwargs.get("data")
         SourceEntryFormset = forms.inlineformset_factory(
-            Source, SourceEntry, form=SourceEntryInlineForm, extra=0
+            Source, SourceEntry, form=SourceEntryInlineForm, extra=1
         )
         formsets["sourceentries"] = SourceEntryFormset(
             data, instance=self.instance, prefix=self.prefix + "-sourceentry"
@@ -1139,8 +1139,6 @@ class RecordEditForm(ContainerModelForm):
             Bibliography,
             form=BibliographyInlineForm,
             extra=1,
-            max_num=1,
-            validate_max=True,
         )
         formsets["bibliographies"] = BibliographyFormset(
             *args, instance=self.instance, prefix="bibliography"
@@ -1263,7 +1261,7 @@ class RecordEditForm(ContainerModelForm):
             )
         )
         SourceFormset = forms.inlineformset_factory(
-            EAD, Source, form=SourceInlineForm, extra=0
+            EAD, Source, form=SourceInlineForm, extra=0, min_num=1,
         )
         formsets["sources"] = SourceFormset(
             *args, instance=self.instance, prefix="source"
