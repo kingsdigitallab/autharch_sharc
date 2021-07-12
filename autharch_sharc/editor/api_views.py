@@ -78,6 +78,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "label": None,
         "references_published.raw": None,
         "references_unpublished.raw": None,
+        "related_people.all_people.name": None,
     }
 
     filter_fields = {
