@@ -35,6 +35,7 @@ eaddocument_search_fields = (
     "label",
     "references_published",
     "references_unpublished",
+    "related_people.all_people.name",
 )
 
 

@@ -4,6 +4,7 @@ import urllib3
 from django.http import HttpResponse
 from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
 from django_elasticsearch_dsl_drf.filter_backends import (
+    CompoundSearchFilterBackend,
     DefaultOrderingFilterBackend,
     FacetedSearchFilterBackend,
     FilteringFilterBackend,
@@ -62,15 +63,15 @@ class EADDocumentViewSet(DocumentViewSet):
         FacetedSearchFilterBackend,
         OrderingFilterBackend,
         DefaultOrderingFilterBackend,
-        # CompoundSearchFilterBackend,
+        CompoundSearchFilterBackend,
+        MultiMatchSearchFilterBackend,
         # the suggester backend needs to be the last backend
         SuggesterFilterBackend,
-        MultiMatchSearchFilterBackend,
     ]
 
-    # search_fields = ("search_content",)
+    search_fields = ("search_content",)
 
-    search_fields = {
+    multi_match_search_fields = {
         "unittitle": {"boost": 4},
         "reference": {"boost": 5},
         "notes": None,
