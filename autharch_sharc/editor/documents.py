@@ -684,7 +684,11 @@ class EADDocument(Document):
         for origination in instance.origination_set.all():
             for name_type in ("corpname", "famname", "name", "persname"):
                 for name in getattr(origination, name_type + "_set").all():
-                    if name and len(name.assembled_name) > 0:
+                    if (
+                        name
+                        and name.assembled_name
+                        and len(name.assembled_name.strip()) > 0
+                    ):
                         creators.append(
                             {
                                 "key": "{}-{}".format(name_type, name.id),
