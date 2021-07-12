@@ -76,8 +76,8 @@ class EADDocumentViewSet(DocumentViewSet):
         "reference": {"boost": 5},
         "notes": None,
         "label": None,
-        "references_published.html": None,
-        "references_unpublished.html": None,
+        "references_published.raw": None,
+        "references_unpublished.raw": None,
     }
 
     filter_fields = {
