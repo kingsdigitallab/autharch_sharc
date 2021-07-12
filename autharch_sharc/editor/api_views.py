@@ -73,15 +73,15 @@ class EADDocumentViewSet(DocumentViewSet):
 
     multi_match_search_fields = {
         "unittitle": {"boost": 4},
-        "reference": {"boost": 5},
-        "notes": None,
-        "label": None,
-        "references_published.raw": None,
-        "references_unpublished.raw": None,
+        "reference.text": {"boost": 5},
+        "notes.raw": None,
+        "label.text": None,
+        "references_published.reference": None,
+        "references_unpublished.reference": None,
         "related_people.all_people.name": None,
     }
 
-    multi_match_options = {"type": "best_fields"}
+    multi_match_options = {"type": "phrase_prefix"}
 
     filter_fields = {
         "pk": "pk",

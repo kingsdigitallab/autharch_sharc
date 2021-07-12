@@ -71,7 +71,7 @@ class EADDocument(Document):
     )
 
     pk = fields.IntegerField(attr="id")
-    reference = fields.KeywordField()
+    reference = fields.KeywordField(fields={"text": fields.TextField()})
     archdesc_level = fields.KeywordField(attr="archdesc_level")
     provenance = fields.ObjectField(
         properties={
@@ -141,8 +141,9 @@ class EADDocument(Document):
             ),
             "all_people": fields.ObjectField(
                 properties={
-                    "name": fields.KeywordField(
+                    "name": fields.TextField(
                         fields={
+                            "raw": fields.KeywordField(),
                             "suggest": fields.CompletionField(),
                         }
                     ),
@@ -224,7 +225,11 @@ class EADDocument(Document):
     )
     size = fields.KeywordField()
     medium = fields.KeywordField()
-    label = fields.KeywordField()
+    label = fields.KeywordField(
+        fields={
+            "text": fields.TextField(),
+        }
+    )
     doc_type = fields.KeywordField()
     is_visible = fields.BooleanField()
 
