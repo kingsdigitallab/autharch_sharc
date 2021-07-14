@@ -39,9 +39,6 @@ eaddocument_search_fields = (
 )
 
 
-# class PeopleDocument(Document):
-
-
 @registry.register_document
 class EADDocument(Document):
     """ Document model for EAD objects uploaded via xml"""
@@ -735,7 +732,8 @@ class EADDocument(Document):
             "@data-ead-relator='publisher']/span[@class='ead-part']",
         )
 
-    def _extract_surname(self, name):
+    @classmethod
+    def extract_surname(cls, name):
         """This is a bit of a hack to get a surname from heterogenous data
         we're getting the word before the () dates"""
 
@@ -744,7 +742,8 @@ class EADDocument(Document):
             return result.group(1)
         return None
 
-    def _get_people(self, instance):
+    @classmethod
+    def get_people(cls, instance):
         # data-ead-relator
         people = list()
         path = "span[@class='ead-persname'][@data-ead-relator!='acquirer']"
@@ -763,7 +762,7 @@ class EADDocument(Document):
                             {
                                 "name": name,
                                 "facet_label": "{} - {}".format(name, type),
-                                "surname": self._extract_surname(name),
+                                "surname": cls.extract_surname(name),
                                 "type": type,
                             }
                         )
@@ -774,45 +773,14 @@ class EADDocument(Document):
         acquirers = self._get_acquirers(instance)
         donors = self._get_donors(instance)
         publishers = self._get_publishers(instance)
-        people = self._get_people(instance)
+        people = EADDocument.get_people(instance)
 
-        # for person in people:
-        #     people.append(
-        #             {
-        #                 "name": person,
-        #                 "facet_label": "{} - {}".format(publisher,
-        #                 "Publisher"),
-        #                 "surname": self._extract_surname(publisher),
-        #                 "type": "publisher",
-        #             }
-        #         )
-        #     )
-
-        # for publisher in publishers:
-        #     people.append(
-        #         {
-        #             "name": publisher,
-        #             "facet_label": "{} - {}".format(publisher, "Publisher"),
-        #             "surname": self._extract_surname(publisher),
-        #             "type": "publisher",
-        #         }
-        #     )
-        # for donor in donors:
-        #     people.append(
-        #         {
-        #             "name": donor,
-        #             "facet_label": "{} - {}".format(donor, "Donor"),
-        #             "surname": self._extract_surname(donor),
-        #             "type": "donor",
-        #         }
-        #     )
-        #
         for creator in self.prepare_creators(instance):
             people.append(
                 {
                     "name": creator["name"],
                     "facet_label": "{} - {}".format(creator["name"], "Creator"),
-                    "surname": self._extract_surname(creator["name"]),
+                    "surname": EADDocument.extract_surname(creator["name"]),
                     "type": "creator",
                 }
             )
@@ -929,3 +897,41 @@ class EADDocument(Document):
         except IndexError:
             title = "[No title]"
         return title
+
+
+class PersonDocument(Document):
+    """This is for the people facet to allow autocomplete searching
+    with correct numbers"""
+
+    class Index:
+        name = "editor"
+
+    class Django:
+        model = EAD
+
+    name = (
+        fields.TextField(
+            fields={
+                "raw": fields.KeywordField(),
+                "sort": fields.KeywordField(normalizer=lowercase_sort_normalizer),
+                "suggest": fields.CompletionField(),
+            }
+        ),
+    )
+    surname = fields.KeywordField()
+    type = fields.KeywordField()
+    facet_label = fields.KeywordField()
+    doc_type = fields.KeywordField()
+
+    def prepare(self, instance):
+        data = EADDocument.get_people(instance)
+
+        import pdb
+
+        pdb.set_trace()
+        if "name" in data:
+            data["doc_type"] = "person"
+            # Get all people except acquirer
+            # Split into list with counts
+            return data
+        return None

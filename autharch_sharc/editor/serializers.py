@@ -1,7 +1,7 @@
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
-from .documents import EADDocument
+from .documents import EADDocument, PersonDocument
 
 
 class EADDocumentThemeResultSerializer(DocumentSerializer):
@@ -45,6 +45,15 @@ class EADDocumentThemeResultSerializer(DocumentSerializer):
             return obj.date_of_creation[0]
         else:
             return []
+
+
+class PersonDocumentResultSerializer(DocumentSerializer):
+    """ Serializer for EAD XML document"""
+
+    class Meta:
+        document = PersonDocument
+
+    fields = ("name", "surname", "type", "facet_label")
 
 
 class EADDocumentResultSerializer(DocumentSerializer):

@@ -21,8 +21,12 @@ from rest_framework.views import APIView
 from autharch_sharc.django_kdl_timeline.views import ListTimelineEvents
 from autharch_sharc.editor.models import SharcTimelineEventSnippet
 
-from .documents import EADDocument
-from .serializers import EADDocumentResultSerializer, EADDocumentThemeResultSerializer
+from .documents import EADDocument, PersonDocument
+from .serializers import (
+    EADDocumentResultSerializer,
+    EADDocumentThemeResultSerializer,
+    PersonDocumentResultSerializer,
+)
 
 ES_FACET_OPTIONS = {"order": {"_key": "asc"}, "size": 100}
 
@@ -49,6 +53,33 @@ def simple_proxy(request, path, target_url):
         return HttpResponse(e.msg, status=e.code, content_type="text/plain")
     else:
         return HttpResponse(content, status=status_code, content_type=mimetype)
+
+
+class PersonDocumentViewSet(DocumentViewSet):
+    document = PersonDocument
+    serializer_class = PersonDocumentResultSerializer
+
+    lookup_field = "id"
+
+    filter_backends = [
+        FilteringFilterBackend,
+        # the suggester backend needs to be the last backend
+        SuggesterFilterBackend,
+    ]
+
+    suggester_fields = {
+        "name_suggest": {
+            "field": "name.suggest",
+            "suggesters": [
+                SUGGESTER_COMPLETION,
+            ],
+            "options": {
+                "size": 100,  # Override default number of suggestions
+                "skip_duplicates": True,
+                # Whether duplicate suggestions should be filtered out.
+            },
+        },
+    }
 
 
 class EADDocumentViewSet(DocumentViewSet):
