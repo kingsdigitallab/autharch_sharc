@@ -135,7 +135,7 @@ class Command(BaseCommand):
         )
         self.parse_iiif_sheet(
             "data/ShaRC_manifests_archives.csv",
-            {"images_available": 2, "iiif_uri": [3, 4, 5]},
+            {"images_available": 2, "iiif_uri": [3]},
             "Archives",
         )
 
