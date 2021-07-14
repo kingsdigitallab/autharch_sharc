@@ -236,7 +236,11 @@ class EADDocumentViewSet(DocumentViewSet):
             ]
             filtered_persons = list()
             for person_facet in person_facets:
-                if str(person_facet["key"]).startswith(autocomplete_search):
+                if (
+                    str(person_facet["key"])
+                    .lower()
+                    .startswith(autocomplete_search.lower())
+                ):
                     # Remove person from facet results, not relevant
                     filtered_persons.append(person_facet)
             response.data["facets"]["_filter_people"]["people"][
