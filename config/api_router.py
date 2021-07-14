@@ -6,7 +6,7 @@ from wagtail.api.v2.views import PagesAPIViewSet
 from wagtail.documents.api.v2.views import DocumentsAPIViewSet
 from wagtail.images.api.v2.views import ImagesAPIViewSet
 
-from autharch_sharc.editor.api_views import EADDocumentViewSet
+from autharch_sharc.editor.api_views import EADDocumentViewSet, PersonEADDocumentViewSet
 from autharch_sharc.users.api.views import UserViewSet
 
 if settings.DEBUG:
@@ -16,6 +16,7 @@ else:
 
 router.register("users", UserViewSet)
 router.register(r"documents", EADDocumentViewSet, basename="eaddocument")
+router.register(r"persons", PersonEADDocumentViewSet, basename="persondocument")
 # router.register(r"search", SharcSiteSearch, basename="sitesearch")
 app_name = "api"
 urlpatterns = router.urls
