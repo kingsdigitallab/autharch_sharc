@@ -108,12 +108,14 @@ class ContainerModelForm(forms.ModelForm):
             media += formset.media
         return media
 
-    def save(self, commit=True):
-        result = super().save(commit)
+    def save(self, commit=True, resave=False):
+        instance = super().save(commit)
         for formset in self.formsets.values():
             if isinstance(formset, forms.models.BaseModelFormSet):
                 formset.save(commit)
-        return result
+        if resave:
+            instance.save()
+        return instance
 
 
 class ArchRefInlineForm(forms.Form):
@@ -529,6 +531,9 @@ class OriginationPersNameInlineForm(ContainerModelForm):
             data, instance=self.instance, prefix=self.prefix + "-part"
         )
         return formsets
+
+    def save(self, commit=True):
+        super().save(commit=commit, resave=True)
 
     class Meta:
         model = OriginationPersName
