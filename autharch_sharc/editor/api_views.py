@@ -190,7 +190,7 @@ class EADDocumentViewSet(DocumentViewSet):
                 # Whether duplicate suggestions should be filtered out.
             },
         },
-        "people_suggest": {
+        "person_suggest": {
             "field": "related_people.all_people.name.suggest",
             "suggesters": [
                 SUGGESTER_COMPLETION,
@@ -224,6 +224,26 @@ class EADDocumentViewSet(DocumentViewSet):
             .filter("match", is_visible=True)
         )
 
+    @classmethod
+    def _filter_person_facet(cls, autocomplete_search, response):
+        if (
+            "facets" in response.data
+            and "_filter_people" in response.data["facets"]
+            and len(response.data["facets"]["_filter_people"]) > 0
+        ):
+            person_facets = response.data["facets"]["_filter_people"]["people"][
+                "buckets"
+            ]
+            filtered_persons = list()
+            for person_facet in person_facets:
+                if str(person_facet["key"]).startswith(autocomplete_search):
+                    # Remove person from facet results, not relevant
+                    filtered_persons.append(person_facet)
+            response.data["facets"]["_filter_people"]["people"][
+                "buckets"
+            ] = filtered_persons
+        return response
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_doc_type_queryset()
 
@@ -231,12 +251,17 @@ class EADDocumentViewSet(DocumentViewSet):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             response = self.get_paginated_response(self._data_to_list(serializer.data))
-            # response["Access-Control-Allow-Origin"] = "*"
-            return response
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            response = Response(data=self._data_to_list(serializer.data))
+        if "person_autocomplete" in self.request.GET:
+            # filter the person facet with autocomplete string
+            person_autocomplete = self.request.GET["person_autocomplete"]
+            response = EADDocumentViewSet._filter_person_facet(
+                person_autocomplete, response
+            )
 
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(data=self._data_to_list(serializer.data))
+        return response
 
     @classmethod
     def _data_to_list(cls, data):
@@ -302,3 +327,62 @@ class EditorTableView(APIView):
     def get(self, request, *args, **kwargs):
         results = self.document_search(request, **kwargs)
         return Response({"count": kwargs["results_count"], "results": results})
+
+
+class PersonEADDocumentViewSet(EADDocumentViewSet):
+    """For person facet autocomplete search
+    Same search as document but non-matching people
+    are filtered out before return"""
+
+    multi_match_search_fields = {
+        "related_people.all_people.name": None,
+    }
+
+    faceted_search_fields = {
+        "people": {
+            "facet": TermsFacet,
+            "field": "related_people.all_people.facet_label",
+            "enabled": True,
+            "options": {"order": {"_key": "asc"}, "size": 1000},
+        },
+    }
+
+    @classmethod
+    def _filter_person_facet(cls, autocomplete_search, response):
+        if (
+            "facets" in response.data
+            and "_filter_people" in response.data["facets"]
+            and len(response.data["facets"]["_filter_people"]) > 0
+        ):
+            person_facets = response.data["facets"]["_filter_people"]["people"][
+                "buckets"
+            ]
+            filtered_persons = list()
+            for person_facet in person_facets:
+                if str(person_facet["key"]).startswith(autocomplete_search):
+                    # Remove person from facet results, not relevant
+                    filtered_persons.append(person_facet)
+            response.data["facets"]["_filter_people"]["people"][
+                "buckets"
+            ] = filtered_persons
+            response.data["facets"]["_filter_people"]["doc_count"] = len(
+                filtered_persons
+            )
+        return response
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            person_autocomplete = self.request.GET["person_autocomplete"]
+
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            return PersonEADDocumentViewSet._filter_person_facet(
+                person_autocomplete, response
+            )
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
