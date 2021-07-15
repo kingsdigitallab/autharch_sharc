@@ -132,7 +132,7 @@ class EADDocumentViewSet(DocumentViewSet):
             "facet": TermsFacet,
             "field": "related_people.all_people.facet_label",
             "enabled": True,
-            "options": {"order": {"_key": "asc"}, "size": 1000},
+            "options": {"order": {"_key": "asc"}, "size": 5000},
         },
         "individual_connections": {
             "facet": TermsFacet,
@@ -243,9 +243,14 @@ class EADDocumentViewSet(DocumentViewSet):
                 ):
                     # Remove person from facet results, not relevant
                     filtered_persons.append(person_facet)
-            response.data["facets"]["_filter_people"]["people"][
-                "buckets"
-            ] = filtered_persons
+            if len(filtered_persons) > 100:
+                response.data["facets"]["_filter_people"]["people"][
+                    "buckets"
+                ] = filtered_persons[0:101]
+            else:
+                response.data["facets"]["_filter_people"]["people"][
+                    "buckets"
+                ] = filtered_persons
         return response
 
     def list(self, request, *args, **kwargs):

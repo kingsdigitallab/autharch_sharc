@@ -10,7 +10,7 @@ class Command(BaseCommand):
     verbose = 1  # show logging on screen
 
     min_row_length = 5
-    events_created = 0
+    iif_created = 0
     events_updated = 0
     event_links = {}
 
@@ -86,7 +86,7 @@ class Command(BaseCommand):
                                         order=order,
                                     )
                                     if created:
-                                        self.events_created += 1
+                                        self.iif_created += 1
                                     else:
                                         self.events_updated += 1
                                     print("{}:{}:{}\n".format(rcin, iiif_uri, order))
@@ -109,38 +109,49 @@ class Command(BaseCommand):
         # Reset objects
         SharcIIIF.objects.all().delete()
         # import sheets
-
+        totals = {}
         self.parse_iiif_sheet(
             "data/ShaRC_manifests_photographs.csv",
             {"images_available": 2, "iiif_uri": [3]},
             "Photographs",
         )
+        totals["Photographs"] = self.iif_created
+        self.iif_created = 0
 
         self.parse_iiif_sheet(
             "data/ShaRC_manifests_paintings.csv",
             {"images_available": 2, "iiif_uri": [3]},
             "Paintings",
         )
+        totals["Paintings"] = self.iif_created
+        self.iif_created = 0
 
         self.parse_iiif_sheet(
             "data/ShaRC_manifests_library.csv",
             {"images_available": 2, "iiif_uri": [3]},
             "Library",
         )
+        totals["Library"] = self.iif_created
+        self.iif_created = 0
 
         self.parse_iiif_sheet(
             "data/ShaRC_manifests_printroom.csv",
             {"images_available": 2, "iiif_uri": [3]},
             "Print Room",
         )
+        totals["Print Room"] = self.iif_created
+        self.iif_created = 0
+
         self.parse_iiif_sheet(
             "data/ShaRC_manifests_archives.csv",
             {"images_available": 2, "iiif_uri": [3]},
             "Archives",
         )
-
-        self.stdout.write(
-            "{} URIs created, {} updated".format(
-                self.events_created, self.events_updated
-            )
-        )
+        totals["Archives"] = self.iif_created
+        self.iif_created = 0
+        grand_total = 0
+        self.stdout.write("Complete.\n\nUpload totals: \n")
+        for key, value in totals.items():
+            self.stdout.write("{} - {}\n".format(key, value))
+            grand_total += value
+        self.stdout.write("\n Grand total - {}".format(grand_total))
