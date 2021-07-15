@@ -80,7 +80,7 @@ class Command(BaseCommand):
                                         order = last.order + 1
                                     event, created = SharcIIIF.objects.get_or_create(
                                         rcin=rcin,
-                                        iiif_uri=iiif_uri,
+                                        iiif_uri=iiif_uri.strip(),
                                         images_available=images_available,
                                         department=department,
                                         order=order,
@@ -110,21 +110,21 @@ class Command(BaseCommand):
         SharcIIIF.objects.all().delete()
         # import sheets
         totals = {}
-        self.parse_iiif_sheet(
-            "data/ShaRC_manifests_photographs.csv",
-            {"images_available": 2, "iiif_uri": [3]},
-            "Photographs",
-        )
-        totals["Photographs"] = self.iif_created
-        self.iif_created = 0
-
-        self.parse_iiif_sheet(
-            "data/ShaRC_manifests_paintings.csv",
-            {"images_available": 2, "iiif_uri": [3]},
-            "Paintings",
-        )
-        totals["Paintings"] = self.iif_created
-        self.iif_created = 0
+        # self.parse_iiif_sheet(
+        #     "data/ShaRC_manifests_photographs.csv",
+        #     {"images_available": 2, "iiif_uri": [3]},
+        #     "Photographs",
+        # )
+        # totals["Photographs"] = self.iif_created
+        # self.iif_created = 0
+        #
+        # self.parse_iiif_sheet(
+        #     "data/ShaRC_manifests_paintings.csv",
+        #     {"images_available": 2, "iiif_uri": [3]},
+        #     "Paintings",
+        # )
+        # totals["Paintings"] = self.iif_created
+        # self.iif_created = 0
 
         self.parse_iiif_sheet(
             "data/ShaRC_manifests_library.csv",
