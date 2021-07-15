@@ -772,7 +772,6 @@ class EADDocument(Document):
     def prepare_related_people(self, instance):
         acquirers = self._get_acquirers(instance)
         people = EADDocument.get_people(instance)
-        sorted_people = dict()
 
         for creator in self.prepare_creators(instance):
             people.append(
@@ -783,15 +782,9 @@ class EADDocument(Document):
                     "type": "creator",
                 }
             )
-        if people and len(people) > 0:
-            for person in people:
-                if person["type"] not in sorted_people:
-                    sorted_people[person["type"]] = list()
-                sorted_people[person["type"]].append(person)
 
         return {
             "acquirers": acquirers,
-            "sorted_people": sorted_people if len(sorted_people) > 0 else None,
             "all_people": people if len(people) > 0 else None,
         }
 
