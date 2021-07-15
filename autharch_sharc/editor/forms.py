@@ -785,6 +785,9 @@ class ScopeContentNotesInlineForm(forms.ModelForm):
             kwargs.update(initial={"scopecontent": "\n\n".join(texts)})
         super().__init__(*args, **kwargs)
 
+    def clean_localtype(self):
+        return "notes"
+
     def clean_scopecontent(self):
         # Convert consecutive newlines into paragraph breaks.
         paras = []
@@ -800,9 +803,12 @@ class ScopeContentNotesInlineForm(forms.ModelForm):
 
     class Meta:
         model = ScopeContent
-        fields = ["id", "scopecontent"]
+        fields = ["id", "localtype", "scopecontent"]
         labels = {
             "scopecontent": "Notes",
+        }
+        widgets = {
+            "localtype": forms.HiddenInput(),
         }
 
 
@@ -816,6 +822,9 @@ class ScopeContentPublicationDetailsInlineForm(forms.ModelForm):
             kwargs.update(initial={"scopecontent": serialise_xml(xml, method="text")})
         super().__init__(*args, **kwargs)
 
+    def clean_localtype(self):
+        return "publication_details"
+
     def clean_scopecontent(self):
         item = etree.Element("p")
         item.set("class", "ead-p")
@@ -824,9 +833,12 @@ class ScopeContentPublicationDetailsInlineForm(forms.ModelForm):
 
     class Meta:
         model = ScopeContent
-        fields = ["id", "scopecontent"]
+        fields = ["id", "localtype", "scopecontent"]
         labels = {
             "scopecontent": "Publication details",
+        }
+        widgets = {
+            "localtype": forms.HiddenInput(),
         }
 
 
