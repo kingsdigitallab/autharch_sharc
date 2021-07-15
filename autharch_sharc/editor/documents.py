@@ -126,16 +126,6 @@ class EADDocument(Document):
                     "suggest": fields.CompletionField(),
                 }
             ),
-            "donors": fields.KeywordField(
-                fields={
-                    "suggest": fields.CompletionField(),
-                }
-            ),
-            "publishers": fields.KeywordField(
-                fields={
-                    "suggest": fields.CompletionField(),
-                }
-            ),
             "all_people": fields.ObjectField(
                 properties={
                     "name": fields.TextField(
@@ -711,25 +701,11 @@ class EADDocument(Document):
                 data.append(element.text.strip())
         return data
 
-    def _get_donors(self, instance):
-        return EADDocument._prepare_control_access_data(
-            instance,
-            "span[@class='ead-persname'][@data-ead-relator='donor']/span["
-            "@class='ead-part']",
-        )
-
     def _get_acquirers(self, instance):
         return EADDocument._prepare_control_access_data(
             instance,
             "span[@class='ead-persname'][@data-ead-relator='acquirer']/span["
             "@class='ead-part']",
-        )
-
-    def _get_publishers(self, instance):
-        return EADDocument._prepare_control_access_data(
-            instance,
-            "span[@class='ead-persname']["
-            "@data-ead-relator='publisher']/span[@class='ead-part']",
         )
 
     @classmethod
