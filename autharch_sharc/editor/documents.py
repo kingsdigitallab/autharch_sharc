@@ -121,8 +121,9 @@ class EADDocument(Document):
     # )
     related_people = fields.ObjectField(
         properties={
-            "acquirers": fields.KeywordField(
+            "acquirers": fields.TextField(
                 fields={
+                    "raw": fields.KeywordField(),
                     "suggest": fields.CompletionField(),
                 }
             ),

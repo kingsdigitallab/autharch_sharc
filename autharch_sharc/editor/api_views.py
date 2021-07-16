@@ -79,6 +79,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "references_published.reference": None,
         "references_unpublished.reference": None,
         "related_people.all_people.name": None,
+        "related_people.acquirers": None,
     }
 
     multi_match_options = {"type": "phrase_prefix"}
@@ -91,7 +92,7 @@ class EADDocumentViewSet(DocumentViewSet):
         "date_of_acquisition": "date_of_acquisition",
         "category": "category.lowercase",
         "themes": "themes.raw",
-        "acquirer": "related_people.acquirers",
+        "acquirer": "related_people.acquirers.raw",
         "people": "related_people.all_people.facet_label",
         "work": "related_sources.works",
         "text": "related_sources.texts",
@@ -124,7 +125,7 @@ class EADDocumentViewSet(DocumentViewSet):
         },
         "acquirer": {
             "facet": TermsFacet,
-            "field": "related_people.acquirers",
+            "field": "related_people.acquirers.raw",
             "enabled": True,
             "options": ES_FACET_OPTIONS,
         },
