@@ -714,10 +714,10 @@ class EADDocument(Document):
         """This is a bit of a hack to get a surname from heterogenous data
         we're getting the word before the () dates"""
 
-        if re.search(r"\s+(\w+) \(.*?\)\s*", name):
-            result = re.search(r"\s+(\w+) \(.*?\)\s*", name)
+        if re.search(r"\s+(\S+) \(.*?\)\s*", name):
+            result = re.search(r"\s+(\S+) \(.*?\)\s*", name)
             return result.group(1)
-        return None
+        return ""
 
     @classmethod
     def get_people(cls, instance):
