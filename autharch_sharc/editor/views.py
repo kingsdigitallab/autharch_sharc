@@ -3,8 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView
 from ead.models import (
     EAD,
     OriginationCorpName,
@@ -18,7 +17,6 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from reversion.models import Revision, Version
-from reversion.views import create_revision
 
 from . import forms
 from .documents import EADDocument
@@ -163,7 +161,7 @@ class RecordSearch(FacetedSearch):
     facets = {
         # size sets the maximum number of facet values to return; ES
         # has an (overridable) limit of 250.
-        "acquirers": TermsFacet(field="related_people.acquirers", size=250),
+        "acquirers": TermsFacet(field="related_people.acquirers.raw", size=250),
         "categories": TermsFacet(field="category", size=250),
         "performances": TermsFacet(field="related_sources.performances", size=250),
         "sources": TermsFacet(field="related_sources.sources", size=250),
@@ -185,18 +183,18 @@ class RecordSearch(FacetedSearch):
     ]
 
     def __init__(
-            self,
-            query=None,
-            filters={},
-            sort=(),
-            creation_start=None,
-            creation_end=None,
-            acquisition_start=None,
-            acquisition_end=None,
-            category=None,
-            reference=None,
-            unittitle=None,
-            updated=None,
+        self,
+        query=None,
+        filters={},
+        sort=(),
+        creation_start=None,
+        creation_end=None,
+        acquisition_start=None,
+        acquisition_end=None,
+        category=None,
+        reference=None,
+        unittitle=None,
+        updated=None,
     ):
         self._creation_start = creation_start
         self._creation_end = creation_end
