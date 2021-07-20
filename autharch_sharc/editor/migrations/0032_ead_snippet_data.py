@@ -4,12 +4,11 @@ from django.db import migrations
 from ead.models import EAD
 
 from autharch_sharc.editor.documents import EADDocument
-from autharch_sharc.editor.models import WagtailEADSnippet
 
 
 def add_ead_snippets(apps, schema_editor):
     # save the object
-
+    WagtailEADSnippet = apps.get_model("editor", "WagtailEADSnippet")
     doc = EADDocument()
     # update the mirrored wagtail snippet
     for ead in EAD.objects.all():
