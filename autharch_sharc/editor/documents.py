@@ -69,6 +69,8 @@ class EADDocument(Document):
 
     pk = fields.IntegerField(attr="id")
     reference = fields.KeywordField(fields={"text": fields.TextField()})
+    rct_link = fields.IntegerField()
+
     archdesc_level = fields.KeywordField(attr="archdesc_level")
     provenance = fields.ObjectField(
         properties={
@@ -400,6 +402,30 @@ class EADDocument(Document):
     def prepare_reference(self, instance):
         if len(instance.unitid_set.all()) > 0:
             return [unitid.unitid for unitid in instance.unitid_set.all()][0]
+        return 0
+
+    def prepare_rct_link(self, instance):
+        """numerical link to RCT site
+        Remove letters at the end of reference
+        Remove ids that should not link to RCT
+        """
+        reference = ""
+        if len(instance.unitid_set.all()) > 0:
+            reference = [unitid.unitid for unitid in instance.unitid_set.all()][0]
+        if reference not in [
+            "1137279",
+            "1167114",
+            "1168390",
+            "444107",
+            "7021",
+            "102755",
+            "422463",
+            "422464",
+            "422527",
+        ]:
+            if re.search(r"(\d+)\.\w+$", reference):
+                result = re.search(r"(\d+)\.\w+$", reference)
+                return int(result.group(1))
         return 0
 
     #
