@@ -56,6 +56,7 @@ class EADDocumentResultSerializer(DocumentSerializer):
         fields = (
             "pk",
             "reference",
+            "rct_link",
             "unittitle",
             "category",
             "size",

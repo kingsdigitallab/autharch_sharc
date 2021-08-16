@@ -69,7 +69,7 @@ class EADDocument(Document):
 
     pk = fields.IntegerField(attr="id")
     reference = fields.KeywordField(fields={"text": fields.TextField()})
-    rct_link = fields.IntegerField()
+    rct_link = fields.KeywordField()
 
     archdesc_level = fields.KeywordField(attr="archdesc_level")
     provenance = fields.ObjectField(
@@ -423,9 +423,11 @@ class EADDocument(Document):
             "422464",
             "422527",
         ]:
-            if re.search(r"(\d+)\.\w+$", reference):
-                result = re.search(r"(\d+)\.\w+$", reference)
-                return int(result.group(1))
+            if re.search(r"^(\d+)\.\w+$", reference):
+                result = re.search(r"^(\d+)\.\w+$", reference)
+                return result.group(1)
+            else:
+                return reference
         return 0
 
     #
