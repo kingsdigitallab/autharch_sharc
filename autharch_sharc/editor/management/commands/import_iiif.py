@@ -149,6 +149,12 @@ class Command(BaseCommand):
         )
         totals["Archives"] = self.iif_created
         self.iif_created = 0
+        self.parse_iiif_sheet(
+            "data/ShaRC_manifests_decarts.csv",
+            {"images_available": 2, "iiif_uri": [3]},
+            "Decorative Arts",
+        )
+        totals["Decorative Arts"] = self.iif_created
         grand_total = 0
         self.stdout.write("Complete.\n\nUpload totals: \n")
         for key, value in totals.items():
