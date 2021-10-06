@@ -361,7 +361,7 @@ class StoryObjectCollection(StreamFieldPage):
     api_fields = [APIField("title"), APIField("body"), APIField("related_documents")]
 
     content_panels = Page.content_panels + [
-        FieldPanel("body"),
+        StreamFieldPanel("body"),
         InlinePanel("story_objects", label="Story Objects"),
     ]
 
@@ -384,7 +384,7 @@ class ThemeObjectCollection(StreamFieldPage):
         return related_documents
 
     content_panels = Page.content_panels + [
-        FieldPanel("body"),
+        StreamFieldPanel("body"),
         InlinePanel("theme_objects", label="Objects"),
     ]
 
