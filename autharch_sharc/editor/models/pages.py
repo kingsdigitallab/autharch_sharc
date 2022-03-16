@@ -314,7 +314,14 @@ class WagtailEADSnippet(index.Indexed, Orderable, models.Model):
 
     @property
     def search_content(self):
-        return str(self.reference)
+        """Splitting up the reference to get autocomplete to work
+        This is silly but no other choice"""
+        content = " "
+        x = 0
+        while x < len(self.reference):
+            content += self.reference[0:x] + " "
+            x += 1
+        return content + " " + self.unittitle
 
     panels = [
         HelpPanel(content="Do not Edit!"),
