@@ -466,7 +466,7 @@ class StoryObject(Orderable, models.Model):
     )
 
     connection_type = models.ForeignKey(
-        StoryObjectCollectionType, null=True, on_delete=models.CASCADE
+        StoryObjectCollectionType, null=True, blank=True, on_delete=models.CASCADE
     )
 
     story = ParentalKey(
