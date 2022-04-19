@@ -851,6 +851,7 @@ class EADDocument(Document):
             ],
         ]
         acquirers = self._get_acquirers(instance)
+        more_acquirers = []
 
         for acquirer in acquirers:
 
@@ -865,10 +866,11 @@ class EADDocument(Document):
                         break
                 if found:
                     # add aliases to acquirer
-                    print("{}\n".format(alias_found))
                     for royal_alias in royal:
                         if royal_alias != alias_found:
-                            acquirers.append(royal_alias)
+                            more_acquirers.append(royal_alias)
+        print("{}\n".format(more_acquirers))
+        acquirers.append(more_acquirers)
 
         people = EADDocument.get_people(instance)
 
