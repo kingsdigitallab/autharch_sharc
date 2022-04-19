@@ -868,7 +868,7 @@ class EADDocument(Document):
                     print("{}\n".format(royal_alias))
                     for alias in royal:
                         if alias != alias_found:
-                            acquirers.append(alias)
+                            acquirers.append(royal_alias)
 
         people = EADDocument.get_people(instance)
 
