@@ -775,7 +775,103 @@ class EADDocument(Document):
         return people
 
     def prepare_related_people(self, instance):
+        """
+
+        acquirer_aliases = [
+            ["Queen Elizabeth the Queen Mother", "Elizabeth Duchess of York"],
+            [
+                "King Edward VII",
+                "Albert Edward, Prince of Wales",
+            ],
+            [
+                "King George IV",
+                "Prince George, Prince of Wales",
+                "Prince George, Prince Regent",
+            ],
+            [
+                "King George V",
+                "Prince George, Duke of York (1865-1936)",
+                "Prince George of Wales",
+            ],
+            ["King George VI", "Prince George, Duke of York (1895-1952)"],
+            ["Queen Elizabeth II", "Princess Elizabeth, Duchess of Edinburgh"],
+            [
+                "Queen Mary",
+                "Princess Mary, Princess of Wales",
+                "Mary, Duchess of York",
+                "Princess May of Teck",
+            ],
+            ["Queen Victoria", "Princess Victoria of Kent"],
+        ]
+        """
+        acquirer_aliases = [
+            [
+                "Queen Elizabeth (1900-2002), the Queen Mother",
+                "Elizabeth (1900-2002), Duchess of York",
+            ],
+            [
+                "King Edward VII (1841-1910), King of Great Britain and " "Ireland",
+                "Prince Albert Edward (1841-1910), Prince of Wales",
+                "Prince Albert Edward, Prince of Wales (1841-1910)",
+            ],
+            [
+                "King George IV (1762-1830), King of Great Britain and " "Ireland",
+                "Prince George (1762-1830), Prince of Wales",
+                "Prince George (1762-1830), Prince Regent",
+            ],
+            [
+                "King George V",
+                "Prince George (1865-1936), Duke of York",
+                "Prince George of Wales (1865-1936)",
+            ],
+            [
+                "King George VI (1895-1952), King of Great Britain and " "Ireland",
+                "Prince George, Duke of York (1895-1952)",
+                "Prince Albert of Wales (1895-1952)",
+            ],
+            [
+                "Queen Elizabeth II (b 1926), Queen of Great Britain and "
+                "Northern Ireland",
+                "Princess Elizabeth (b 1926), Duchess of Edinburgh",
+                "Queen Elizabeth II (b. 1926), Queen of Great Britain and "
+                "Northern Ireland",
+            ],
+            [
+                "Queen Mary (1867-1953), consort of George V",
+                "Princess May of Teck (1867-1953)"
+                "Princess Mary, Princess "
+                "of Wales",
+                "Princess Mary (1867-1953), Princess of Wales",
+                "Mary, Duchess of York",
+                "Princess May of Teck",
+            ],
+            [
+                "Queen Victoria (1819-1901), Queen of Great Britain and " "Ireland",
+                "Princess Victoria (1786-1861), Duchess of Kent",
+            ],
+        ]
         acquirers = self._get_acquirers(instance)
+
+        for acquirer in acquirers:
+
+            # look for royal aliases above in acquirer
+            for royal in acquirer_aliases:
+                import pdb
+
+                pdb.set_trace()
+                found = False
+                alias_found = ""
+                for alias in royal:
+                    if acquirer in alias:
+                        found = True
+                        alias_found = alias
+                        break
+                if found:
+                    # add aliases to acquirer
+                    for alias in royal:
+                        if alias != alias_found:
+                            acquirers.append(alias)
+
         people = EADDocument.get_people(instance)
 
         for creator in self.prepare_creators(instance):
