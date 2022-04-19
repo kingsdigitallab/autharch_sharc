@@ -856,15 +856,15 @@ class EADDocument(Document):
 
             # look for royal aliases above in acquirer
             for royal in acquirer_aliases:
-                import pdb
-
-                pdb.set_trace()
                 found = False
                 alias_found = ""
-                for alias in royal:
-                    if acquirer in alias:
+                for royal_alias in royal:
+                    import pdb
+
+                    pdb.set_trace()
+                    if acquirer in royal_alias:
                         found = True
-                        alias_found = alias
+                        alias_found = royal_alias
                         break
                 if found:
                     # add aliases to acquirer
