@@ -810,12 +810,12 @@ class EADDocument(Document):
                 "Elizabeth (1900-2002), Duchess of York",
             ],
             [
-                "King Edward VII (1841-1910), King of Great Britain and " "Ireland",
+                "King Edward VII (1841-1910), King of Great Britain and Ireland",
                 "Prince Albert Edward (1841-1910), Prince of Wales",
                 "Prince Albert Edward, Prince of Wales (1841-1910)",
             ],
             [
-                "King George IV (1762-1830), King of Great Britain and " "Ireland",
+                "King George IV (1762-1830), King of Great Britain and Ireland",
                 "Prince George (1762-1830), Prince of Wales",
                 "Prince George (1762-1830), Prince Regent",
             ],
@@ -825,7 +825,7 @@ class EADDocument(Document):
                 "Prince George of Wales (1865-1936)",
             ],
             [
-                "King George VI (1895-1952), King of Great Britain and " "Ireland",
+                "King George VI (1895-1952), King of Great Britain and Ireland",
                 "Prince George, Duke of York (1895-1952)",
                 "Prince Albert of Wales (1895-1952)",
             ],
@@ -838,15 +838,13 @@ class EADDocument(Document):
             ],
             [
                 "Queen Mary (1867-1953), consort of George V",
-                "Princess May of Teck (1867-1953)"
-                "Princess Mary, Princess "
-                "of Wales",
+                "Princess May of Teck (1867-1953)",
+                "Princess Mary, Princess of Wales",
                 "Princess Mary (1867-1953), Princess of Wales",
                 "Mary, Duchess of York",
-                "Princess May of Teck",
             ],
             [
-                "Queen Victoria (1819-1901), Queen of Great Britain and " "Ireland",
+                "Queen Victoria (1819-1901), Queen of Great Britain and Ireland",
                 "Princess Victoria (1786-1861), Duchess of Kent",
             ],
         ]
@@ -869,8 +867,10 @@ class EADDocument(Document):
                     for royal_alias in royal:
                         if royal_alias != alias_found:
                             more_acquirers.append(royal_alias)
-        print("{}\n".format(more_acquirers))
-        acquirers.append(more_acquirers)
+
+        acquirers = acquirers + more_acquirers
+        if len(more_acquirers) > 0:
+            print("{}\n".format(acquirers))
 
         people = EADDocument.get_people(instance)
 
