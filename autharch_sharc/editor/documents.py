@@ -859,15 +859,13 @@ class EADDocument(Document):
                 found = False
                 alias_found = ""
                 for royal_alias in royal:
-                    import pdb
-
-                    pdb.set_trace()
                     if acquirer in royal_alias:
                         found = True
                         alias_found = royal_alias
                         break
                 if found:
                     # add aliases to acquirer
+                    print("{}\n".format(royal_alias))
                     for alias in royal:
                         if alias != alias_found:
                             acquirers.append(alias)
