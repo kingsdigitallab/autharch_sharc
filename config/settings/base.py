@@ -348,7 +348,8 @@ CONTROLLED_VOCABULARY_VOCABULARIES = [
 
 # Your stuff...
 # ------------------------------------------------------------------------------
-
+# url for link to detail page in vue
+VUE_DETAIL_URL = "/objects/rct/"
 
 # Wagtail
 # ------------------------------------------------------------------------------

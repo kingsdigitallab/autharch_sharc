@@ -15,6 +15,7 @@ from elasticsearch_dsl import analyzer, normalizer
 from lxml import etree
 
 from autharch_sharc.editor.models import SharcIIIF
+from autharch_sharc.editor.models.related_material import RelatedMaterialParsed
 
 html_strip_analyzer = analyzer(
     "html_strip", tokenizer="standard", char_filter=["html_strip"]
@@ -400,9 +401,26 @@ class EADDocument(Document):
         return []
 
     def prepare_reference(self, instance):
+        rcin = 0
         if len(instance.unitid_set.all()) > 0:
-            return [unitid.unitid for unitid in instance.unitid_set.all()][0]
-        return 0
+            rcin = [unitid.unitid for unitid in instance.unitid_set.all()][0]
+            if len(rcin) > 0:
+                if (
+                    RelatedMaterialParsed.objects.filter(rcin=rcin).count() > 0
+                    and RelatedMaterialParsed.objects.filter(
+                        rcin=rcin, parsed=True
+                    ).count()
+                    > 0
+                ):
+                    rmp = RelatedMaterialParsed.objects.get(rcin=rcin)
+                    rmp.related_material_parsed = ""
+                    rmp.parsed = False
+                    rmp.save()
+                elif RelatedMaterialParsed.objects.filter(rcin=rcin).count() == 0:
+                    rmp = RelatedMaterialParsed(rcin=rcin)
+                    rmp.save()
+
+        return rcin
 
     def prepare_rct_link(self, instance):
         """numerical link to RCT site
@@ -676,13 +694,14 @@ class EADDocument(Document):
         return data
 
     def prepare_related_material(self, instance):
+        related_material = ""
         for related in instance.relatedmaterial_set.all():
             root = etree.fromstring(
                 "<wrapper>{}</wrapper>".format(related.relatedmaterial)
             )
             for element in root.xpath("//span[@class='ead-archref']"):
-                return element.text
-        return ""
+                related_material = related_material + " \n " + element.text
+        return related_material
 
     def prepare_connection_primary(self, instance):
         return self._prepare_connection(instance, "work_connection_primary")
@@ -849,7 +868,7 @@ class EADDocument(Document):
             ],
         ]
         acquirers = self._get_acquirers(instance)
-        more_acquirers = []
+        all_acquirers = acquirers
 
         for acquirer in acquirers:
 
@@ -866,11 +885,7 @@ class EADDocument(Document):
                     # add aliases to acquirer
                     for royal_alias in royal:
                         if royal_alias != alias_found:
-                            more_acquirers.append(royal_alias)
-
-        acquirers = acquirers + more_acquirers
-        if len(more_acquirers) > 0:
-            print("{}\n".format(acquirers))
+                            all_acquirers.append(royal_alias)
 
         people = EADDocument.get_people(instance)
 
@@ -885,7 +900,7 @@ class EADDocument(Document):
             )
 
         return {
-            "acquirers": acquirers,
+            "acquirers": all_acquirers,
             "all_people": people if len(people) > 0 else None,
         }
 
@@ -927,6 +942,7 @@ class EADDocument(Document):
         # From ScopeContent.scopecontent with localtype="notes".
         scope_contents = instance.scopecontent_set.filter(localtype="notes")
         notes = " ".join(scope_contents.values_list("scopecontent", flat=True))
+        # todo add rcin search here
         return {"raw": notes, "html": notes}
 
     def prepare_provenance(self, instance):

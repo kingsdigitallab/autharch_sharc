@@ -1,6 +1,7 @@
 import mimetypes
 
 import urllib3
+from django.conf import settings
 from django.http import HttpResponse
 from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
 from django_elasticsearch_dsl_drf.filter_backends import (
@@ -20,6 +21,7 @@ from rest_framework.views import APIView
 
 from autharch_sharc.django_kdl_timeline.views import ListTimelineEvents
 from autharch_sharc.editor.models import SharcTimelineEventSnippet
+from autharch_sharc.editor.models.related_material import RelatedMaterialParsed
 
 from .documents import EADDocument
 from .serializers import EADDocumentResultSerializer, EADDocumentThemeResultSerializer
@@ -274,13 +276,62 @@ class EADDocumentViewSet(DocumentViewSet):
         return response
 
     @classmethod
+    def _find_rcins(cls, rcin, related_material):
+        """
+        Due to the inconsistency of how references are written
+        in the xml, I've had to brute force this and look for all
+        rcins.
+        """
+        if RelatedMaterialParsed.objects.filter(rcin=rcin, parsed=True).count() > 0:
+            # Parsed already return that
+            rmp = RelatedMaterialParsed.objects.get(rcin=rcin, parsed=True)
+            return rmp.related_material_parsed
+        else:
+            parsed_material = related_material
+            # Look for ALL RCINs in text field
+            for rmp in RelatedMaterialParsed.objects.all():
+                if rmp.rcin in related_material:
+                    # todo is this part of a range?
+
+                    # Add link
+                    parsed_material = parsed_material.replace(
+                        rmp.rcin,
+                        '<a href="'
+                        + settings.VUE_DETAIL_URL
+                        + rmp.rcin
+                        + '/">'
+                        + rmp.rcin
+                        + "</a>",
+                    )
+            # add the result to the relatedmaterialparsed
+            if RelatedMaterialParsed.objects.filter(rcin=rcin).count() > 0:
+                related_material_parsed = RelatedMaterialParsed.objects.get(rcin=rcin)
+            else:
+                related_material_parsed = RelatedMaterialParsed(rcin=rcin)
+            related_material_parsed.parsed = True
+            related_material_parsed.related_material_parsed = parsed_material
+            # related_material_parsed.save()
+            return parsed_material
+
+    @classmethod
     def _data_to_list(cls, data):
-        if "media" in data and data["media"] is not None:
-            if len(data["media"]) > 0:
-                # Only include first item in media
-                # todo look at ordering/priority of items
-                # when we have more data
-                data["media"] = data["media"][0]
+
+        if len(data) > 0:
+            if "media" in data[0] and data[0]["media"] is not None:
+                if len(data[0]["media"]) > 1:
+                    # Only include first item in media
+                    # todo look at ordering/priority of items
+                    # when we have more data
+                    data[0]["media"] = data[0]["media"][0]
+            # Look for rcins in related material
+            if "related_material" in data[0] and len(data[0]["related_material"]) > 0:
+                parsed_material = ""
+                parsed_material = cls._find_rcins(
+                    data[0]["reference"], data[0]["related_material"]
+                )
+                # todo add to related material
+                data[0]["related_material"] = parsed_material
+
         return data
 
     @classmethod
