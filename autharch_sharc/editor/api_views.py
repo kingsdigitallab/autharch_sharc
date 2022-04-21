@@ -350,7 +350,6 @@ class EADDocumentViewSet(DocumentViewSet):
                     # when we have more data
                     data[0]["media"] = data[0]["media"][0]
             # Look for rcins in related material
-            data[0]["related_material"] = "RCIN 2369159-84 "
             if "related_material" in data[0] and len(data[0]["related_material"]) > 0:
                 parsed_material = ""
                 parsed_material = cls._find_rcins(
