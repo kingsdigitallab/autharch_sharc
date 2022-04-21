@@ -883,7 +883,7 @@ class EADDocument(Document):
         """
 
         acquirers = self._get_acquirers(instance)
-        all_acquirers = acquirers
+        all_acquirers = acquirers.copy()
         print("Searching in: {}".format(acquirers))
         for acquirer in acquirers:
 
@@ -894,9 +894,6 @@ class EADDocument(Document):
                 for royal_alias in royal:
                     if acquirer in royal_alias:
                         found = True
-                        import pdb
-
-                        pdb.set_trace()
                         alias_found = royal_alias
                         acquirers.remove(acquirer)
                         print("{}\n".format(alias_found))
