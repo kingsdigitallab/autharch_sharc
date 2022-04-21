@@ -758,7 +758,8 @@ class EADDocument(Document):
                 "<wrapper>{}</wrapper>".format(related.relatedmaterial)
             )
             for element in root.xpath("//span[@class='ead-archref']"):
-                related_material = related_material + " \n " + element.text
+                if element.text is not None:
+                    related_material = related_material + " \n " + element.text
         return related_material
 
     def prepare_connection_primary(self, instance):
