@@ -894,7 +894,11 @@ class EADDocument(Document):
                 for royal_alias in royal:
                     if acquirer in royal_alias:
                         found = True
+                        import pdb
+
+                        pdb.set_trace()
                         alias_found = royal_alias
+                        acquirers.remove(acquirer)
                         print("{}\n".format(alias_found))
                         break
                 if found:
