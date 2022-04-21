@@ -71,6 +71,7 @@ class EADDocument(Document):
     pk = fields.IntegerField(attr="id")
     reference = fields.KeywordField(fields={"text": fields.TextField()})
     rct_link = fields.KeywordField()
+    rcin_numeric = fields.LongField()
 
     archdesc_level = fields.KeywordField(attr="archdesc_level")
     provenance = fields.ObjectField(
@@ -447,6 +448,20 @@ class EADDocument(Document):
             else:
                 return reference
         return 0
+
+    def prepare_rcin_numeric(self, instance):
+        reference = ""
+        if len(instance.unitid_set.all()) > 0:
+            reference = [unitid.unitid for unitid in instance.unitid_set.all()][0]
+        # Given the high amount of inconsistency I am ignoring records
+        # with non-standard unit ids
+        if "," in reference or ";" in reference:
+            return 0
+        # otherwise remove non-numbers
+        rcin = re.sub("[^0-9]", "", reference)
+        if len(rcin) == 0:
+            rcin = "0"
+        return int(rcin)
 
     #
     def prepare_size(self, instance):

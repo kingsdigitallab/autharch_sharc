@@ -348,8 +348,10 @@ CONTROLLED_VOCABULARY_VOCABULARIES = [
 
 # Your stuff...
 # ------------------------------------------------------------------------------
-# url for link to detail page in vue
+# url for link to pages in vue
+# used in api_views.py to create related material links
 VUE_DETAIL_URL = "/objects/rct/"
+VUE_LIST_URL = "/objects"
 
 # Wagtail
 # ------------------------------------------------------------------------------

@@ -1,4 +1,5 @@
 import mimetypes
+import re
 
 import urllib3
 from django.conf import settings
@@ -89,6 +90,7 @@ class EADDocumentViewSet(DocumentViewSet):
     filter_fields = {
         "pk": "pk",
         "reference": "reference",
+        "rcin": "rcin_numeric",
         "unittitle": "unittitle.raw",
         "date_of_creation": "date_of_creation",
         "date_of_acquisition": "date_of_acquisition",
@@ -258,7 +260,6 @@ class EADDocumentViewSet(DocumentViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_doc_type_queryset()
-
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -281,7 +282,9 @@ class EADDocumentViewSet(DocumentViewSet):
         Due to the inconsistency of how references are written
         in the xml, I've had to brute force this and look for all
         rcins.
+        2369159-84
         """
+
         if RelatedMaterialParsed.objects.filter(rcin=rcin, parsed=True).count() > 0:
             # Parsed already return that
             rmp = RelatedMaterialParsed.objects.get(rcin=rcin, parsed=True)
@@ -292,17 +295,40 @@ class EADDocumentViewSet(DocumentViewSet):
             for rmp in RelatedMaterialParsed.objects.all():
                 if rmp.rcin in related_material:
                     # todo is this part of a range?
-
-                    # Add link
-                    parsed_material = parsed_material.replace(
-                        rmp.rcin,
-                        '<a href="'
-                        + settings.VUE_DETAIL_URL
-                        + rmp.rcin
-                        + '/">'
-                        + rmp.rcin
-                        + "</a>",
+                    matched_range = re.search(
+                        r"" + rmp.rcin + "-(\\d+)", parsed_material
                     )
+                    if matched_range is not None:
+                        upper_number = matched_range.group(1)
+                        upper_range = rmp.rcin[: -len(upper_number)] + upper_number
+                        parsed_material = parsed_material.replace(
+                            "-" + upper_number, ""
+                        )
+                        parsed_material = parsed_material.replace(
+                            rmp.rcin,
+                            '<a href="'
+                            + settings.VUE_LIST_URL
+                            + "?rcin__gte="
+                            + rmp.rcin
+                            + "&rcin__lte="
+                            + upper_range
+                            + '">'
+                            + rmp.rcin
+                            + "-"
+                            + upper_range
+                            + "</a>",
+                        )
+                    else:
+                        # Add link
+                        parsed_material = parsed_material.replace(
+                            rmp.rcin,
+                            '<a href="'
+                            + settings.VUE_DETAIL_URL
+                            + rmp.rcin
+                            + '">'
+                            + rmp.rcin
+                            + "</a>",
+                        )
             # add the result to the relatedmaterialparsed
             if RelatedMaterialParsed.objects.filter(rcin=rcin).count() > 0:
                 related_material_parsed = RelatedMaterialParsed.objects.get(rcin=rcin)
@@ -324,6 +350,7 @@ class EADDocumentViewSet(DocumentViewSet):
                     # when we have more data
                     data[0]["media"] = data[0]["media"][0]
             # Look for rcins in related material
+            data[0]["related_material"] = "RCIN 2369159-84 "
             if "related_material" in data[0] and len(data[0]["related_material"]) > 0:
                 parsed_material = ""
                 parsed_material = cls._find_rcins(
