@@ -895,6 +895,7 @@ class EADDocument(Document):
                     if acquirer in royal_alias:
                         found = True
                         alias_found = royal_alias
+                        print("{}\n".format(alias_found))
                         break
                 if found:
                     # add aliases to acquirer
