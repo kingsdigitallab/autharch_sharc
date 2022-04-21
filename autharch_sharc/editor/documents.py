@@ -884,7 +884,7 @@ class EADDocument(Document):
 
         acquirers = self._get_acquirers(instance)
         all_acquirers = acquirers
-
+        print("Searching in: {}".format(acquirers))
         for acquirer in acquirers:
 
             # look for royal aliases above in acquirer
