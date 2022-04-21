@@ -39,6 +39,49 @@ eaddocument_search_fields = (
     "related_people.all_people.name",
 )
 
+acquirer_aliases = [
+    [
+        "Queen Elizabeth (1900-2002), the Queen Mother",
+        "Elizabeth (1900-2002), Duchess of York",
+    ],
+    [
+        "King Edward VII (1841-1910), King of Great Britain and Ireland",
+        "Prince Albert Edward (1841-1910), Prince of Wales",
+        "Prince Albert Edward, Prince of Wales (1841-1910)",
+    ],
+    [
+        "King George IV (1762-1830), King of Great Britain and Ireland",
+        "Prince George (1762-1830), Prince of Wales",
+        "Prince George (1762-1830), Prince Regent",
+    ],
+    [
+        "King George V",
+        "Prince George (1865-1936), Duke of York",
+        "Prince George of Wales (1865-1936)",
+    ],
+    [
+        "King George VI (1895-1952), King of Great Britain and Ireland",
+        "Prince George, Duke of York (1895-1952)",
+        "Prince Albert of Wales (1895-1952)",
+    ],
+    [
+        "Queen Elizabeth II (b 1926), Queen of Great Britain and " "Northern Ireland",
+        "Princess Elizabeth (b 1926), Duchess of Edinburgh",
+        "Queen Elizabeth II (b. 1926), Queen of Great Britain and " "Northern Ireland",
+    ],
+    [
+        "Queen Mary (1867-1953), consort of George V",
+        "Princess May of Teck (1867-1953)",
+        "Princess Mary, Princess of Wales",
+        "Princess Mary (1867-1953), Princess of Wales",
+        "Mary, Duchess of York",
+    ],
+    [
+        "Queen Victoria (1819-1901), Queen of Great Britain and Ireland",
+        "Princess Victoria (1786-1861), Duchess of Kent",
+    ],
+]
+
 
 @registry.register_document
 class EADDocument(Document):
@@ -838,50 +881,7 @@ class EADDocument(Document):
             ["Queen Victoria", "Princess Victoria of Kent"],
         ]
         """
-        acquirer_aliases = [
-            [
-                "Queen Elizabeth (1900-2002), the Queen Mother",
-                "Elizabeth (1900-2002), Duchess of York",
-            ],
-            [
-                "King Edward VII (1841-1910), King of Great Britain and Ireland",
-                "Prince Albert Edward (1841-1910), Prince of Wales",
-                "Prince Albert Edward, Prince of Wales (1841-1910)",
-            ],
-            [
-                "King George IV (1762-1830), King of Great Britain and Ireland",
-                "Prince George (1762-1830), Prince of Wales",
-                "Prince George (1762-1830), Prince Regent",
-            ],
-            [
-                "King George V",
-                "Prince George (1865-1936), Duke of York",
-                "Prince George of Wales (1865-1936)",
-            ],
-            [
-                "King George VI (1895-1952), King of Great Britain and Ireland",
-                "Prince George, Duke of York (1895-1952)",
-                "Prince Albert of Wales (1895-1952)",
-            ],
-            [
-                "Queen Elizabeth II (b 1926), Queen of Great Britain and "
-                "Northern Ireland",
-                "Princess Elizabeth (b 1926), Duchess of Edinburgh",
-                "Queen Elizabeth II (b. 1926), Queen of Great Britain and "
-                "Northern Ireland",
-            ],
-            [
-                "Queen Mary (1867-1953), consort of George V",
-                "Princess May of Teck (1867-1953)",
-                "Princess Mary, Princess of Wales",
-                "Princess Mary (1867-1953), Princess of Wales",
-                "Mary, Duchess of York",
-            ],
-            [
-                "Queen Victoria (1819-1901), Queen of Great Britain and Ireland",
-                "Princess Victoria (1786-1861), Duchess of Kent",
-            ],
-        ]
+
         acquirers = self._get_acquirers(instance)
         all_acquirers = acquirers
 
