@@ -301,6 +301,9 @@ class EADDocumentViewSet(DocumentViewSet):
                     if matched_range is not None:
                         upper_number = matched_range.group(1)
                         upper_range = rmp.rcin[: -len(upper_number)] + upper_number
+                        related_material = related_material.replace(
+                            rmp.rcin + "-" + upper_number, ""
+                        )
                         parsed_material = parsed_material.replace(
                             "-" + upper_number, ""
                         )
@@ -320,6 +323,7 @@ class EADDocumentViewSet(DocumentViewSet):
                         )
                     else:
                         # Add link
+                        related_material = related_material.replace(rmp.rcin, "")
                         parsed_material = parsed_material.replace(
                             rmp.rcin,
                             '<a href="'
@@ -341,7 +345,6 @@ class EADDocumentViewSet(DocumentViewSet):
 
     @classmethod
     def _data_to_list(cls, data):
-
         if len(data) > 0:
             if "media" in data[0] and data[0]["media"] is not None:
                 if len(data[0]["media"]) > 1:
