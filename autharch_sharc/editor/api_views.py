@@ -293,10 +293,11 @@ class EADDocumentViewSet(DocumentViewSet):
             parsed_material = related_material
             # Look for ALL RCINs in text field
             for rmp in RelatedMaterialParsed.objects.all():
-                if rmp.rcin in related_material:
+                matched_rcin = re.search(r" " + rmp.rcin + "[\\s+|-]", parsed_material)
+                if matched_rcin:
                     # todo is this part of a range?
                     matched_range = re.search(
-                        r"" + rmp.rcin + "-(\\d+)", parsed_material
+                        r" " + rmp.rcin + "-(\\d+)", parsed_material
                     )
                     if matched_range is not None:
                         upper_number = matched_range.group(1)
