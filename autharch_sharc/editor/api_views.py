@@ -281,7 +281,7 @@ class EADDocumentViewSet(DocumentViewSet):
                     # Only include first item in media
                     # todo look at ordering/priority of items
                     # when we have more data
-                    data[0]["media"] = data[0]["media"][0]
+                    data[0]["media"] = [data[0]["media"][0]]
 
         return data
 
