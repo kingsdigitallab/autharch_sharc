@@ -293,7 +293,9 @@ class EADDocumentViewSet(DocumentViewSet):
             parsed_material = related_material
             # Look for ALL RCINs in text field
             for rmp in RelatedMaterialParsed.objects.all():
-                matched_rcin = re.search(r" " + rmp.rcin + "[\\s+|-]", parsed_material)
+                matched_rcin = re.search(
+                    r"[^0-9|/]*" + rmp.rcin + "[^0-9|/]*", related_material
+                )
                 if matched_rcin:
                     # todo is this part of a range?
                     matched_range = re.search(
@@ -341,7 +343,15 @@ class EADDocumentViewSet(DocumentViewSet):
                 related_material_parsed = RelatedMaterialParsed(rcin=rcin)
             related_material_parsed.parsed = True
             related_material_parsed.related_material_parsed = parsed_material
-            # related_material_parsed.save()
+            related_material_parsed.save()
+            # import pdb
+            #
+            # pdb.set_trace()
+            s = EADDocument.search().filter("term", reference=rcin)
+            for doc in s:
+                doc.related_material = parsed_material
+                doc.related_parsed = True
+                doc.save()
             return parsed_material
 
     @classmethod
@@ -353,9 +363,16 @@ class EADDocumentViewSet(DocumentViewSet):
                     # todo look at ordering/priority of items
                     # when we have more data
                     data[0]["media"] = data[0]["media"][0]
-            # Look for rcins in related material
-            if "related_material" in data[0] and len(data[0]["related_material"]) > 0:
+            # Look for rcins in related material if not parsed
+            # data[0]["related_material"] += " 2369159-84 "
+            if (
+                "related_parsed" in data[0]
+                and data[0]["related_parsed"] is False
+                and "related_material" in data[0]
+                and len(data[0]["related_material"]) > 0
+            ):
                 parsed_material = ""
+
                 parsed_material = cls._find_rcins(
                     data[0]["reference"], data[0]["related_material"]
                 )

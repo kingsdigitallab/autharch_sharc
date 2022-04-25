@@ -114,7 +114,9 @@ class EADDocument(Document):
     pk = fields.IntegerField(attr="id")
     reference = fields.KeywordField(fields={"text": fields.TextField()})
     rct_link = fields.KeywordField()
-    rcin_numeric = fields.LongField()
+    rcin_numeric = fields.LongField()  # numeric field used for range matching
+    # Has related material been parsed yet?
+    related_parsed = fields.BooleanField()
 
     archdesc_level = fields.KeywordField(attr="archdesc_level")
     provenance = fields.ObjectField(
@@ -274,6 +276,9 @@ class EADDocument(Document):
             "sort": fields.KeywordField(normalizer=lowercase_sort_normalizer),
         }
     )
+
+    def prepare_related_parsed(self, instance):
+        return False
 
     def prepare_is_visible(self, instance):
         if instance.audience == "internal":
@@ -610,7 +615,7 @@ class EADDocument(Document):
         elif len(root.xpath("span[@class='ead-genreform']/text()")) > 0:
             # try a different pattern
             return str(root.xpath("span[@class='ead-genreform']/text()")[0]).strip()
-        return None
+        return ""
 
     def _prepare_connection(self, instance, localtype):
         connections = []
