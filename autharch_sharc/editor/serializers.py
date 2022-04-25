@@ -71,6 +71,7 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "date_of_acquisition_notes",
             "related_parsed",
             "related_material",
+            "related_material_parsed",
             "related_sources",
             "related_people",
             "media",
