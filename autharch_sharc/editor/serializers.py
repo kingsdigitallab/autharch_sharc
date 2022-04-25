@@ -69,7 +69,7 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "date_of_creation",
             "date_of_creation_range",
             "date_of_creation_notes",
-            # "place_of_origin",
+            "place_of_origin",
             "date_of_acquisition",
             "date_of_acquisition_range",
             "date_of_acquisition_notes",
@@ -84,33 +84,6 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "notes",
             "provenance",
             # "category",
-            # "references_published",
-            # "references_unpublished",
+            "references_published",
+            "references_unpublished",
         )
-
-    def get_place_of_origin(self, obj):
-        try:
-            if obj.place_of_origin:
-                return obj.place_of_origin
-            else:
-                return None
-        except AttributeError:
-            return None
-
-    def get_references_published(self, obj):
-        try:
-            if obj.references_published:
-                return obj.references_published
-            else:
-                return []
-        except AttributeError:
-            return None
-
-    def get_references_unpublished(self, obj):
-        try:
-            if obj.references_unpublished:
-                return obj.references_unpublished
-            else:
-                return []
-        except AttributeError:
-            return []

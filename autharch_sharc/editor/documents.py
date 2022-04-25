@@ -1,6 +1,7 @@
 import re
 
 import requests
+from django.conf import settings
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 from ead.models import (
@@ -24,6 +25,7 @@ html_strip_analyzer = analyzer(
 lowercase_sort_normalizer = normalizer(
     "lowercase_sort", filter=["lowercase", "asciifolding"]
 )
+
 
 """
 Search fields for EAD document searching
@@ -65,7 +67,9 @@ acquirer_aliases = [
         "Prince Albert of Wales (1895-1952)",
     ],
     [
-        "Queen Elizabeth II (b 1926), Queen of Great Britain and " "Northern Ireland",
+        "Queen Elizabeth II (b 1926), Queen of Great Britain and "
+        "Northern "
+        "Ireland",
         "Princess Elizabeth (b 1926), Duchess of Edinburgh",
         "Queen Elizabeth II (b. 1926), Queen of Great Britain and " "Northern Ireland",
     ],
@@ -83,6 +87,74 @@ acquirer_aliases = [
 ]
 
 
+def find_rcins(rcin, related_material):
+    """
+    Due to the inconsistency of how references are written
+    in the xml, I've had to brute force this and look for all
+    rcins.
+    2369159-84
+    """
+
+    parsed_material = related_material
+    if RelatedMaterialParsed.objects.filter(rcin=rcin, parsed=True).count() > 0:
+        # Parsed already return that
+        rmp = RelatedMaterialParsed.objects.get(rcin=rcin, parsed=True)
+        return rmp.related_material_parsed
+    else:
+
+        # Look for ALL RCINs in text field
+        for rmp in RelatedMaterialParsed.objects.all():
+            matched_rcin = re.search(
+                r"[^0-9|/]*" + rmp.rcin + "[^0-9|/]*", related_material
+            )
+            if matched_rcin:
+                # todo is this part of a range?
+                matched_range = re.search(r" " + rmp.rcin + "-(\\d+)", parsed_material)
+                if matched_range is not None:
+                    upper_number = matched_range.group(1)
+                    upper_range = rmp.rcin[: -len(upper_number)] + upper_number
+                    related_material = related_material.replace(
+                        rmp.rcin + "-" + upper_number, ""
+                    )
+                    parsed_material = parsed_material.replace("-" + upper_number, "")
+                    parsed_material = parsed_material.replace(
+                        rmp.rcin,
+                        '<a href="'
+                        + settings.VUE_LIST_URL
+                        + "?rcin__gte="
+                        + rmp.rcin
+                        + "&rcin__lte="
+                        + upper_range
+                        + '">'
+                        + rmp.rcin
+                        + "-"
+                        + upper_range
+                        + "</a>",
+                    )
+                else:
+                    # Add link
+                    related_material = related_material.replace(rmp.rcin, "")
+                    parsed_material = parsed_material.replace(
+                        rmp.rcin,
+                        '<a href="'
+                        + settings.VUE_DETAIL_URL
+                        + rmp.rcin
+                        + '">'
+                        + rmp.rcin
+                        + "</a>",
+                    )
+        # add the result to the relatedmaterialparsed
+        if RelatedMaterialParsed.objects.filter(rcin=rcin).count() > 0:
+            related_material_parsed = RelatedMaterialParsed.objects.filter(rcin=rcin)[0]
+        else:
+            related_material_parsed = RelatedMaterialParsed(rcin=rcin)
+        related_material_parsed.parsed = True
+        related_material_parsed.related_material_parsed = parsed_material
+        related_material_parsed.save()
+
+    return parsed_material
+
+
 @registry.register_document
 class EADDocument(Document):
     """ Document model for EAD objects uploaded via xml"""
@@ -93,6 +165,9 @@ class EADDocument(Document):
     default_iiif_image_url = "PLACEHOLDER"
     default_thumbnail_url = "PLACEHOLDER"
     default_doc_type = "object"
+    # Toggle for parsing related material
+    # will be set to false if no RelatedMaterial objects
+    do_parse_related = True
 
     class Index:
         name = "editor"
@@ -116,7 +191,16 @@ class EADDocument(Document):
     rct_link = fields.KeywordField()
     rcin_numeric = fields.LongField()  # numeric field used for range matching
     # Has related material been parsed yet?
-    related_parsed = fields.BooleanField()
+    related_material = fields.TextField(
+        fields={
+            "raw": fields.KeywordField(),
+        }
+    )
+    related_material_parsed = fields.TextField(
+        fields={
+            "raw": fields.KeywordField(),
+        }
+    )
 
     archdesc_level = fields.KeywordField(attr="archdesc_level")
     provenance = fields.ObjectField(
@@ -277,8 +361,9 @@ class EADDocument(Document):
         }
     )
 
-    def prepare_related_parsed(self, instance):
-        return False
+    def prepare_related_material_parsed(self, instance):
+
+        return ""
 
     def prepare_is_visible(self, instance):
         if instance.audience == "internal":
@@ -334,6 +419,13 @@ class EADDocument(Document):
     def prepare(self, instance):
         data = super().prepare(instance)
         data["search_content"] = self.get_search_content(data)
+        if self.do_parse_related and RelatedMaterialParsed.objects.count() == 0:
+            print("No RelatedMaterial Records! Update after full index")
+            self.do_parse_related = False
+        elif self.do_parse_related and "related_material" in data:
+            parsed_material = find_rcins(data["reference"], data["related_material"])
+            data["related_material_parsed"] = parsed_material
+
         return data
 
     def prepare_media(self, instance):
