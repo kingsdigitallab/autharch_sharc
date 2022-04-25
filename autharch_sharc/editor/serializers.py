@@ -50,10 +50,6 @@ class EADDocumentThemeResultSerializer(DocumentSerializer):
 class EADDocumentResultSerializer(DocumentSerializer):
     """ Serializer for EAD XML document"""
 
-    place_of_origin = serializers.SerializerMethodField()
-    references_published = serializers.SerializerMethodField()
-    # references_unpublished = serializers.SerializerMethodField()
-
     class Meta:
         document = EADDocument
 
