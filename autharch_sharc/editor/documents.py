@@ -105,11 +105,11 @@ def find_rcins(rcin, related_material):
         # Look for ALL RCINs in text field
         for rmp in RelatedMaterialParsed.objects.all():
             matched_rcin = re.search(
-                r"[^0-9|/]*" + rmp.rcin + "[^0-9|/]*", related_material
+                r"[\D|\s]+" + rmp.rcin + r"[\D|\s]+", " " + related_material + " "
             )
             if matched_rcin:
                 # todo is this part of a range?
-                matched_range = re.search(r" " + rmp.rcin + "-(\\d+)", parsed_material)
+                matched_range = re.search(" " + rmp.rcin + r"-(\d+)", parsed_material)
                 if matched_range is not None:
                     upper_number = matched_range.group(1)
                     upper_range = rmp.rcin[: -len(upper_number)] + upper_number
@@ -950,36 +950,6 @@ class EADDocument(Document):
         return people
 
     def prepare_related_people(self, instance):
-        """
-
-        acquirer_aliases = [
-            ["Queen Elizabeth the Queen Mother", "Elizabeth Duchess of York"],
-            [
-                "King Edward VII",
-                "Albert Edward, Prince of Wales",
-            ],
-            [
-                "King George IV",
-                "Prince George, Prince of Wales",
-                "Prince George, Prince Regent",
-            ],
-            [
-                "King George V",
-                "Prince George, Duke of York (1865-1936)",
-                "Prince George of Wales",
-            ],
-            ["King George VI", "Prince George, Duke of York (1895-1952)"],
-            ["Queen Elizabeth II", "Princess Elizabeth, Duchess of Edinburgh"],
-            [
-                "Queen Mary",
-                "Princess Mary, Princess of Wales",
-                "Mary, Duchess of York",
-                "Princess May of Teck",
-            ],
-            ["Queen Victoria", "Princess Victoria of Kent"],
-        ]
-        """
-
         acquirers = self._get_acquirers(instance)
         all_acquirers = acquirers.copy()
         print("Searching in: {}".format(acquirers))
