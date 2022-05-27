@@ -135,15 +135,11 @@ def find_links_in_material(related_material, parsed_material):
 
 def find_rcins_in_notes(reference, related_material):
     """ Same process as below but for additional notes """
-    parsed_material = ""
+    parsed_material = related_material
     # Look for ALL RCINs in text field
     if len(related_material) > 0:
         parsed_material = find_links_in_material(related_material, parsed_material)
-    if len(parsed_material) > 0:
-        print("Parse found {}\n".format(reference))
-        return parsed_material
-    else:
-        return related_material
+    return parsed_material
 
 
 def find_rcins(rcin, related_material):
