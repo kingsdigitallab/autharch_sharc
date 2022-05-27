@@ -10,3 +10,6 @@ class RelatedMaterialParsed(models.Model):
     rcin = models.CharField(blank=True, null=True, max_length=256)
     parsed = models.BooleanField(default=False)
     related_material_parsed = models.TextField(blank=True, null=True)
+
+
+# class AdditionalNotesParsed(models.Model):

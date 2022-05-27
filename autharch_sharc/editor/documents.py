@@ -87,6 +87,65 @@ acquirer_aliases = [
 ]
 
 
+def find_links_in_material(related_material, parsed_material):
+
+    for rmp in RelatedMaterialParsed.objects.all():
+        matched_rcin = re.search(
+            r"[\D|\s]+" + rmp.rcin + r"[\D|\s]+", " " + related_material + " "
+        )
+        if matched_rcin:
+            # todo is this part of a range?
+            matched_range = re.search(" " + rmp.rcin + r"-(\d+)", parsed_material)
+            if matched_range is not None:
+                upper_number = matched_range.group(1)
+                upper_range = rmp.rcin[: -len(upper_number)] + upper_number
+                related_material = related_material.replace(
+                    rmp.rcin + "-" + upper_number, ""
+                )
+                parsed_material = parsed_material.replace("-" + upper_number, "")
+                parsed_material = parsed_material.replace(
+                    rmp.rcin,
+                    '<a href="'
+                    + settings.VUE_LIST_URL
+                    + "?rcin__gte="
+                    + rmp.rcin
+                    + "&rcin__lte="
+                    + upper_range
+                    + '">'
+                    + rmp.rcin
+                    + "-"
+                    + upper_range
+                    + "</a>",
+                )
+            else:
+                # Add link
+                related_material = related_material.replace(rmp.rcin, "")
+                parsed_material = parsed_material.replace(
+                    rmp.rcin,
+                    '<a href="'
+                    + settings.VUE_DETAIL_URL
+                    + rmp.rcin
+                    + '">'
+                    + rmp.rcin
+                    + "</a>",
+                )
+
+    return parsed_material
+
+
+def find_rcins_in_notes(reference, related_material):
+    """ Same process as below but for additional notes """
+    parsed_material = ""
+    # Look for ALL RCINs in text field
+    if len(related_material) > 0:
+        parsed_material = find_links_in_material(related_material, parsed_material)
+    if len(parsed_material) > 0:
+        print("Parse found {}\n".format(reference))
+        return parsed_material
+    else:
+        return related_material
+
+
 def find_rcins(rcin, related_material):
     """
     Due to the inconsistency of how references are written
@@ -213,6 +272,12 @@ class EADDocument(Document):
         properties={
             "raw": fields.TextField(),
             "html": fields.TextField(analyzer=html_strip_analyzer),
+        }
+    )
+    # Added to show notes with links added
+    notes_parsed = fields.TextField(
+        fields={
+            "raw": fields.KeywordField(),
         }
     )
     references_published = fields.ObjectField(
@@ -425,6 +490,9 @@ class EADDocument(Document):
         elif self.do_parse_related and "related_material" in data:
             parsed_material = find_rcins(data["reference"], data["related_material"])
             data["related_material_parsed"] = parsed_material
+            # print("{}\n".format(data["notes"]["html"]))
+            parsed_notes = find_rcins_in_notes(data["reference"], data["notes"]["html"])
+            data["notes_parsed"] = parsed_notes
 
         return data
 
@@ -952,7 +1020,6 @@ class EADDocument(Document):
     def prepare_related_people(self, instance):
         acquirers = self._get_acquirers(instance)
         all_acquirers = acquirers.copy()
-        print("Searching in: {}".format(acquirers))
         for acquirer in acquirers:
 
             # look for royal aliases above in acquirer
@@ -1029,6 +1096,9 @@ class EADDocument(Document):
         notes = " ".join(scope_contents.values_list("scopecontent", flat=True))
         # todo add rcin search here
         return {"raw": notes, "html": notes}
+
+    def prepare_notes_parsed(self, instance):
+        return ""
 
     def prepare_provenance(self, instance):
         # From CustodHist.custodhist
