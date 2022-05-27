@@ -484,8 +484,9 @@ class EADDocument(Document):
             print("No RelatedMaterial Records! Update after full index")
             self.do_parse_related = False
         elif self.do_parse_related and "related_material" in data:
-            parsed_material = find_rcins(data["reference"], data["related_material"])
-            data["related_material_parsed"] = parsed_material
+            # Turned off as this material is no longer display on the site
+            # parsed_material = find_rcins(data["reference"], data["related_material"])
+            data["related_material_parsed"] = data["related_material"]
             # print("{}\n".format(data["notes"]["html"]))
             parsed_notes = find_rcins_in_notes(data["reference"], data["notes"]["html"])
             data["notes_parsed"] = parsed_notes
