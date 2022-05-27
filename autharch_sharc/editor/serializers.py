@@ -79,6 +79,7 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "doc_type",
             "stories",
             "notes",
+            "notes_parsed",
             "provenance",
             # "category",
             "references_published",
