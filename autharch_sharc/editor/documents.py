@@ -26,7 +26,6 @@ lowercase_sort_normalizer = normalizer(
     "lowercase_sort", filter=["lowercase", "asciifolding"]
 )
 
-
 """
 Search fields for EAD document searching
 Included here so we can use it in api view and in building search content
@@ -88,7 +87,6 @@ acquirer_aliases = [
 
 
 def find_links_in_material(related_material, parsed_material):
-
     for rmp in RelatedMaterialParsed.objects.all():
         matched_rcin = re.search(
             r"[\D|\s]+" + rmp.rcin + r"[\D|\s]+", " " + related_material + " "
@@ -133,8 +131,30 @@ def find_links_in_material(related_material, parsed_material):
     return parsed_material
 
 
-def find_rcins_in_notes(reference, related_material):
+def find_rcins_in_notes(related_material):
     """ Same process as below but for additional notes """
+    # related_material = "A pen, ink and wash drawing of a tree identified
+    # on the mount as 'Hern's [sic] Oak in Windsor Park mention'd in
+    # Shakespear's Merry Wives of Windsor'. Several trees in the Great Park
+    # have historically been connected with Herne's Oak, the tree that forms
+    # the backdrop to the final scenes from The Merry Wives of Windsor,
+    # and the Royal Collection has a sequence of prints showing both of the
+    # primary candidates (RCINs 700443, 700760, 700761, 700772, 700775,
+    # 700775, 700771, 503363, 700757, 700758, 700762, 700763, 700773,
+    # 700774 and 700443). This drawing, by the Russian-born painter and
+    # draughtsman Alexander Cozens, shows the 'first' tree to be given the
+    # title, which was cut down on the orders of George III in 1796, having
+    # ceased to vegetate (an order the king may later have regretted upon
+    # realizing it was 'Herne's Oak'). Cozens shows it already dead."
+    # "This drawing was presented to the Royal Collection in 1946 by E.
+    # Horsman (or Horseman) Coles, and is one of several drawings to have
+    # come from the same source - Horsman also donated several topographical
+    # and view drawings to the British Museum around the same period. There
+    # is no evidence that George VI took a particular interest in the
+    # history of Herne's Oak, although five years after receiving this
+    # drawing, in 1951, he presented one of the Royal Collection's two busts
+    # of Shakespeare carved from the wood of the 'second' Herne's Oak to the
+    # Windsor and Royal Borough Museum (see RCIN 7021)."
     parsed_material = related_material
     # Look for ALL RCINs in text field
     if len(related_material) > 0:
@@ -485,10 +505,11 @@ class EADDocument(Document):
             self.do_parse_related = False
         elif self.do_parse_related and "related_material" in data:
             # Turned off as this material is no longer display on the site
-            # parsed_material = find_rcins(data["reference"], data["related_material"])
+            # parsed_material = find_rcins(data["reference"],
+            # data["related_material"])
             data["related_material_parsed"] = data["related_material"]
             # print("{}\n".format(data["notes"]["html"]))
-            parsed_notes = find_rcins_in_notes(data["reference"], data["notes"]["html"])
+            parsed_notes = find_rcins_in_notes(data["notes"]["html"])
             data["notes_parsed"] = parsed_notes
 
         return data
