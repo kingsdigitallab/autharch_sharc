@@ -358,6 +358,7 @@ VUE_LIST_URL = "/objects"
 # https://docs.wagtail.io/en/v2.7.1/getting_started/integrating_into_django.html
 WAGTAIL_SITE_NAME = "Autharch Sharc"
 ITEMS_PER_PAGE = 50
+WAGTAILAPI_LIMIT_MAX = None
 
 WAGTAILSEARCH_BACKENDS = {
     "default": {
