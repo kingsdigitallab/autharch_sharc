@@ -361,7 +361,7 @@ class StoryObjectCollection(StreamFieldPage):
             pks.append(story_object.ead_snippet.ead_id)
         s = EADDocument.search().filter("terms", pk=pks)
         related_documents = list()
-        for hit in s:
+        for hit in s.scan():
             related_documents.append(EADDocumentResultSerializer(hit).data)
         return related_documents
 
