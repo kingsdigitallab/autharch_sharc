@@ -38,7 +38,10 @@ class Command(BaseCommand):
             if "iiif_uri" in column_format:
                 rcin = csv_line[0]
                 if "images_available" in column_format:
-                    images_available = csv_line[column_format["images_available"]]
+                    try:
+                        images_available = csv_line[column_format["images_available"]]
+                    except IndexError:
+                        images_available = ""
                 else:
                     images_available = ""
                 if len(rcin) == 0 and len(last_rcin) > 0:
@@ -78,18 +81,30 @@ class Command(BaseCommand):
                                     if previous_uris.count() > 0:
                                         last = previous_uris.last()
                                         order = last.order + 1
-                                    event, created = SharcIIIF.objects.get_or_create(
-                                        rcin=rcin,
-                                        iiif_uri=iiif_uri.strip(),
-                                        images_available=images_available,
-                                        department=department,
-                                        order=order,
-                                    )
-                                    if created:
-                                        self.iif_created += 1
-                                    else:
-                                        self.events_updated += 1
-                                    print("{}:{}:{}\n".format(rcin, iiif_uri, order))
+                                    if (
+                                        SharcIIIF.objects.filter(
+                                            rcin=rcin,
+                                            iiif_uri=iiif_uri.strip(),
+                                        ).count()
+                                        == 0
+                                    ):
+                                        (
+                                            event,
+                                            created,
+                                        ) = SharcIIIF.objects.get_or_create(
+                                            rcin=rcin,
+                                            iiif_uri=iiif_uri.strip(),
+                                            images_available=images_available,
+                                            department=department,
+                                            order=order,
+                                        )
+                                        if created:
+                                            self.iif_created += 1
+                                        else:
+                                            self.events_updated += 1
+                                        print(
+                                            "{}:{}:{}\n".format(rcin, iiif_uri, order)
+                                        )
                                 except ValueError:
                                     pass
                     return rcin
@@ -107,9 +122,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Reset objects
-        SharcIIIF.objects.all().delete()
+        # SharcIIIF.objects.all().delete()
         # import sheets
         totals = {}
+        # EH commented out as they are complete, final upload only
+        """
         self.parse_iiif_sheet(
             "data/ShaRC_manifests_photographs.csv",
             {"images_available": 2, "iiif_uri": [3]},
@@ -155,7 +172,17 @@ class Command(BaseCommand):
             "Decorative Arts",
         )
         totals["Decorative Arts"] = self.iif_created
+        """
         grand_total = 0
+
+        self.iif_created = 0
+        self.parse_iiif_sheet(
+            "data/SHARC_final_manifests.csv",
+            {"images_available": 2, "iiif_uri": [1]},
+            "Final manifests",
+        )
+        totals["Decorative Arts"] = self.iif_created
+
         self.stdout.write("Complete.\n\nUpload totals: \n")
         for key, value in totals.items():
             self.stdout.write("{} - {}\n".format(key, value))
