@@ -24,9 +24,9 @@ RUN pip install -U pip
 RUN pip install --no-cache-dir -r /requirements/production.txt \
   && rm -rf /requirements
 
-COPY --chown=django:django ./compose/production/django/entrypoint /entrypoint
-RUN sed -i 's/\r$//g' /entrypoint
-RUN chmod +x /entrypoint
+#COPY --chown=django:django ./compose/production/django/entrypoint /entrypoint
+#RUN sed -i 's/\r$//g' /entrypoint
+#RUN chmod +x /entrypoint
 
 
 COPY --chown=django:django ./compose/production/django/start /start
@@ -37,5 +37,3 @@ COPY --chown=django:django . /app
 USER django
 
 WORKDIR /app
-
-ENTRYPOINT ["/entrypoint"]
