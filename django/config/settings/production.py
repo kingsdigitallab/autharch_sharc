@@ -1,3 +1,5 @@
+from http.cookiejar import debug
+
 import ldap
 from django_auth_ldap.config import LDAPGroupQuery, LDAPSearch, PosixGroupType
 
