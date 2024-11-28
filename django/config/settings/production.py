@@ -6,8 +6,6 @@ from django_auth_ldap.config import LDAPGroupQuery, LDAPSearch, PosixGroupType
 from .base import *  # noqa
 from .base import env
 
-debug = True
-
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key

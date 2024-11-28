@@ -1,4 +1,3 @@
-
 name: 'sharc_openstack'
 
 
@@ -36,7 +35,6 @@ services:
     build:
       context: ../
       dockerfile: ./compose/production/django/Dockerfile
-    image: autharch_sharc_liv_django
     volumes:
       - ../volumes/django/static:/app/staticfiles
       - ../volumes/django/media:/app/media
@@ -47,20 +45,21 @@ services:
       - .env
     command: /start
     restart: unless-stopped
-    expose:
-      - "8000"
+    ports:
+      - "8000:8000"
     environment:
       VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
+      VIRTUAL_PATH: "/"
       VIRTUAL_PROTO: http
       VIRTUAL_PORT: 8000
 
 
   postgres:
-    build:
-      context: ../
-      dockerfile: ./compose/production/postgres/Dockerfile
+    image: postgres:12.3
+    #    build:
+    #      context: ../
+    #      dockerfile: ./compose/production/postgres/Dockerfile
     restart: unless-stopped
-    image: postgres
     environment:
       #POSTGRES_USER: ${POSTGRES_USER}
       #POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
