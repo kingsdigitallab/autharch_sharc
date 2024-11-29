@@ -9,6 +9,7 @@ Team
 
 TODO
 
+.. literalinclude:: ../../autharch_sharc/static/humans.txt
     :language: text
     :start-after: /* TEAM */
     :end-before: /* SITE */
