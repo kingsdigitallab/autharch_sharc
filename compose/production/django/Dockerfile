@@ -31,8 +31,6 @@ RUN pip install --no-cache-dir -r /requirements/production.txt \
 #COPY --chown=django:django ./compose/production/django/entrypoint /entrypoint
 #RUN sed -i 's/\r$//g' /entrypoint
 #RUN chmod +x /entrypoint
-RUN chown django:django /app/staticfiles
-RUN chown django:django /app/media
 
 COPY --chown=django:django ./compose/production/django/start /start
 RUN sed -i 's/\r$//g' /start
