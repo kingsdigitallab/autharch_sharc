@@ -1,4 +1,3 @@
-from django.conf import settings
 from rest_framework import permissions
 from rest_framework.routers import DefaultRouter, SimpleRouter
 from wagtail.api.v2.router import WagtailAPIRouter
@@ -8,11 +7,13 @@ from wagtail.images.api.v2.views import ImagesAPIViewSet
 
 from autharch_sharc.editor.api_views import EADDocumentViewSet
 from autharch_sharc.users.api.views import UserViewSet
+from django.conf import settings
 
-if settings.DEBUG:
-    router = DefaultRouter()
-else:
-    router = SimpleRouter()
+# if settings.DEBUG:
+#     router = DefaultRouter()
+# else:
+#     router = SimpleRouter()
+router = DefaultRouter()
 
 router.register("users", UserViewSet)
 router.register(r"documents", EADDocumentViewSet, basename="eaddocument")
