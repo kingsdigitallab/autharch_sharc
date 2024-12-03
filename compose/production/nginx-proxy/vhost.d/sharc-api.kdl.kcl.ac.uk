@@ -12,7 +12,7 @@ proxy_set_header X-Forwarded-Port $proxy_x_forwarded_port;
 add_header 'Access-Control-Allow-Origin' '*' always;
     add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
     add_header 'Access-Control-Allow-Credentials' 'true';
-    add_header 'Access-Control-Allow-Headers' 'User-Agent,Keep-Alive,Content-Type';
+    add_header 'Access-Control-Allow-Headers' 'Bearer,User-Agent,Keep-Alive,Content-Type';
 
 # Mitigate httpoxy attack (see README for details)
 proxy_set_header Proxy "";
