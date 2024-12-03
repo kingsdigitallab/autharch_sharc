@@ -1,7 +1,6 @@
 import re
 
 import requests
-from django.conf import settings
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 from ead.models import (
@@ -17,6 +16,7 @@ from lxml import etree
 
 from autharch_sharc.editor.models import SharcIIIF
 from autharch_sharc.editor.models.related_material import RelatedMaterialParsed
+from django.conf import settings
 
 html_strip_analyzer = analyzer(
     "html_strip", tokenizer="standard", char_filter=["html_strip"]
@@ -558,7 +558,8 @@ class EADDocument(Document):
                                     full_image_url = image["resource"]["@id"]
                                     iiif_image_url = image["resource"]["service"]["@id"]
                                     iiif_image_url = iiif_image_url.replace(
-                                        "https://rct.resourcespace.com/", "/rct/"
+                                        "https://rct.resourcespace.com/",
+                                        "https://sharc-api.kdl.kcl.ac.uk/rct/",
                                     )
                                     if "width" in image["resource"]:
                                         image_width = image["resource"]["width"]
