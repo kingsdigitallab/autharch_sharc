@@ -11,7 +11,7 @@ services:
       - "80:80"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-      - ../volumes/nginx-proxy/vhost.d:/etc/nginx/vhost.d:ro
+      - ./production/nginx-proxy/vhost.d:/etc/nginx/vhost.d:ro
 
 
   nginx:
