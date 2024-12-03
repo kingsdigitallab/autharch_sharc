@@ -84,6 +84,8 @@ services:
     image: elasticsearch:7.10.1
     env_file:
       - .env
+    volumes:
+      - ../volumes/elasticsearch/data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
       - "9300:9300"
