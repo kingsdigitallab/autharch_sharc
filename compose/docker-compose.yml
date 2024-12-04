@@ -40,7 +40,7 @@ services:
       dockerfile: ./compose/production/django/Dockerfile
     volumes:
       - ../volumes/django/static:/app/staticfiles:Z
-      - ../volumes/django/media:/app/media
+      - ../volumes/django/media:/app/autharch_sharc/media:Z
     depends_on:
       - postgres
       - elasticsearch
