@@ -24,12 +24,14 @@ services:
     volumes:
       - ../volumes/django/static:/usr/share/nginx/static:Z
       - ../volumes/django/media:/usr/share/nginx/media:ro
+      - ../volumes/vue/dist:/usr/share/nginx/vue:ro
       #- ../volumes/nginx/vue:/usr/share/nginx/vue:ro
     env_file:
       - .env
     environment:
       VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
-      VIRTUAL_PATH: "~^/(assets/|media/|static/|redist/|robots.txt)"
+      #VIRTUAL_PATH: "~^/(assets/|media/|static/|redist/|robots.txt)"
+      VIRTUAL_PATH: "/"
       VIRTUAL_PROTO: http
       VIRTUAL_PORT: 8001
 
@@ -52,7 +54,7 @@ services:
       - "8000:8000"
     environment:
       VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
-      VIRTUAL_PATH: "/"
+      VIRTUAL_PATH: "/api/"
       VIRTUAL_PROTO: http
       VIRTUAL_PORT: 8000
 
@@ -91,5 +93,20 @@ services:
       - "9200:9200"
       - "9300:9300"
     restart: unless-stopped
+
+  kdl-apache-proxy-exhibition:
+   image: gitlab.kdl.kcl.ac.uk:5050/docker-images/core/kdl-apache-proxy
+   container_name: kdl-apache-proxy-exhibition
+   volumes:
+     - ./production/apache/pathmap.yaml:/maps/pathmap.yaml:ro
+
+   ports:
+     - "8002:80"
+   restart: unless-stopped
+   environment:
+     VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
+     VIRTUAL_PATH: "~^/exhibition/"
+     VIRTUAL_PROTO: http
+     VIRTUAL_PORT: 8002
 
 
