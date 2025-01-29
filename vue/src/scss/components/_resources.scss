@@ -1,0 +1,23 @@
+
+
+.resources-page {
+    .links {
+        text-align: right;
+        a:not(:last-of-type) {
+            margin-right: 1em;
+        }
+    }
+}
+
+
+@media only screen and (max-width: 970px) {
+    .resources-page {
+        .two-column-50-50 {
+            display: block;
+        }
+    }
+
+
+
+
+}

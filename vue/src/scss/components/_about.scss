@@ -1,0 +1,162 @@
+.about-page{
+	float:left;
+	width:100%;
+	text-align: justify;
+	div{
+		float:left;
+		width:100%;
+		>div{
+		float:left;
+		width:100%;
+		h2{
+			text-align:center;
+			margin-top:5em;
+		}//end h2
+
+		//project overview
+		&:nth-child(1){
+			h2{
+				margin-top:0
+			}
+		}
+		ul{
+			margin-left:15px;
+			li{
+				list-style: square;
+				margin-bottom: 1em;
+			}
+		}// end ul
+
+		section{
+			&.image_row{
+				float:left;
+				figure {
+					  width: 16.666%;
+  					  float:left;
+  					  position: relative;
+					  padding: 0;
+					  margin: 0;
+  					  img{
+  					  	display: block;
+  					  	width:100%;
+  					  	object-fit: cover;
+						height: 13vw;
+  					  }// img
+  					  figcaption{
+						opacity: 0;
+						position: absolute;
+						color: darken(white,8%);
+						right: 0;
+						bottom: 0;
+						font-size:0.6rem;
+						font-style:italic;
+						padding: 0.2rem 0.5rem;
+						z-index: 2;
+						-webkit-box-sizing: border-box;
+						box-sizing: border-box;
+						background-color: rgba(0,0,0,.7);
+						-webkit-transition: opacity .3s ease-in-out;
+						transition: opacity .3s ease-in-out;
+						line-height: 1.3;
+						a{
+							color:white;
+						}
+					}// figcaption
+				    &:hover{
+				      figcaption{
+				        opacity: 1;
+				        cursor: default;
+				        a{
+				          color:white;
+				        }
+				      }
+				    }// hover
+				}// figure
+			}// image row
+		}// section
+
+		//Funder and Contact text
+		&:nth-child(4), &:nth-child(9){
+			p{
+				text-align: center;
+			}
+		}
+		.two-column-50-50{
+			margin: 2em 0 0 0;
+			h3{
+				margin:0;
+				text-align: center;
+				font-size:1.5em;
+				>p{
+					text-align: center;
+					margin:0;
+				}
+			}
+			h4{
+				text-align: center;
+				margin: 0;
+				font-size:1.1em;
+				>p{
+					text-align: center;
+					margin:0;
+				}
+			}
+			p{
+				text-align:justify ;
+			}
+		}
+	}// end div
+}// about-page
+	/*> div {
+		margin: 3em 0 6em 0;
+		
+		&:first-of-type {
+			align-items: center;
+			
+		}
+	}
+	ul {
+		margin: 1em;
+		li {
+			list-style: unset;
+		}
+	}
+	a {
+		img {
+			max-height: 80px;
+			width: auto;
+		}
+	}
+	.fas, .fab {
+		color: $primary;
+		vertical-align: middle;
+		font-size: 1.5em;
+	}
+	.twitter-timeline {
+		max-width: 590px;
+	}*/
+}
+
+@media only screen and (max-width: 850px) {
+	.about-page{
+		div{
+			section{
+				&.image_row{
+					figure {
+						  width: 33.333%!important;
+						  img{
+							min-height: 20vw;	
+						}
+					}
+				}
+			}
+		}
+	}
+}
+/*@media only screen and (max-width: 970px) {
+    .about-page {
+        .two-column-50-50 {
+			display: block;
+        }
+    }
+}*/

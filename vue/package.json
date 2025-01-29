@@ -1,0 +1,66 @@
+{
+  "name": "sharc",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": " vue-cli-service build --openssl-legacy-provider",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "16": "^0.0.2",
+    "axios": "^1.7.8",
+    "browserslist": "^4.22.1",
+    "i": "^0.3.6",
+    "jspdf": "^2.5.2",
+    "nouislider": "^14.6.3",
+    "openseadragon": "^2.4.2",
+    "sass": "^1.32.5",
+    "serve": "^14.2.4",
+    "vue": "^2.7.16",
+    "vue-cookies": "^1.7.4",
+    "vue-linkify": "^1.0.1",
+    "vue-pluralize": "0.0.2",
+    "vue-router": "^3.5.1",
+    "vue-scrollto": "^2.20.0",
+    "vue-slick-carousel": "^1.0.5",
+    "vue-truncate-filter": "^1.1.7",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-service": "^3.3.1",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^5.16.0",
+    "eslint-plugin-vue": "^5.2.3",
+    "npm": "^10.9.1",
+    "sass-loader": "^7.3.1",
+    "style-loader": "^0.23.1",
+    "vue-template-compiler": "^2.7.16",
+    "webpack": "^4.47.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "rules": {},
+    "parserOptions": {
+      "parser": "babel-eslint"
+    }
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {}
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
+}

@@ -1,0 +1,141 @@
+/*#timeline-embed{
+    border: 1px solid $grey-light;
+}*/
+.tl-storyslider {
+  height: 20em !important;
+}
+.tl-text .tl-headline-date, .tl-text h3.tl-headline-date{
+  color: $grey-dark !important;
+}
+.tl-timenav{
+  background-color: $grey-light !important;
+}
+
+.tl-timemarker .tl-timemarker-content-container .tl-timemarker-content.tl-timemarker-content-small .tl-timemarker-text h2.tl-headline{
+  font-size: 0.8em !important;
+  line-height: 1em !important;
+}
+.tl-text p {
+  color: black !important;
+  font-family: $font-primary !important;
+}  
+
+/* Previous Next labels */
+.tl-slidenav-previous .tl-slidenav-content-container, .tl-slidenav-next .tl-slidenav-content-container {
+    top: -80px;
+}
+.tl-slidenav-previous .tl-slidenav-title, .tl-slidenav-next .tl-slidenav-title{
+  opacity: 1;
+}
+.tl-slidenav-previous .tl-slidenav-description, .tl-slidenav-next .tl-slidenav-description {
+  opacity: 1;
+}
+.tl-slidenav-content-container:hover{ 
+  opacity:0.8;
+}
+.tl-slidenav-previous .tl-slidenav-title, .tl-slidenav-next .tl-slidenav-title{
+  font-size: 13px;
+}
+.tl-slidenav-next .tl-slidenav-content-container .tl-slidenav-icon:before {
+    color: #06536b;
+    font-family: $fontawesome;
+    font-weight: 300;
+    font-size: 30px;
+    content: "\F054";
+}
+.tl-slidenav-previous .tl-slidenav-content-container .tl-slidenav-icon:before {
+    color: #06536b;
+    font-family: $fontawesome;
+    font-weight: 300;
+    font-size: 30px;
+    content: "\F053";
+}
+
+/* Timeline labels */
+.tl-timemarker .tl-timemarker-content-container{
+  box-shadow: none !important;
+  text-align: left;
+}
+.tl-timemarker .tl-timemarker-content-container .tl-timemarker-content {
+  background:white;
+}
+.tl-timemarker .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline{
+  color:black;
+  font-family: $font-primary;
+}
+.tl-timemarker .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline:hover{
+  color:black;
+  font-family: $font-primary;
+}
+.tl-timemarker.tl-timemarker-active  .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline{
+  color:white;
+  font-family: $font-primary;
+}
+.tl-timemarker.tl-timemarker-active  .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline:hover{
+  color:white;
+  font-family: $font-primary;
+}
+.tl-timemarker.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout::after{
+  background:none;
+  width:0;
+  height:0;
+}
+.tl-timemarker.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout:hover::after{
+  background:none;
+}
+.tl-timemarker .tl-timemarker-content-container{
+  margin: 7px 0 0 0 !important;
+}
+.tl-timemarker .tl-timemarker-content-container:hover{
+  width: 250px !important;
+  z-index:99;
+  opacity: 0.9;
+}
+.tl-timemarker .tl-timemarker-content-container:hover .tl-timemarker-content .tl-timemarker-text h2.tl-headline{
+  color:black;
+  font-weight: bold;
+}
+.tl-timemarker.tl-timemarker-active .tl-timemarker-content-container:hover .tl-timemarker-content .tl-timemarker-text h2.tl-headline{
+  color:white;
+    font-weight: bold;
+}
+.tl-timemarker.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content {
+  background-color:black;
+}
+.tl-timemarker .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout::after{
+  background:none;
+  width:0;
+  height:0;
+}
+.tl-timemarker .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout:hover::after{
+  background:none;
+}
+.tl-timemarker .tl-timemarker-content-container {
+  border-radius: 0;
+  width:120px !important;
+  margin: 7px 0 0 2px;
+}
+.tl-timemarker .tl-timemarker-line-left{
+  border-left:1px solid $grey-dark !important;
+  width: 3px;
+}
+
+.tl-timemarker.tl-timemarker-with-end.tl-timemarker-active .tl-timemarker-line-left::after,
+.tl-timemarker.tl-timemarker-with-end.tl-timemarker-active .tl-timemarker-line-right::after{
+background-color: #951100 !important;
+}
+
+/* Toolbar */
+.tl-menubar {
+  border-radius:0;
+}
+
+span.tl-menubar-button{
+  background:none;
+}
+
+/* Attribution */
+.tl-timenav .tl-attribution {
+    bottom: 12px;
+    left: 5px;
+}

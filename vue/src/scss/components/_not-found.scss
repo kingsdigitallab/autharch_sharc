@@ -1,0 +1,33 @@
+.not-found {
+    .page-title {
+        text-align: left;
+    }
+    .flex {
+        height: 60vh;
+        align-items: center;
+        justify-content: center;
+        text-align: left;
+        .page-title {
+            padding: 0.5em 0 0 0;
+        }
+        .error {
+            margin: 0 40px 0 0;
+            font-weight: 900;
+            font-size: 15em;
+            color: lighten($grey-light, 3%);
+        }
+    }
+}
+
+@media only screen and (max-width: 750px) {
+    .not-found {
+        .flex {
+            display: block;
+            height: auto;
+            text-align: center;
+            .error {
+                font-size: 10em;
+            }
+        }
+    }
+}
