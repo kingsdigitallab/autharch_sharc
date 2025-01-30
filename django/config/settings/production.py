@@ -185,10 +185,10 @@ LOGGING = {
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
-AUTHENTICATION_BACKENDS = [
-    # https://django-auth-ldap.readthedocs.io/
-    "django_auth_ldap.backend.LDAPBackend"
-] + AUTHENTICATION_BACKENDS  # noqa
+# AUTHENTICATION_BACKENDS = [
+#     # https://django-auth-ldap.readthedocs.io/
+#     "django_auth_ldap.backend.LDAPBackend"
+# ] + AUTHENTICATION_BACKENDS  # noqa
 
 # LDAP AUTHENTICATION
 # ------------------------------------------------------------------------------

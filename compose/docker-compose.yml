@@ -13,29 +13,6 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./production/nginx-proxy/vhost.d:/etc/nginx/vhost.d:ro
 
-
-  nginx:
-    build:
-      context: ..
-      dockerfile: ./compose/production/nginx/Dockerfile
-    restart: unless-stopped
-    expose:
-      - "8001"
-    volumes:
-      - ../volumes/django/static:/usr/share/nginx/static:Z
-      - ../volumes/django/media:/usr/share/nginx/media:ro
-      - ../volumes/vue/dist:/usr/share/nginx/vue:ro
-      #- ../volumes/nginx/vue:/usr/share/nginx/vue:ro
-    env_file:
-      - .env
-    environment:
-      VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
-      #VIRTUAL_PATH: "~^/(assets/|media/|static/|redist/|robots.txt)"
-      VIRTUAL_PATH: "/"
-      VIRTUAL_PROTO: http
-      VIRTUAL_PORT: 8001
-
-
   django:
     build:
       context: ../
@@ -54,10 +31,30 @@ services:
       - "8000:8000"
     environment:
       VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
-      VIRTUAL_PATH: "~^/(api/|rct/)"
-      #VIRTUAL_PATH: "/api/"
+      VIRTUAL_PATH: "~^/(api/|rct/|wagtail/)"
       VIRTUAL_PROTO: http
       VIRTUAL_PORT: 8000
+
+
+  nginx:
+    build:
+      context: ..
+      dockerfile: ./compose/production/nginx/Dockerfile
+    restart: unless-stopped
+    expose:
+      - "8001"
+    volumes:
+      - ../volumes/django/static:/usr/share/nginx/static:Z
+      - ../volumes/django/media:/usr/share/nginx/media:ro
+      - ../volumes/vue/dist:/usr/share/nginx/vue:ro
+    env_file:
+      - .env
+    environment:
+      VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
+      #VIRTUAL_PATH: "~^/(assets/|media/|static/|redist/|robots.txt)"
+      VIRTUAL_PATH: "/"
+      VIRTUAL_PROTO: http
+      VIRTUAL_PORT: 8001
 
 
   postgres:
@@ -67,8 +64,6 @@ services:
     #      dockerfile: ./compose/production/postgres/Dockerfile
     restart: unless-stopped
     environment:
-      #POSTGRES_USER: ${POSTGRES_USER}
-      #POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
     healthcheck:
       test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'" ]
