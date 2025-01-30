@@ -1,6 +1,12 @@
 Autharch for ShaRC
 ==================
 
+Post-migration notes
+--------
+
+1. Documents should be built manually (python manage.py search_index --rebuild) or objects won't work. Manual because it's very slow.
+2. Manually rebuild vue if necessary and update files in volume/vue. not automatic due to archiving.
+
 TODO: Autharch for ShaRC description...
 
 .. image:: https://img.shields.io/badge/License-MIT-yellow.svg

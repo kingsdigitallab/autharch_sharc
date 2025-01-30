@@ -1883,6 +1883,7 @@ async function getWagtailPage(action, slug, type, fields) {
   if (process.env.VUE_APP_API_URL === "STATIC") {
     return { data: wagtail_static_data[slug] };
   } else {
+      console.log('slug:' + slug);
     return axios.get(`${API_URL}/${action}`, {
       headers: getHeaders(),
       params: getWagtailParams({ slug: slug, type: type, fields: fields }),

@@ -7,8 +7,9 @@ set -o nounset
 python /app/manage.py migrate
 python /app/manage.py collectstatic --noinput
 python /app/manage.py compress
-python /app/manage.py update_index
+#python /app/manage.py update_index
 # pure elastic index for the api
+# IF DISABLED YOU MUST BUILD MANUALLY FOR SEARCH TO WORK!
 #python manage.py search_index --rebuild
 
 python /app/manage.py runserver 0.0.0.0:8000

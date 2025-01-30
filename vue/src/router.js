@@ -35,25 +35,9 @@ export default new Router({
             component: ObjectList
         },
         {
-            path: '/exhibition/assets/*',
-            name: 'exhibition-assets',
-            //component: Secondary,
-            //redirect: 'https://main-bvxea6i-yo3hw5otma6dk.uk-1.platformsh.site/'
-            beforeEnter(to, from, next) {
-                let pathMatch = "assets/" + to.params.pathMatch;
-                let newHRef = "https://main-bvxea6i-yo3hw5otma6dk.uk-1.platformsh.site/" + pathMatch;
-                window.location.href = newHRef;
-                // https://main-bvxea6i-yo3hw5otma6dk.uk-1.platformsh.site/assets/logos/kcl-logo.jpg
-            }
-        },
-        {
             path: '/exhibition',
             name: 'exhibition',
-            //component: Secondary,
-            alias: '//main-bvxea6i-yo3hw5otma6dk.uk-1.platformsh.site/'
-            /*beforeEnter(to, from, next) {
-                window.location.href = "https://main-bvxea6i-yo3hw5otma6dk.uk-1.platformsh.site/";
-            }*/
+            component: Secondary,
         },
         /* {
              path: '/assets',

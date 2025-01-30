@@ -54,7 +54,8 @@ services:
       - "8000:8000"
     environment:
       VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
-      VIRTUAL_PATH: "/api/"
+      VIRTUAL_PATH: "~^/(api/|rct/)"
+      #VIRTUAL_PATH: "/api/"
       VIRTUAL_PROTO: http
       VIRTUAL_PORT: 8000
 
