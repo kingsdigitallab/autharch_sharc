@@ -34,18 +34,6 @@ export default new Router({
             name: 'objects',
             component: ObjectList
         },
-        /*{
-            path: '/exhibition',
-            name: 'exhibition',
-            component: Secondary,
-        },
-         {
-             path: '/assets',
-             name: 'exhibition',
-             component: Secondary,
-             //redirect: 'https://main-bvxea6i-yo3hw5otma6dk.uk-1.platformsh.site/assets/'
-             //beforeEnter() {location.href = 'http://github.com'}
-         },*/
         {
             path: '/objects/:id',
             name: 'object',

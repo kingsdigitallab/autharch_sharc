@@ -94,7 +94,7 @@ export default {
         case 'object':
 					this.setActivePage('objects');
 					break;
-        default:
+        default: 
           this.setActivePage(to.name);
 			}
     },
