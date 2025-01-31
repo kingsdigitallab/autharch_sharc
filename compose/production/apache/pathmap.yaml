@@ -1,8 +1,8 @@
 loglevel: "warn"
 paths:
-#   -  source:  "/"
-#      maptype: "files"
-#      target:  "/www/"
+   -  source:  "/"
+      maptype: "files"
+      target:  "/www/"
    -  source: "/exhibition/"
       maptype: "proxy"
       target: "https://main-bvxea6i-yo3hw5otma6dk.uk-1.platformsh.site/"
