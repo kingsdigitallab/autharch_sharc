@@ -90,19 +90,14 @@ services:
       - "9300:9300"
     restart: unless-stopped
 
-#  kdl-apache-proxy-exhibition:
-#   image: gitlab.kdl.kcl.ac.uk:5050/docker-images/core/kdl-apache-proxy
-#   container_name: kdl-apache-proxy-exhibition
-#   volumes:
-#     - ./production/apache/pathmap.yaml:/maps/pathmap.yaml:ro
-#
-#   ports:
-#     - "8002:80"
-#   restart: unless-stopped
-#   environment:
-#     VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
-#     VIRTUAL_PATH: "~^/exhibition/"
-#     VIRTUAL_PROTO: http
-#     VIRTUAL_PORT: 8002
+  kdl-apache-proxy-exhibition:
+   image: gitlab.kdl.kcl.ac.uk:5050/docker-images/core/kdl-apache-proxy
+   container_name: kdl-apache-proxy-exhibition
+   volumes:
+     - ./production/apache/pathmap.yaml:/maps/pathmap.yaml:ro
+
+   ports:
+     - "8002:80"
+   restart: unless-stopped
 
 
