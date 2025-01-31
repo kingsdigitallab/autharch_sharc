@@ -12,7 +12,7 @@
             </li>
             <li class="header__nav-item" v-on:click="toggleMenu">
               <!--<router-link :to="{name: 'exhibition'}" class="header__link js-home" exact>Exhibition</router-link>-->
-              <a href="/exhibition" class="header__link js-home">Exhibition</a>
+              <a href="https://sharc.kcl.ac.uk/exhibition/" class="header__link js-home">Exhibition</a>
             </li>
 <!--
             <li class="header__nav-item" v-on:click="toggleMenu">
