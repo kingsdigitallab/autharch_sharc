@@ -34,12 +34,12 @@ export default new Router({
             name: 'objects',
             component: ObjectList
         },
-        {
+        /*{
             path: '/exhibition',
             name: 'exhibition',
             component: Secondary,
         },
-        /* {
+         {
              path: '/assets',
              name: 'exhibition',
              component: Secondary,

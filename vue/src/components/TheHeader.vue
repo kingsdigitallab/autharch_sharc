@@ -11,7 +11,8 @@
               <router-link :to="{name: 'home'}" class="header__link js-home" exact>Home</router-link>
             </li>
             <li class="header__nav-item" v-on:click="toggleMenu">
-              <router-link :to="{name: 'exhibition'}" class="header__link js-home" exact>Exhibition</router-link>
+              <!--<router-link :to="{name: 'exhibition'}" class="header__link js-home" exact>Exhibition</router-link>-->
+              <a href="/exhibition" class="header__link js-home">Exhibition</a>
             </li>
 <!--
             <li class="header__nav-item" v-on:click="toggleMenu">
@@ -93,7 +94,7 @@ export default {
         case 'object':
 					this.setActivePage('objects');
 					break;
-        default: 
+        default:
           this.setActivePage(to.name);
 			}
     },
