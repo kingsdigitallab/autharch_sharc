@@ -27,8 +27,8 @@ services:
       - .env
     command: /start
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
       VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
       VIRTUAL_PATH: "~^/(api/|rct/|wagtail/)"
@@ -85,9 +85,9 @@ services:
       - .env
     volumes:
       - ../volumes/elasticsearch/data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-      - "9300:9300"
+    expose:
+      - "9200"
+      - "9300"
     restart: unless-stopped
 
 
