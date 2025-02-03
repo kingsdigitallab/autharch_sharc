@@ -27,8 +27,8 @@ services:
       - .env
     command: /start
     restart: unless-stopped
-    expose:
-      - "8000"
+    ports:
+      - "8000:8000"
     environment:
       VIRTUAL_HOST: ${DJANGO_ALLOWED_HOSTS}
       VIRTUAL_PATH: "~^/(api/|rct/|wagtail/)"
