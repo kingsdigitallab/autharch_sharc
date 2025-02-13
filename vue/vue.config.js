@@ -10,7 +10,7 @@ module.exports = {
         changeOrigin: true,
       },*/
       "^/rct": {
-        target: "https://sharc-api.kdl.kcl.ac.uk",
+        target: "https://sharc.kcl.ac.uk",
         changeOrigin: true,
       },
     },
