@@ -1,8 +1,6 @@
-name: 'sharc_openstack'
-
+name: "sharc_openstack"
 
 services:
-
   # Required - Nginx Ingress
   nginx-proxy:
     image: nginxproxy/nginx-proxy
@@ -35,7 +33,6 @@ services:
       VIRTUAL_PROTO: http
       VIRTUAL_PORT: 8000
 
-
   nginx:
     build:
       context: ..
@@ -56,17 +53,19 @@ services:
       VIRTUAL_PROTO: http
       VIRTUAL_PORT: 8001
 
-
   postgres:
-    image: postgres:12.3
-    #    build:
-    #      context: ../
-    #      dockerfile: ./compose/production/postgres/Dockerfile
+    build:
+      context: ..
+      dockerfile: ./compose/production/postgres/Dockerfile
     restart: unless-stopped
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
     healthcheck:
-      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'" ]
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'",
+        ]
       timeout: 10s
       interval: 5s
       retries: 10
@@ -78,7 +77,6 @@ services:
     expose:
       - "5432"
 
-
   elasticsearch:
     image: elasticsearch:7.10.1
     env_file:
@@ -89,5 +87,3 @@ services:
       - "9200"
       - "9300"
     restart: unless-stopped
-
-
