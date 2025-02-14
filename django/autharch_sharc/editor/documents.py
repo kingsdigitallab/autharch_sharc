@@ -559,7 +559,7 @@ class EADDocument(Document):
                                     iiif_image_url = image["resource"]["service"]["@id"]
                                     iiif_image_url = iiif_image_url.replace(
                                         "https://rct.resourcespace.com/",
-                                        "https://sharc-api.kdl.kcl.ac.uk/rct/",
+                                        "/rct/",
                                     )
                                     if "width" in image["resource"]:
                                         image_width = image["resource"]["width"]

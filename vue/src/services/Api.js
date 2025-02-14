@@ -1897,10 +1897,10 @@ async function getSingle(action, id) {
     headers: getHeaders(),
   });
 }
-
+// Bearer: `Token ${TOKEN}`,
 function getHeaders() {
   return {
-    Bearer: `Token ${TOKEN}`,
+
   };
 }
 

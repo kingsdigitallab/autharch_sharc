@@ -33,6 +33,7 @@ const actions = {
     async fetchSecondaryPage({ commit }, page_name) {
         // todo Refactor this once we have clarity on secondary page templates
         // 'editor.RichTextPage'
+
         const response = await Api.getWagtailPage(WAGTAIL_PAGE_API_URL, wagtailPageIds[page_name], 'editor.StreamFieldPage', 'title,body');
         let image = {};
 
@@ -62,8 +63,8 @@ const actions = {
     //     return response;
     // },
     //async fetchCustomWagtailPage({ commit }, id) {
-        
-        // 1. We need to create a Wagtail template based on the Resources page https://sharc-autharch-stg.kdl.kcl.ac.uk/resources 
+
+        // 1. We need to create a Wagtail template based on the Resources page https://sharc-autharch-stg.kdl.kcl.ac.uk/resources
         // the ShaRC team needs to be able to upload images, pdf files (required on the Resources page)
         // and embed iframe videos, e.g., from YouTube (required on the Resources page)
         // MAO has a similar template where videos are embedded
@@ -75,9 +76,9 @@ const actions = {
     //},
 
     // EH: Fetch now working.
-    // fetchEventsPageStatus has to be set separately from fetchPageStatus, 
-    // otherwise, on the Resources page fetchPageStatus is called twice (for the Events and for the Glossary page) and it is not clear 
-    // whether getPageStatus is set for the Events page or for the Glossary page  
+    // fetchEventsPageStatus has to be set separately from fetchPageStatus,
+    // otherwise, on the Resources page fetchPageStatus is called twice (for the Events and for the Glossary page) and it is not clear
+    // whether getPageStatus is set for the Events page or for the Glossary page
     // if there is a more elegant solution, I am happy to update the Vue templates.
     async fetchEventsPageStatus({ commit }) {
 
