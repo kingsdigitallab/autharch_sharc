@@ -446,10 +446,11 @@ class EADDocument(Document):
     def get_queryset(self):
         """
         Return the queryset that should be indexed by this doc type.
+        included here so we can filter to diagnose problems if needed
         """
         queryset = self.django.model._default_manager.all()
-
-        return queryset.filter(pk=1621)
+        # .filter(pk=1621)
+        return queryset
 
     def prepare_related_material_parsed(self, instance):
 
