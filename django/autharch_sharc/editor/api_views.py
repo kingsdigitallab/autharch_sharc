@@ -1,7 +1,6 @@
 import mimetypes
 
 import urllib3
-from django.http import HttpResponse
 from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
 from django_elasticsearch_dsl_drf.filter_backends import (
     CompoundSearchFilterBackend,
@@ -20,6 +19,7 @@ from rest_framework.views import APIView
 
 from autharch_sharc.django_kdl_timeline.views import ListTimelineEvents
 from autharch_sharc.editor.models import SharcTimelineEventSnippet
+from django.http import HttpResponse
 
 from .documents import EADDocument
 from .serializers import EADDocumentResultSerializer, EADDocumentThemeResultSerializer
@@ -275,13 +275,6 @@ class EADDocumentViewSet(DocumentViewSet):
 
     @classmethod
     def _data_to_list(cls, data):
-        if len(data) > 0:
-            if "media" in data[0] and data[0]["media"] is not None:
-                if len(data[0]["media"]) > 1:
-                    # Only include first item in media
-                    # todo look at ordering/priority of items
-                    # when we have more data
-                    data[0]["media"] = [data[0]["media"][0]]
 
         return data
 

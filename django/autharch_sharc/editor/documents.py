@@ -1,3 +1,4 @@
+import pdb
 import re
 
 import requests
@@ -441,6 +442,14 @@ class EADDocument(Document):
             "sort": fields.KeywordField(normalizer=lowercase_sort_normalizer),
         }
     )
+
+    def get_queryset(self):
+        """
+        Return the queryset that should be indexed by this doc type.
+        """
+        queryset = self.django.model._default_manager.all()
+
+        return queryset.filter(pk=1621)
 
     def prepare_related_material_parsed(self, instance):
 

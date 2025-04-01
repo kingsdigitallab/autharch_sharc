@@ -87,8 +87,9 @@
                     </span>
           <span v-if="getArchive.reference && getArchive.reference != '' && !/^[A-Z].*/.test(getArchive.reference)">
                         <p>Link:</p>
-                        <p>
-                            <a :href="'https://www.rct.uk/collection/search#/5/collection/'+getArchive.rct_link">{{
+                        <p><!--'https://www.rct.uk/collection/search#/5/collection/'+
+                        https://www.rct.uk/collection/656847/mrs-inchbald-in-the-character-of-lady-abbess-->
+                            <a :href="'https://www.rct.uk/search/site/'+getArchive.rct_link">{{
                                 getArchive.unittitle
                               }} at the Royal Collection Trust</a></p>
                     </span>

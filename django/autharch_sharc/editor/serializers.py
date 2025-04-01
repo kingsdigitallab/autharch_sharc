@@ -1,3 +1,5 @@
+import json
+
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from rest_framework import serializers
 
@@ -50,6 +52,8 @@ class EADDocumentThemeResultSerializer(DocumentSerializer):
 class EADDocumentResultSerializer(DocumentSerializer):
     """ Serializer for EAD XML document"""
 
+    media = serializers.SerializerMethodField()
+
     class Meta:
         document = EADDocument
 
@@ -74,7 +78,7 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "related_material_parsed",
             "related_sources",
             "related_people",
-            "media",
+            # "media",
             "search_content",
             "doc_type",
             "stories",
@@ -85,3 +89,29 @@ class EADDocumentResultSerializer(DocumentSerializer):
             "references_published",
             "references_unpublished",
         )
+
+    def get_media(self, obj):
+        media = obj.media
+        media_list = list()
+
+        for m in media:
+            # this is, not great, but I can't get it to accept that it's json
+            # otherwise
+            media_list.append(
+                {
+                    "label": m.label,
+                    "iiif_manifest_url": m.iiif_manifest_url,
+                    "iiif_image_url": m.iiif_image_url,
+                    "full_image_url": m.full_image_url,
+                    "thumbnail_url": m.thumbnail_url,
+                    "image_width": m.image_width,
+                    "image_height": m.image_height,
+                    "thumbnail_width": m.thumbnail_width,
+                    "thumbnail_height": m.thumbnail_height,
+                    "order": m.order,
+                }
+            )
+        # make sure we're sorted by order
+        sortedList = sorted(media_list, key=lambda d: d["order"])
+
+        return sortedList
