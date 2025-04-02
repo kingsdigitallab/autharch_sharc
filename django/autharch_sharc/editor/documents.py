@@ -627,6 +627,7 @@ class EADDocument(Document):
                     "image_height": image_height,
                     "thumbnail_width": thumbnail_width,
                     "thumbnail_height": thumbnail_height,
+                    "order": 1,
                 }
             ]
 

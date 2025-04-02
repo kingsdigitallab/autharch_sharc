@@ -97,6 +97,9 @@ class EADDocumentResultSerializer(DocumentSerializer):
         for m in media:
             # this is, not great, but I can't get it to accept that it's json
             # otherwise
+            order = 1
+            if "order" in m:
+                order = m.order
             media_list.append(
                 {
                     "label": m.label,
@@ -108,7 +111,7 @@ class EADDocumentResultSerializer(DocumentSerializer):
                     "image_height": m.image_height,
                     "thumbnail_width": m.thumbnail_width,
                     "thumbnail_height": m.thumbnail_height,
-                    "order": m.order,
+                    "order": order,
                 }
             )
         # make sure we're sorted by order
