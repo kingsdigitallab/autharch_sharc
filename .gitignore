@@ -278,3 +278,4 @@ autharch_sharc/media/
 data/*
 volumes/*
 ./vue/dist
+/server

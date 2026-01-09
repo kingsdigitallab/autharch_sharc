@@ -3,6 +3,14 @@ FROM python:3.8-slim-buster
 
 ENV PYTHONUNBUFFERED 1
 
+# GN: 26Q1
+# Debian Buster (version 10), 
+# which is the base of the python:3.8-slim-buster container, 
+# has reached end-of-life 
+# and its repositories have been moved to the Debian archive
+RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && \
+    sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list
+
 RUN apt-get update \
   # dependencies for building Python packages
   && apt-get install -y build-essential \
