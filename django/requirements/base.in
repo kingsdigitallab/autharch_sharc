@@ -42,3 +42,5 @@ django-kdl-wagtail>=0.9.0,<1.0
 # Whitenoise
 # ------------------------------------------------------------------------------
 whitenoise>=5.0.1,<6  # https://github.com/evansd/whitenoise
+
+gunicorn==20.0.4

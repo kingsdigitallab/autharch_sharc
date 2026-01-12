@@ -43,7 +43,7 @@ RUN pip install --no-cache-dir -r /requirements/production.txt \
 COPY --chown=django:django ./compose/production/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
-COPY --chown=django:django ./django /app
+# COPY --chown=django:django ./django /app
 
 USER django
 

@@ -18,12 +18,21 @@ services:
     volumes:
       - ../volumes/django/static:/app/staticfiles:Z
       - ../volumes/django/media:/app/autharch_sharc/media:Z
+      - ../django:/app
     depends_on:
       - postgres
       - elasticsearch
     env_file:
       - .env
-    command: /start
+    command:
+      [
+        "/usr/local/bin/gunicorn",
+        "config.wsgi",
+        "--bind", "0.0.0.0:8000",
+        "--chdir=/app",
+        "--timeout", "180",
+        "--forwarded-allow-ips='*'"
+      ]
     restart: unless-stopped
     ports:
       - "8000:8000"
