@@ -4,7 +4,7 @@
     <div class="slider-container">
       <VueSlickCarousel class="slider" ref="related" v-bind="relatedOptions">
         <div v-for='(object, index) in relatedObjects' v-bind:key="index" class="object-single">
-          <router-link :to="{name: 'object', params: {id: object.pk}}">
+          <router-link :to="{name: 'rct-object', params: {reference: object.reference}}">
                     <span class="object-thumbnail">
                       <span></span>
                       <img v-if="object.media[0].thumbnail_url != 'PLACEHOLDER'" :src="object.media[0].thumbnail_url" :alt="object.unittitle"/>
