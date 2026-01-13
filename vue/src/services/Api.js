@@ -1,8 +1,20 @@
 import axios from "axios";
 
-const API_URL = process.env.VUE_APP_API_URL
+let API_URL = process.env.VUE_APP_API_URL
   ? process.env.VUE_APP_API_URL
   : "/api";
+
+// GN, 26Q1, removes the trailing / as URL formation adds another one after
+// see getWagtailPage() below for instance.
+// Requests with slashes (e.g. /api//wagtail/pages/) 
+// will return a 404 or a Wagtail admin page.
+// Not sure why this issue didn't come up before.
+// Note that .env VUE_APP_API_URL = '/api/' (on server & docs)
+// But above the default is '/api'... 
+// See also getSingle() which remove trailing slash.
+// Something smells...
+API_URL = API_URL.replace(/\/$/, "");
+
 const TOKEN = process.env.VUE_APP_API_TOKEN;
 
 function stripUrl(url) {
