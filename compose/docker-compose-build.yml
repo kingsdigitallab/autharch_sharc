@@ -1,0 +1,15 @@
+name: "sharc_build"
+
+services:
+  vue:
+    env_file:
+      - .env
+    build:
+      context: ../
+      dockerfile: ./compose/dev/vue/Dockerfile
+    command: ["serve"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../vue:/app/vue
+      - ../volumes/vue:/app/built
