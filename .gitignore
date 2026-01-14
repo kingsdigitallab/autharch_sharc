@@ -277,5 +277,7 @@ autharch_sharc/media/
 !.envs/.local/
 data/*
 volumes/*
+!volumes/vue/
+!volumes/vue/**
 ./vue/dist
 /server
