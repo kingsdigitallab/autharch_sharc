@@ -20,6 +20,7 @@
     "serve": "^14.2.4",
     "vue": "^2.7.16",
     "vue-cookies": "^1.7.4",
+    "vue-gtag": "^1.16.1",
     "vue-linkify": "^1.0.1",
     "vue-pluralize": "0.0.2",
     "vue-router": "^3.5.1",
